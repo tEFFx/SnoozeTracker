@@ -76,14 +76,11 @@ public class PSGWrapper : MonoBehaviour {
         m_Callbacks.Add(new IrqCallback(AudioSettings.outputSampleRate, frequency, callback));
     }
 
-    public void SetFrequency(int channel, VirtualKeyboard.Note note, int octave)
+    public void SetFrequency(int channel, int note, int octave, int fineTune = 0)
     {
-        if (note == VirtualKeyboard.Note.None || note == VirtualKeyboard.Note.NoteOff)
-            return;
-
         if (channel < 3)
         {
-            int freq = CalculateFrequency(note, octave);
+            int freq = CalculateFrequency(note, octave) + fineTune;
             byte reg = (byte)((channel * 2) << 4);
             byte data = (byte)(0x80 | reg | (freq & 0xF));
             m_PSGChip.Write(data);
@@ -103,9 +100,9 @@ public class PSGWrapper : MonoBehaviour {
         m_PSGChip.Write(data);
     }
 
-    public static int CalculateFrequency(VirtualKeyboard.Note note, int octave)
+    public static int CalculateFrequency(int note, int octave)
     {
-        int relativeNote = ((int)note + octave * 12) - 58;
+        int relativeNote = (note + octave * 12) - 58;
         float freq = 440 * Mathf.Pow(Mathf.Pow(2, 1f / 12f), relativeNote);
         int div = (int)SN76489.Clock.PAL / 32 / (int)freq;
         //Debug.Log(div.ToString("X2"));

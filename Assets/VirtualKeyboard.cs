@@ -40,6 +40,8 @@ public class VirtualKeyboard : MonoBehaviour {
     public NoteKey[] noteBinds;
 
     private Instruments.InstrumentInstance m_Instrument;
+    private Note m_PlayingNote;
+    private int m_PlayingOctave;
     private bool m_Pressed;
 
     void Awake() {
@@ -62,10 +64,11 @@ public class VirtualKeyboard : MonoBehaviour {
 
                 if (noteBinds[i].note != Note.None && noteBinds[i].note != Note.NoteOff)
                 {
-                    psg.SetAttenuation(patternView.selectedChannel, 0xF);
-                    psg.SetFrequency(patternView.selectedChannel, noteBinds[i].note, currentOctave + noteBinds[i].octaveOffset);
+                    m_PlayingNote = noteBinds [ i ].note;
+                    m_PlayingOctave = currentOctave + noteBinds [ i ].octaveOffset;
                     m_Instrument = instruments.presets [ currentInstrument ];
                     m_Pressed = true;
+                    psg.SetFrequency ( patternView.selectedChannel, ( int ) m_PlayingNote, m_PlayingOctave );
                 }
             }
             else if (noteBinds[i].GetNoteUp())
@@ -82,6 +85,9 @@ public class VirtualKeyboard : MonoBehaviour {
 
         m_Instrument.Clock ( );
         psg.SetAttenuation ( patternView.selectedChannel, m_Instrument.GetCurrentVol());
+
+        if(m_Instrument.updatesFrequency)
+            psg.SetFrequency ( patternView.selectedChannel, (int)m_PlayingNote + m_Instrument.GetNoteOffset(), m_PlayingOctave );
     }
 
     public static Note GetNote(byte noteData)
