@@ -60,6 +60,7 @@ public class VirtualKeyboard : MonoBehaviour {
             if (noteBinds[i].GetNoteDown(currentOctave, out noteData))
             {
                 patternView.data[sel] = noteData;
+                patternView.data [ sel + 1 ] = (byte)currentInstrument;
                 patternView.MoveLine(patternAdd);
 
                 if (noteBinds[i].note != Note.None && noteBinds[i].note != Note.NoteOff)

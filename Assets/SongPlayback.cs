@@ -72,7 +72,7 @@ public class SongPlayback : MonoBehaviour {
                 {
                     m_CurrentNotes [ i ] = note;
                     m_CurrentOctaves [ i ] = VirtualKeyboard.GetOctave ( col.data [ m_CurrentLine, 0 ] );
-                    m_Instruments [ i ] = instruments.presets [ 0 ];
+                    m_Instruments [ i ] = instruments.presets [ col.data[m_CurrentLine, 1] ];
 
                     psg.SetFrequency ( i, ( int ) m_CurrentNotes [ i ], m_CurrentOctaves [ i ] );
                 }
@@ -91,7 +91,7 @@ public class SongPlayback : MonoBehaviour {
         }
 
         for ( int i = 0 ; i < data.channels ; i++ ) {
-            if ( m_CurrentNotes [ i ] != VirtualKeyboard.Note.None ) {
+            if ( m_CurrentNotes [ i ] != VirtualKeyboard.Note.None && m_CurrentNotes[i] != VirtualKeyboard.Note.NoteOff ) {
                 psg.SetAttenuation ( i, m_Instruments [ i ].GetCurrentVol ( ) );
 
                 if(m_Instruments[i].updatesFrequency)
