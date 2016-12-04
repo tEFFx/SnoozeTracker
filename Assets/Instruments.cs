@@ -12,6 +12,7 @@ public class Instruments : MonoBehaviour {
         public int[] arpreggio;
         public int vibratoDepth;
         public int vibratoSpeed;
+        public int relativeVolume;
 
         private int m_VolumeOffset;
         private int m_ArpOffset;

@@ -30,6 +30,7 @@ public class PSGWrapper : MonoBehaviour {
     }
 
     public long currentSample { get { return m_CurrentSample; } }
+    public SN76489 chip { get { return m_PSGChip; } }
     public AudioSource audioSource;
 
     private long m_CurrentSample;

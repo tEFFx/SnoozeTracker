@@ -72,9 +72,11 @@ public class VirtualKeyboard : MonoBehaviour {
                     psg.SetFrequency ( patternView.selectedChannel, ( int ) m_PlayingNote, m_PlayingOctave );
                 }
             }
-            else if (noteBinds[i].GetNoteUp())
-            {
-                psg.SetAttenuation(patternView.selectedChannel, 0x0);
+        }
+
+        for ( int i = 0 ; i < noteBinds.Length ; i++ ) {
+            if ( noteBinds [ i ].GetNoteUp ( ) && m_PlayingNote == noteBinds [ i ].note ) {
+                psg.SetAttenuation ( patternView.selectedChannel, 0x0 );
                 m_Pressed = false;
             }
         }
@@ -91,17 +93,17 @@ public class VirtualKeyboard : MonoBehaviour {
             psg.SetFrequency ( patternView.selectedChannel, (int)m_PlayingNote + m_Instrument.GetNoteOffset(), m_PlayingOctave );
     }
 
-    public static Note GetNote(byte noteData)
+    public static Note GetNote(int noteData)
     {
         return (Note)(noteData & 0x0F);
     }
 
-    public static int GetOctave(byte noteData)
+    public static int GetOctave(int noteData)
     {
         return (noteData >> 4) & 0x0F;
     }
 
-	public static string FormatNote(byte noteData)
+	public static string FormatNote(int noteData)
     {
         int note = noteData & 0x0F;
         int octave = (noteData >> 4) & 0x0F;

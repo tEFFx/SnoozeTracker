@@ -8,6 +8,7 @@ public class PatternView : MonoBehaviour {
     public int currentLine { get { return (m_Selection / lineOffset); } }
     public int selection { get { return m_Selection; } }
     public int selectedChannel { get { return (int)Math.Floor((double)m_Selection / (double)SongData.SONG_DATA_COUNT) % data.channels; } }
+    public int selectedAttribute { get { return m_Selection % SongData.SONG_DATA_COUNT; } }
 
     public SongData data;
     public float[] lineWidths;
@@ -19,6 +20,10 @@ public class PatternView : MonoBehaviour {
     public Color neutralColor;
 
     private int m_Selection;
+    private int m_LastSelection;
+    private int m_InputSelection;
+    private string m_Input = "";
+    private char m_LastChar;
 
     void Update()
     {
@@ -30,6 +35,26 @@ public class PatternView : MonoBehaviour {
             m_Selection += (m_Selection % lineOffset == 0) ? lineOffset - 1 : -1;
         if (Input.GetKeyDown(KeyCode.RightArrow))
             m_Selection += (m_Selection % lineOffset == lineOffset - 1) ? -lineOffset + 1 : 1;
+
+        if ( selectedAttribute != 0 && Input.inputString.Length > 0 && m_LastChar != Input.inputString[0]) {
+            if ( m_Input.Length >= 2 || m_Selection != m_InputSelection )
+                m_Input = "";
+
+            m_InputSelection = m_Selection;
+            m_LastChar = Input.inputString [ 0 ];
+            m_Input += m_LastChar;
+
+            int res;
+            if(int.TryParse(m_Input, System.Globalization.NumberStyles.HexNumber, null, out res ) ) {
+                data [ selection ] = (byte)res;
+            }
+
+        }else if(Input.inputString.Length == 0 && m_LastChar != 0 ) {
+            m_LastChar = (char)0;
+        }
+
+        if ( Input.GetKeyDown ( KeyCode.Delete ) )
+            data [ selection ] = -1;
     }
 
 	void OnGUI()
@@ -55,21 +80,25 @@ public class PatternView : MonoBehaviour {
             int wId = i % SongData.SONG_DATA_COUNT;
             string text;
 
-            switch (wId)
-            {
-                case 0:
-                    text = VirtualKeyboard.FormatNote(data[i]);
-                    break;
-                case 2:
-                    text = data[i].ToString("X");
-                    break;
-                default:
-                    text = data[i].ToString("X2");
-                    break;
+            if ( data [ i ] < 0 ) {
+                text = "-";
+            } else {
+                switch ( wId ) {
+                    case 0:
+                        text = VirtualKeyboard.FormatNote ( data [ i ] );
+                        break;
+                    case 2:
+                        text = data [ i ].ToString ( "X" );
+                        break;
+                    default:
+                        text = data [ i ].ToString ( "X2" );
+                        break;
+                }
             }
 
             if (GUILayout.Button(text, GUILayout.Width(lineWidths[wId]), GUILayout.Height(lineHeight)))
             {
+                m_LastSelection = m_Selection;
                 m_Selection = i;
             }
 
@@ -82,6 +111,7 @@ public class PatternView : MonoBehaviour {
 
     public void MoveLine(int lines = 1)
     {
+        m_LastSelection = m_Selection;
         m_Selection += lines * lineOffset;
 
         if (m_Selection >= length)

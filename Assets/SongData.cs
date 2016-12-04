@@ -10,10 +10,15 @@ public class SongData : MonoBehaviour {
     {
         public ColumnEntry(int numRows, int numDataEntries)
         {
-            data = new byte[numRows, numDataEntries];
+            data = new int[numRows, numDataEntries];
+            for ( int i = 0 ; i < numRows ; i++ ) {
+                for ( int j = 0 ; j < numDataEntries ; j++ ) {
+                    data [ i, j ] = -1;
+                }
+            }
         }
 
-        public byte[,] data;
+        public int[,] data;
         public bool modified;
     }
 
@@ -24,7 +29,7 @@ public class SongData : MonoBehaviour {
     public List<int[]> lookupTable { get { return m_LookupTable; } }
 
 
-    public byte this[int i]
+    public int this[int i]
     {
         get
         {

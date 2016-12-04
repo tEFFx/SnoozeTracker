@@ -10,6 +10,8 @@ public class PatternMatrix : MonoBehaviour {
     public Color selectedColor;
     public Color neutralColor;
 
+    private bool m_Inputting;
+
 	void OnGUI()
     {
         Rect rect = new Rect(new Vector2(Screen.width - padding.x - size.x, 0), size);
