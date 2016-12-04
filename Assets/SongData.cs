@@ -17,7 +17,7 @@ public class SongData : MonoBehaviour {
         public bool modified;
     }
 
-    public static readonly int SONG_DATA_COUNT = 4;
+    public static readonly int SONG_DATA_COUNT = 5;
 
     public int pageOffset { get { return channels * lines * SONG_DATA_COUNT; } }
     public int numPatterns { get { return m_LookupTable.Count; } }
@@ -81,7 +81,7 @@ public class SongData : MonoBehaviour {
         int channel = (int)Math.Floor((double)i / (double)SONG_DATA_COUNT) % channels;
         row = i / (channels * SONG_DATA_COUNT);
         column = m_LookupTable[currentPattern][channel];
-        dataIndex = i % channels;
+        dataIndex = i % SONG_DATA_COUNT;
     }
 
     public void AddPatternLine()

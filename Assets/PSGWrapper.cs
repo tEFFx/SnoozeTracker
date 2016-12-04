@@ -39,12 +39,14 @@ public class PSGWrapper : MonoBehaviour {
     void Awake()
     {
         m_PSGChip = new SN76489(AudioSettings.outputSampleRate, (int)SN76489.Clock.PAL);
-
+        Debug.Log ( AudioSettings.outputSampleRate );   
         Mute();
     }
 
     void OnAudioFilterRead(float[] data, int channels)
     {
+        //Debug.Log ( "Filter read! "+ data.Length * channels);
+
         for (int i = 0; i < data.Length; i+=channels)
         {
             float sample = m_PSGChip.Render();
@@ -106,7 +108,7 @@ public class PSGWrapper : MonoBehaviour {
         int relativeNote = ((int)note + octave * 12) - 58;
         float freq = 440 * Mathf.Pow(Mathf.Pow(2, 1f / 12f), relativeNote);
         int div = (int)SN76489.Clock.PAL / 32 / (int)freq;
-        Debug.Log(div.ToString("X2"));
+        //Debug.Log(div.ToString("X2"));
         return div;
     }
 }

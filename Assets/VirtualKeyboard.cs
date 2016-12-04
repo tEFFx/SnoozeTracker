@@ -33,9 +33,18 @@ public class VirtualKeyboard : MonoBehaviour {
 
     public PSGWrapper psg;
     public PatternView patternView;
+    public Instruments instruments;
     public int currentOctave = 3;
+    public int currentInstrument;
     public int patternAdd = 1;
     public NoteKey[] noteBinds;
+
+    private Instruments.InstrumentInstance m_Instrument;
+    private bool m_Pressed;
+
+    void Awake() {
+        psg.AddIrqCallback ( 50, OnIrqCallback );
+    }
 
     void Update()
     {
@@ -55,13 +64,24 @@ public class VirtualKeyboard : MonoBehaviour {
                 {
                     psg.SetAttenuation(patternView.selectedChannel, 0xF);
                     psg.SetFrequency(patternView.selectedChannel, noteBinds[i].note, currentOctave + noteBinds[i].octaveOffset);
+                    m_Instrument = instruments.presets [ currentInstrument ];
+                    m_Pressed = true;
                 }
             }
             else if (noteBinds[i].GetNoteUp())
             {
                 psg.SetAttenuation(patternView.selectedChannel, 0x0);
+                m_Pressed = false;
             }
         }
+    }
+
+    private void OnIrqCallback() {
+        if ( !m_Pressed )
+            return;
+
+        m_Instrument.Clock ( );
+        psg.SetAttenuation ( patternView.selectedChannel, m_Instrument.GetCurrentVol());
     }
 
     public static Note GetNote(byte noteData)

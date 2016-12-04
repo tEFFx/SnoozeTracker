@@ -3,8 +3,8 @@ using System.Collections;
 using System;
 
 public class PatternView : MonoBehaviour {
-    public int lineOffset { get { return data.channels * lineWidths.Length; } }
-    public int length { get { return data.channels * data.lines * lineWidths.Length; } }
+    public int lineOffset { get { return data.channels * SongData.SONG_DATA_COUNT; } }
+    public int length { get { return data.channels * data.lines * SongData.SONG_DATA_COUNT; } }
     public int currentLine { get { return (m_Selection / lineOffset); } }
     public int selection { get { return m_Selection; } }
     public int selectedChannel { get { return (int)Math.Floor((double)m_Selection / (double)SongData.SONG_DATA_COUNT) % data.channels; } }
@@ -52,7 +52,7 @@ public class PatternView : MonoBehaviour {
             GUI.color = lineNr == currentLine ? lineColor : neutralColor;
             GUI.color = i == m_Selection ? selectionColor : GUI.color;
 
-            int wId = i % lineWidths.Length;
+            int wId = i % SongData.SONG_DATA_COUNT;
             string text;
 
             switch (wId)
@@ -60,7 +60,7 @@ public class PatternView : MonoBehaviour {
                 case 0:
                     text = VirtualKeyboard.FormatNote(data[i]);
                     break;
-                case 1:
+                case 2:
                     text = data[i].ToString("X");
                     break;
                 default:
@@ -89,6 +89,6 @@ public class PatternView : MonoBehaviour {
         if (m_Selection < 0)
             m_Selection = m_Selection + length;
 
-        Debug.Log(m_Selection);
+        //Debug.Log(m_Selection);
     }
 }
