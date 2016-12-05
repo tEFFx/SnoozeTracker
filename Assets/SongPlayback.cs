@@ -112,7 +112,6 @@ public class SongPlayback : MonoBehaviour {
                                 int hiArp, loArp;
                                 SplitByte ( fxVal, out hiArp, out loArp );
                                 m_Instruments [ i ].arpreggio = new int [ 3 ] { 0, loArp, hiArp };
-                                Debug.Log ( m_Instruments [ i ].updatesFrequency );
                             }
                             break;
 
@@ -161,8 +160,9 @@ public class SongPlayback : MonoBehaviour {
                 vol = Mathf.RoundToInt(vol * ( m_Instruments [ i ].relativeVolume / 15f ));
                 psg.SetAttenuation ( i, vol );
 
-                if(m_Instruments[i].updatesFrequency)
-                    psg.SetFrequency ( i, (int)m_CurrentNotes [ i ] + m_Instruments[i].GetNoteOffset(), m_CurrentOctaves [ i ], m_Instruments[i].GetFreqOffset() );
+                if ( m_Instruments [ i ].updatesFrequency ) {
+                    psg.SetFrequency ( i, ( int ) m_CurrentNotes [ i ] + m_Instruments [ i ].GetNoteOffset ( ), m_CurrentOctaves [ i ], m_Instruments [ i ].GetFreqOffset ( ) );
+                }
                 m_Instruments [ i ].Clock ( );
             }
         }

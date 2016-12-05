@@ -6,7 +6,7 @@ public class Instruments : MonoBehaviour {
 
     [System.Serializable]
     public struct InstrumentInstance {
-        public bool updatesFrequency { get { return arpreggio.Length > 0 || GetFreqOffset() > 0; } }
+        public bool updatesFrequency { get { return arpreggio.Length > 0 || portamentoSpeed != 0; } }
 
         public int[] volumeTable;
         public int[] arpreggio;
@@ -29,7 +29,7 @@ public class Instruments : MonoBehaviour {
             if ( m_ArpOffset == arpreggio.Length )
                 m_ArpOffset = 0;
 
-            if ( portamentoDist < 0 || m_PortamentoTimer < portamentoDist )
+            if ( portamentoDist <= 0 || m_PortamentoTimer < portamentoDist )
                 m_PortamentoTimer++;
         }
 
@@ -45,7 +45,6 @@ public class Instruments : MonoBehaviour {
         }
 
         public int GetFreqOffset() {
-            Debug.Log ( m_PortamentoTimer );
             return m_PortamentoTimer * portamentoSpeed;
         }
     }
