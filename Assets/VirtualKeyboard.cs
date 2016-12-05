@@ -82,6 +82,20 @@ public class VirtualKeyboard : MonoBehaviour {
         }
     }
 
+    void OnGUI() {
+        Rect rect = new Rect ( Vector2.zero, new Vector2 ( 320, 32 ) );
+
+        GUILayout.BeginArea ( rect );
+        GUILayout.BeginHorizontal ( );
+        GUILayout.Box ( "Octave: " + currentOctave );
+        if ( GUILayout.Button ( "-" ) )
+            currentOctave--;
+        if ( GUILayout.Button ( "+" ) )
+            currentOctave++;
+        GUILayout.EndHorizontal ( );
+        GUILayout.EndArea ( );
+    }
+
     private void OnIrqCallback() {
         if ( !m_Pressed )
             return;

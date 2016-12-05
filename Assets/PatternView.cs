@@ -52,9 +52,6 @@ public class PatternView : MonoBehaviour {
         }else if(Input.inputString.Length == 0 && m_LastChar != 0 ) {
             m_LastChar = (char)0;
         }
-
-        if ( Input.GetKeyDown ( KeyCode.Delete ) )
-            data [ selection ] = -1;
     }
 
 	void OnGUI()

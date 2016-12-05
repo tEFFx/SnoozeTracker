@@ -6,7 +6,13 @@ public class Instruments : MonoBehaviour {
 
     [System.Serializable]
     public struct InstrumentInstance {
-        public bool updatesFrequency { get { return arpreggio.Length > 0 || portamentoSpeed != 0; } }
+        public bool updatesFrequency {
+            get {
+                if ( arpreggio == null )
+                    return false;
+                return arpreggio.Length > 1 || portamentoSpeed != 0;
+            }
+        }
 
         public int[] volumeTable;
         public int[] arpreggio;
@@ -22,11 +28,11 @@ public class Instruments : MonoBehaviour {
         private int m_PortamentoTimer;
 
         public void Clock() {
-            if ( m_VolumeOffset < volumeTable.Length - 1 )
+            if ( volumeTable == null || m_VolumeOffset < volumeTable.Length - 1 )
                 m_VolumeOffset++;
 
             m_ArpOffset++;
-            if ( m_ArpOffset == arpreggio.Length )
+            if ( arpreggio == null || m_ArpOffset == arpreggio.Length )
                 m_ArpOffset = 0;
 
             if ( portamentoDist <= 0 || m_PortamentoTimer < portamentoDist )
@@ -50,5 +56,16 @@ public class Instruments : MonoBehaviour {
     }
 
     public List<InstrumentInstance> presets = new List<InstrumentInstance>();
+
+    void Awake() {
+        CreateInstrument ( );
+    }
+
+    public void CreateInstrument() {
+        InstrumentInstance created = new InstrumentInstance ( );
+        created.volumeTable = new int [ ] { 0xF, 0xE, 0xD, 0xC };
+        created.arpreggio = new int [ ] { 0x0 };
+        presets.Add ( created );
+    }
     
 }

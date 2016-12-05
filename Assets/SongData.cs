@@ -27,6 +27,7 @@ public class SongData : MonoBehaviour {
     public int pageOffset { get { return channels * lines * SONG_DATA_COUNT; } }
     public int numPatterns { get { return m_LookupTable.Count; } }
     public List<int[]> lookupTable { get { return m_LookupTable; } }
+    public ColumnEntry currentColumn { get { return GetCurrentLine ( currentPattern, patternView.selectedChannel ); } }
 
 
     public int this[int i]
@@ -48,6 +49,7 @@ public class SongData : MonoBehaviour {
         }
     }
 
+    public PatternView patternView;
     public int channels;
     public int lines;
     public int currentPattern;
@@ -62,8 +64,13 @@ public class SongData : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
-	}
+        if ( Input.GetKeyDown ( KeyCode.Delete ) ) {
+            currentColumn.data [patternView.currentLine, patternView.selectedAttribute ] = -1;
+            if ( patternView.selectedAttribute == 0 )
+                currentColumn.data [ patternView.currentLine, 1 ] = -1;
+            patternView.MoveLine ( 1 );
+        }
+    }
 
     public ColumnEntry GetCurrentLine(int pattern, int col)
     {
