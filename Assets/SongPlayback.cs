@@ -81,7 +81,7 @@ public class SongPlayback : MonoBehaviour {
                         m_CurrentNotes [ i ] = note;
                         m_CurrentOctaves [ i ] = VirtualKeyboard.GetOctave ( col.data [ m_CurrentLine, 0 ] );
                         m_Instruments [ i ] = instruments.presets [ col.data [ m_CurrentLine, 1 ] ];
-                        m_Instruments [ i ].relativeVolume = 0xF;
+                        m_Instruments [ i ].relativeVolume = volume >= 0 ? volume : 0xF;
 
                         if ( i < 3 ) {
                             psg.SetFrequency ( i, ( int ) m_CurrentNotes [ i ], m_CurrentOctaves [ i ] );
