@@ -81,7 +81,7 @@ public class PSGWrapper : MonoBehaviour {
     {
         if (channel < 3)
         {
-            int freq = CalculateFrequency(note, octave) + fineTune;
+            int freq = CalculateFrequency(note, octave) - fineTune;
             byte reg = (byte)((channel * 2) << 4);
             byte data = (byte)(0x80 | reg | (freq & 0xF));
             m_PSGChip.Write(data);

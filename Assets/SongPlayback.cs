@@ -66,39 +66,6 @@ public class SongPlayback : MonoBehaviour {
             {
                 SongData.ColumnEntry col = data.GetCurrentLine(m_CurrentPattern, i);
 
-                int fxVal = col.data [ m_CurrentLine, 4 ];
-
-                if ( fxVal >= 0 ) {
-                    switch ( col.data [ m_CurrentLine, 3 ] ) {
-                        //arpreggio
-                        case 0x00:
-                            if ( fxVal == 0 ) {
-                                m_Instruments [ i ].arpreggio = new int [ 0 ];
-                                psg.SetFrequency ( i, ( int ) m_CurrentNotes [ i ], m_CurrentOctaves [ i ] );
-                            } else {
-                                int hiArp, loArp;
-                                SplitByte ( fxVal, out hiArp, out loArp );
-                                m_Instruments [ i ].arpreggio = new int [ 3 ] { 0, loArp, hiArp };
-                            }
-                            break;
-
-                        case 0x0F:
-                            playbackSpeed = fxVal;
-                            break;
-
-                        case 0x20:
-                            int mode, fb;
-                            SplitByte ( fxVal, out mode, out fb );
-                            m_NoiseFB = fb > 0;
-                            m_NoiseChn3 = mode > 0;
-                            break;
-
-                        case 0xFF:
-                            psg.chip.Write ( fxVal );
-                            break;
-                    }
-                }
-
                 int volume = col.data [ m_CurrentLine, 2 ];
                 if ( volume >= 0 ) {
                     m_Instruments [ i ].relativeVolume = volume;
@@ -129,6 +96,50 @@ public class SongPlayback : MonoBehaviour {
                         }
                     } 
                 }
+
+
+                int fxVal = col.data [ m_CurrentLine, 4 ];
+
+                if ( fxVal >= 0 ) {
+                    switch ( col.data [ m_CurrentLine, 3 ] ) {
+                        //arpreggio
+                        case 0x00:
+                            if ( fxVal == 0 ) {
+                                m_Instruments [ i ].arpreggio = new int [ 0 ];
+                                psg.SetFrequency ( i, ( int ) m_CurrentNotes [ i ], m_CurrentOctaves [ i ] );
+                                Debug.Log ( "NORP" );
+                            } else {
+                                int hiArp, loArp;
+                                SplitByte ( fxVal, out hiArp, out loArp );
+                                m_Instruments [ i ].arpreggio = new int [ 3 ] { 0, loArp, hiArp };
+                                Debug.Log ( m_Instruments [ i ].updatesFrequency );
+                            }
+                            break;
+
+                        case 0x01:
+                            m_Instruments [ i ].portamentoSpeed = fxVal;
+                            break;
+
+                        case 0x02:
+                            m_Instruments [ i ].portamentoSpeed = -fxVal;
+                            break;
+
+                        case 0x0F:
+                            playbackSpeed = fxVal;
+                            break;
+
+                        case 0x20:
+                            int mode, fb;
+                            SplitByte ( fxVal, out mode, out fb );
+                            m_NoiseFB = fb > 0;
+                            m_NoiseChn3 = mode > 0;
+                            break;
+
+                        case 0xFF:
+                            psg.chip.Write ( fxVal );
+                            break;
+                    }
+                }
             }
 
 
@@ -148,11 +159,10 @@ public class SongPlayback : MonoBehaviour {
                 int vol = m_Instruments [ i ].GetCurrentVol ( );
                 //Debug.Log ( vol );
                 vol = Mathf.RoundToInt(vol * ( m_Instruments [ i ].relativeVolume / 15f ));
-                Debug.Log ( ( m_Instruments [ i ].relativeVolume ) );
                 psg.SetAttenuation ( i, vol );
 
                 if(m_Instruments[i].updatesFrequency)
-                    psg.SetFrequency ( i, (int)m_CurrentNotes [ i ] + m_Instruments[i].GetNoteOffset(), m_CurrentOctaves [ i ] );
+                    psg.SetFrequency ( i, (int)m_CurrentNotes [ i ] + m_Instruments[i].GetNoteOffset(), m_CurrentOctaves [ i ], m_Instruments[i].GetFreqOffset() );
                 m_Instruments [ i ].Clock ( );
             }
         }

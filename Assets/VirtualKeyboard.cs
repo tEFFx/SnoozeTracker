@@ -90,7 +90,7 @@ public class VirtualKeyboard : MonoBehaviour {
         psg.SetAttenuation ( patternView.selectedChannel, m_Instrument.GetCurrentVol());
 
         if(m_Instrument.updatesFrequency)
-            psg.SetFrequency ( patternView.selectedChannel, (int)m_PlayingNote + m_Instrument.GetNoteOffset(), m_PlayingOctave );
+            psg.SetFrequency ( patternView.selectedChannel, (int)m_PlayingNote + m_Instrument.GetNoteOffset(), m_PlayingOctave, m_Instrument.GetFreqOffset ( ) );
     }
 
     public static Note GetNote(int noteData)
