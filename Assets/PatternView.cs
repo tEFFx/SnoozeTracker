@@ -11,6 +11,7 @@ public class PatternView : MonoBehaviour {
     public int selectedAttribute { get { return m_Selection % SongData.SONG_DATA_COUNT; } }
 
     public SongData data;
+    public SongPlayback playback;
     public float[] lineWidths;
     public float lineHeight;
     public float channelSpacing;
@@ -63,7 +64,20 @@ public class PatternView : MonoBehaviour {
     {
         Vector2 pos = padding;
         Vector2 size = new Vector2 ( 32, 24 );
+        float chnlWidth = 0;
+        for ( int i = 0 ; i < lineWidths.Length ; i++ ) {
+            chnlWidth += lineWidths [ i ] * size.x;
+        }
 
+        pos.x += size.x;
+        for ( int i = 0 ; i < data.channels; i++ ) {
+            string buttonText = "PSG" + i;
+            if ( playback.mute [ i ] )
+                buttonText += "(muted)";
+            if ( GUI.Button ( new Rect ( pos, new Vector2 ( chnlWidth, size.y ) ), buttonText) )
+                playback.mute [ i ] = !playback.mute [ i ];
+            pos.x += chnlWidth + channelSpacing;
+        }
 
         for ( int i = 0; i < length; i++)
         {

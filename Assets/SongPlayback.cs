@@ -7,6 +7,7 @@ public class SongPlayback : MonoBehaviour {
     public PatternView view;
     public Instruments instruments;
     public int playbackSpeed;
+    public bool[] mute;
 
     private int m_CurrentPattern;
     private int m_CurrentLine;
@@ -24,6 +25,7 @@ public class SongPlayback : MonoBehaviour {
     void Start()
     {
         psg.AddIrqCallback(50, OnIrqCallback);
+        mute = new bool [ data.channels ];
         m_Instruments = new Instruments.InstrumentInstance [ data.channels ];
         m_CurrentOctaves = new int [ data.channels ];
         m_CurrentNotes = new VirtualKeyboard.Note [ data.channels ];
@@ -64,6 +66,12 @@ public class SongPlayback : MonoBehaviour {
             m_Counter = 0;
             for (int i = 0; i < data.channels; i++)
             {
+                if ( mute [ i ] ) {
+                    m_CurrentNotes [ i ] = VirtualKeyboard.Note.NoteOff;
+                    psg.SetAttenuation ( i, 0 );
+                    continue;
+                }
+
                 SongData.ColumnEntry col = data.GetCurrentLine(m_CurrentPattern, i);
 
                 int volume = col.data [ m_CurrentLine, 2 ];
@@ -185,6 +193,7 @@ public class SongPlayback : MonoBehaviour {
     public void Stop()
     {
         m_IsPlaying = false;
+        m_Instruments = new Instruments.InstrumentInstance [ data.channels ];
         psg.Mute();
     }
 }

@@ -40,6 +40,8 @@ public class Instruments : MonoBehaviour {
         }
 
         public int GetCurrentVol() {
+            if ( volumeTable == null )
+                return 0;
             return volumeTable [ m_VolumeOffset ] - (0xF - relativeVolume);
         }
 
