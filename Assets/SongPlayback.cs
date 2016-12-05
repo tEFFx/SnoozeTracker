@@ -107,7 +107,6 @@ public class SongPlayback : MonoBehaviour {
                             if ( fxVal == 0 ) {
                                 m_Instruments [ i ].arpreggio = new int [ 0 ];
                                 psg.SetFrequency ( i, ( int ) m_CurrentNotes [ i ], m_CurrentOctaves [ i ] );
-                                Debug.Log ( "NORP" );
                             } else {
                                 int hiArp, loArp;
                                 SplitByte ( fxVal, out hiArp, out loArp );

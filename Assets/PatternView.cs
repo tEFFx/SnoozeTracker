@@ -16,6 +16,7 @@ public class PatternView : MonoBehaviour {
     public float channelSpacing;
     public Vector2 padding;
     public Color selectionColor;
+    public Color multipleSelectColor;
     public Color lineColor;
     public Color neutralColor;
 
@@ -24,6 +25,10 @@ public class PatternView : MonoBehaviour {
     private int m_InputSelection;
     private string m_Input = "";
     private char m_LastChar;
+
+    private bool m_Dragging;
+    private int m_DragSelectStart;
+    private int m_DragSelectEnd;
 
     void Update()
     {
@@ -56,23 +61,27 @@ public class PatternView : MonoBehaviour {
 
 	void OnGUI()
     {
-        Rect area = new Rect(padding, new Vector2(Screen.width, Screen.height) - padding);
-        GUILayout.BeginArea(area);
+        Vector2 pos = padding;
+        Vector2 size = new Vector2 ( 32, 24 );
 
-        for(int i = 0; i < length; i++)
+
+        for ( int i = 0; i < length; i++)
         {
             int lineNr = i / lineOffset;
 
             if (i % lineOffset == 0)
             {
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                GUI.color = Color.white;
-                GUILayout.Box(lineNr.ToString("X2"), GUILayout.Width(36), GUILayout.Height(lineHeight));
+                pos.y += size.y;
+                pos.x = padding.x;
+                GUI.backgroundColor = Color.white;
+                GUI.Box(new Rect(pos, size), lineNr.ToString("X2"));
+                pos.x += size.x;
             }
 
-            GUI.color = lineNr == currentLine ? lineColor : neutralColor;
-            GUI.color = i == m_Selection ? selectionColor : GUI.color;
+
+            GUI.backgroundColor = lineNr == currentLine ? lineColor : neutralColor;
+            GUI.backgroundColor = IsInSelection ( i ) && m_DragSelectStart != m_DragSelectEnd ? multipleSelectColor : GUI.backgroundColor;
+            GUI.backgroundColor = i == m_Selection ? selectionColor : GUI.backgroundColor;
 
             int wId = i % SongData.SONG_DATA_COUNT;
             string text;
@@ -93,17 +102,62 @@ public class PatternView : MonoBehaviour {
                 }
             }
 
-            if (GUILayout.Button(text, GUILayout.Width(lineWidths[wId]), GUILayout.Height(lineHeight)))
-            {
-                m_LastSelection = m_Selection;
-                m_Selection = i;
+            Rect buttonRect = new Rect ( pos, new Vector2 ( size.x * lineWidths [ wId ], size.y ) );
+            GUI.Button(buttonRect, text);
+            pos.x += size.x * lineWidths [ wId ];
+            if ( wId == 4 )
+                pos.x += channelSpacing;
+
+            if(Input.GetMouseButtonDown(0)) {
+                Vector2 mPos = Event.current.mousePosition;
+                if ( buttonRect.Contains ( mPos ) ) {
+                    m_LastSelection = m_Selection;
+                    m_Selection = i;
+                    m_DragSelectStart = m_DragSelectEnd = i;
+                    m_Dragging = true;
+                }
             }
 
-            if (wId == lineWidths.Length - 1)
-                GUILayout.Space(channelSpacing);
+            if ( m_Dragging ) {
+                Vector2 mPos = Event.current.mousePosition;
+                if ( buttonRect.Contains ( mPos ) ) {
+                    m_DragSelectEnd = i;
+                }
+            }
+
+            if ( Input.GetMouseButtonUp ( 0 ) ) {
+                m_Dragging = false;
+            }
+
+        }
+    }
+
+    bool IsInSelection(int i) {
+        bool res = false;
+
+        int startCol = m_DragSelectStart % lineOffset;
+        int endCol = m_DragSelectEnd % lineOffset;
+        int iCol = i % lineOffset;
+
+        if ( startCol < endCol ) {
+            res = iCol >= startCol && iCol <= endCol;
+        } else {
+            res = iCol >= endCol && iCol <= startCol;
         }
 
-        GUILayout.EndArea();
+        int startRow = m_DragSelectStart / lineOffset;
+        int endRow = m_DragSelectEnd / lineOffset;
+        int iRow = i / lineOffset;
+
+        if ( startRow < endRow ) {
+            res &= iRow >= startRow && iRow <= endRow;
+        } else {
+            res &= iRow >= endRow && iRow <= startRow;
+        }
+
+        return res;
+            // && i % lineOffset >= m_DragSelectEnd % lineOffset && i % lineOffset <= m_DragSelectStart % lineOffset );
+        //&& i % lineOffset >= m_DragSelectStart % lineOffset && i % lineOffset <= m_DragSelectEnd % lineOffset )
     }
 
     public void MoveLine(int lines = 1)
