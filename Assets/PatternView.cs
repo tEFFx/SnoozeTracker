@@ -4,7 +4,7 @@ using System;
 
 public class PatternView : MonoBehaviour {
     public int lineOffset { get { return data.channels * SongData.SONG_DATA_COUNT; } }
-    public int length { get { return data.channels * data.lines * SongData.SONG_DATA_COUNT; } }
+    public int length { get { return data.channels * data.patternLength * SongData.SONG_DATA_COUNT; } }
     public int currentLine { get { return (m_Selection / lineOffset); } }
     public int selection { get { return m_Selection; } }
     public int selectedChannel { get { return (int)Math.Floor((double)m_Selection / (double)SongData.SONG_DATA_COUNT) % data.channels; } }

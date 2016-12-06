@@ -11,21 +11,40 @@ public class SongData : MonoBehaviour {
         public ColumnEntry(int numRows, int numDataEntries)
         {
             data = new int[numRows, numDataEntries];
-            for ( int i = 0 ; i < numRows ; i++ ) {
-                for ( int j = 0 ; j < numDataEntries ; j++ ) {
-                    data [ i, j ] = -1;
-                }
-            }
+            m_DataEntries = numDataEntries;
+            ResetRange ( 0, numRows );
         }
 
         public int[,] data;
         public bool modified;
+        private int m_DataEntries;
+
+        public void Resize(int numRows) {
+            Array temp = Array.CreateInstance ( data.GetType ( ).GetElementType ( ), numRows, data.GetLength ( 1 ) );
+            int prevLen = data.GetLength(0);
+            int len = Math.Min ( temp.Length, data.Length );
+            Array.ConstrainedCopy ( data, 0, temp, 0, len );
+            data = ( int [ , ] ) temp;
+
+            if ( prevLen < data.GetLength(0) ) {
+                ResetRange ( prevLen, data.GetLength(0) );
+            }
+        }
+
+        private void ResetRange(int start, int end) {
+            for ( int i = start ; i < end ; i++ ) {
+                for ( int j = 0 ; j < m_DataEntries ; j++ ) {
+                    data [ i, j ] = -1;
+                }
+            }
+        }
     }
 
     public static readonly int SONG_DATA_COUNT = 5;
 
-    public int pageOffset { get { return channels * lines * SONG_DATA_COUNT; } }
+    public int pageOffset { get { return channels * m_PatternLength * SONG_DATA_COUNT; } }
     public int numPatterns { get { return m_LookupTable.Count; } }
+    public int patternLength { get { return m_PatternLength; } }
     public List<int[]> lookupTable { get { return m_LookupTable; } }
     public ColumnEntry currentColumn { get { return GetCurrentLine ( currentPattern, patternView.selectedChannel ); } }
 
@@ -51,15 +70,18 @@ public class SongData : MonoBehaviour {
 
     public PatternView patternView;
     public int channels;
-    public int lines;
     public int currentPattern;
 
+    private int m_CurrentLines;
+    private int m_PatternLength;
     private List<int[]> m_LookupTable = new List<int[]>();
     private List<ColumnEntry> m_SongData = new List<ColumnEntry>();
 
     // Use this for initialization
     void Awake () {
         AddPatternLine();
+
+        SetPatternLength ( 32 );
 	}
 	
 	// Update is called once per frame
@@ -70,6 +92,16 @@ public class SongData : MonoBehaviour {
                 currentColumn.data [ patternView.currentLine, 1 ] = -1;
             patternView.MoveLine ( 1 );
         }
+    }
+
+    public void SetPatternLength(int len) {
+        len = Math.Max ( len, 1 );
+
+        for ( int i = 0 ; i < m_SongData.Count ; i++ ) {
+            m_SongData [ i ].Resize ( len );
+        }
+
+        m_PatternLength = len;
     }
 
     public ColumnEntry GetCurrentLine(int pattern, int col)
@@ -112,7 +144,7 @@ public class SongData : MonoBehaviour {
     {
         if (index < 0 || m_SongData.Count >= index)
         {
-            m_SongData.Add(new ColumnEntry(lines, SONG_DATA_COUNT));
+            m_SongData.Add(new ColumnEntry(m_PatternLength, SONG_DATA_COUNT));
         }
     }
 

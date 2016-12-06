@@ -174,7 +174,7 @@ public class SongPlayback : MonoBehaviour {
 
             m_CurrentLine++;
             m_MoveLine++;
-            if(m_CurrentLine >= data.lines)
+            if(m_CurrentLine >= data.patternLength)
             {
                 m_CurrentLine = 0;
                 m_CurrentPattern++;
