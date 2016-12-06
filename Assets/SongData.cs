@@ -45,7 +45,8 @@ public class SongData : MonoBehaviour {
     public int pageOffset { get { return channels * m_PatternLength * SONG_DATA_COUNT; } }
     public int numPatterns { get { return m_LookupTable.Count; } }
     public int patternLength { get { return m_PatternLength; } }
-    public List<int[]> lookupTable { get { return m_LookupTable; } }
+    public List<int[]> lookupTable { get { return m_LookupTable; } set { m_LookupTable = value; } }
+    public List<ColumnEntry> songData { get { return m_SongData; } set { m_SongData = value; } }
     public ColumnEntry currentColumn { get { return GetCurrentLine ( currentPattern, patternView.selectedChannel ); } }
 
 

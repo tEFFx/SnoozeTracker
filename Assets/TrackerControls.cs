@@ -4,7 +4,7 @@ using System.Collections;
 public class TrackerControls : MonoBehaviour {
     public VirtualKeyboard keyboard;
     public SongData data;
-
+    public FileManagement fileMan;
 
 	// Use this for initialization
 	void Start () {
@@ -37,6 +37,13 @@ public class TrackerControls : MonoBehaviour {
             ChangePatternSize ( 1 );
         if ( GUILayout.Button ( "++" ) )
             ChangePatternSize ( 8 );
+
+        GUILayout.Space ( 16 );
+        if ( GUILayout.Button ( "Save" ) )
+            fileMan.SaveFile ( );
+        if ( GUILayout.Button ( "Open" ) )
+            fileMan.OpenFile ( );
+
         GUILayout.EndHorizontal ( );
         GUILayout.EndArea ( );
     }
