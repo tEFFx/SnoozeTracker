@@ -10,7 +10,7 @@ public class Instruments : MonoBehaviour {
             get {
                 if ( arpreggio == null )
                     return false;
-                return arpreggio.Length > 1 || portamentoSpeed != 0;
+                return arpreggio.Length > 1 || portamentoSpeed != 0 || m_AutoPortamento;
             }
         }
 
@@ -19,13 +19,13 @@ public class Instruments : MonoBehaviour {
         public int vibratoDepth;
         public int vibratoSpeed;
         public int portamentoSpeed;
-        public int portamentoDist;
         public int relativeVolume;
 
         private int m_VolumeOffset;
         private int m_ArpOffset;
         private int m_VibratoTimer;
         private int m_PortamentoTimer;
+        private bool m_AutoPortamento;
 
         public void Clock() {
             if ( volumeTable == null || m_VolumeOffset < volumeTable.Length - 1 )
@@ -35,8 +35,21 @@ public class Instruments : MonoBehaviour {
             if ( arpreggio == null || m_ArpOffset == arpreggio.Length )
                 m_ArpOffset = 0;
 
-            if ( portamentoDist <= 0 || m_PortamentoTimer < portamentoDist )
+            if ( !m_AutoPortamento && portamentoSpeed != 0 )
                 m_PortamentoTimer++;
+            else if(m_PortamentoTimer > 0)
+                m_PortamentoTimer--;
+        }
+
+        public void SetAutoPortamento(int baseFreq, int speed, int dir) {
+            if ( speed == 0 )
+                return;
+
+            m_PortamentoTimer = System.Math.Abs(baseFreq) / speed;
+            portamentoSpeed = speed * -dir;
+            Debug.Log ( speed * -dir );
+            Debug.Log ( m_PortamentoTimer );
+            m_AutoPortamento = true;
         }
 
         public int GetCurrentVol() {
@@ -53,6 +66,11 @@ public class Instruments : MonoBehaviour {
         }
 
         public int GetFreqOffset() {
+            if(m_AutoPortamento && m_PortamentoTimer == 0 ) {
+                m_AutoPortamento = false;
+                portamentoSpeed = 0;
+            }
+
             return m_PortamentoTimer * portamentoSpeed;
         }
     }

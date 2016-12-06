@@ -68,7 +68,7 @@ public class SN76489 {
         } else if ( first ) {
             mFreq[mCurrentReg] = ( mFreq [ mCurrentReg ] & 0x3f0 ) | ( _data & 0x0f );
         } else {
-            mCount[mCurrentReg] = mFreq[mCurrentReg] = ( mFreq [ mCurrentReg ] & 0x0f ) | (( _data & 0x3f ) << 4);
+            mFreq[mCurrentReg] = ( mFreq [ mCurrentReg ] & 0x0f ) | (( _data & 0x3f ) << 4);
         }
     }
 

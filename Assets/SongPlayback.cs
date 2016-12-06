@@ -16,7 +16,9 @@ public class SongPlayback : MonoBehaviour {
     private bool m_IsPlaying;
     private float m_LastLineTick;
     private int m_MoveLine;
+    private VirtualKeyboard.Note[] m_PrevNotes;
     private VirtualKeyboard.Note[] m_CurrentNotes;
+    private int[] m_PrevOctaves;
     private int[] m_CurrentOctaves;
     private Instruments.InstrumentInstance[] m_Instruments;
     private bool m_NoiseFB;
@@ -27,8 +29,11 @@ public class SongPlayback : MonoBehaviour {
         psg.AddIrqCallback(50, OnIrqCallback);
         mute = new bool [ data.channels ];
         m_Instruments = new Instruments.InstrumentInstance [ data.channels ];
+
         m_CurrentOctaves = new int [ data.channels ];
+        m_PrevOctaves = new int [ data.channels ];
         m_CurrentNotes = new VirtualKeyboard.Note [ data.channels ];
+        m_PrevNotes = new VirtualKeyboard.Note [ data.channels ];
     }
 
     void Update()
@@ -86,7 +91,9 @@ public class SongPlayback : MonoBehaviour {
                         m_CurrentNotes [ i ] = VirtualKeyboard.Note.NoteOff;
                         psg.SetAttenuation ( i, 0 );
                     } else {
+                        m_PrevNotes [ i ] = m_CurrentNotes [ i ];
                         m_CurrentNotes [ i ] = note;
+                        m_PrevOctaves [ i ] = m_CurrentOctaves [ i ];
                         m_CurrentOctaves [ i ] = VirtualKeyboard.GetOctave ( col.data [ m_CurrentLine, 0 ] );
                         m_Instruments [ i ] = instruments.presets [ col.data [ m_CurrentLine, 1 ] ];
                         m_Instruments [ i ].relativeVolume = volume >= 0 ? volume : 0xF;
@@ -128,6 +135,15 @@ public class SongPlayback : MonoBehaviour {
 
                         case 0x02:
                             m_Instruments [ i ].portamentoSpeed = -fxVal;
+                            break;
+
+                        case 0x03:
+                            if ( m_PrevNotes [ i ] == VirtualKeyboard.Note.NoteOff || m_PrevNotes [ i ] == VirtualKeyboard.Note.None )
+                                break;
+                            int prevFreq = PSGWrapper.CalculateFrequency ( ( int ) m_PrevNotes [ i ], m_PrevOctaves [ i ] );
+                            int currFreq = PSGWrapper.CalculateFrequency ( ( int ) m_CurrentNotes [ i ], m_PrevOctaves[ i ] );
+                            int relFreq = prevFreq - currFreq;
+                            m_Instruments [ i ].SetAutoPortamento ( relFreq, fxVal, System.Math.Sign(relFreq) );
                             break;
 
                         case 0x0F:
