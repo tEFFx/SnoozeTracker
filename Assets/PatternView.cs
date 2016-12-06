@@ -43,7 +43,9 @@ public class PatternView : MonoBehaviour {
             m_Selection += (m_Selection % lineOffset == lineOffset - 1) ? -lineOffset + 1 : 1;
 
         if ( selectedAttribute != 0 && Input.inputString.Length > 0 && m_LastChar != Input.inputString[0]) {
-            if ( m_Input.Length >= 2 || m_Selection != m_InputSelection )
+            int maxLen = lineWidths[selectedAttribute % lineOffset] < 1 ? 1 : 2;
+
+            if ( m_Input.Length >= maxLen || m_Selection != m_InputSelection )
                 m_Input = "";
 
             m_InputSelection = m_Selection;
@@ -55,9 +57,15 @@ public class PatternView : MonoBehaviour {
                 data [ selection ] = (byte)res;
             }
 
-        }else if(Input.inputString.Length == 0 && m_LastChar != 0 ) {
+            if ( m_Input.Length >= maxLen )
+                MoveLine ( 1 );
+
+        } else if(Input.inputString.Length == 0 && m_LastChar != 0 ) {
             m_LastChar = (char)0;
         }
+
+        if ( Input.GetKeyDown ( KeyCode.Return ) )
+            m_Input = "";
     }
 
 	void OnGUI()
