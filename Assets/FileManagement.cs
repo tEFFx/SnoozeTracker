@@ -10,6 +10,7 @@ public class FileManagement : MonoBehaviour {
     public string fileFilter;
     public SongData data;
     public Instruments instruments;
+    public InstrumentEditor insEditor;
 
     [System.Serializable]
     internal class SongFile {
@@ -53,6 +54,8 @@ public class FileManagement : MonoBehaviour {
             data.songData = open.songData;
             instruments.presets = open.instruments;
             fs.Close ( );
+
+            insEditor.UpdateAttributes ( );
         }
     }
 }

@@ -80,6 +80,12 @@ public class InstrumentEditor : MonoBehaviour {
         return res;
     }
 
+
+    public void UpdateAttributes() {
+        m_VolumeEnvelope = ArrayToString ( instrument.volumeTable );
+        m_Arpeggio = ArrayToString ( instrument.arpreggio );
+    }
+
     private void IncInstrument(int dir) {
         keyboard.currentInstrument += dir;
         if ( keyboard.currentInstrument < 0 )
@@ -88,11 +94,6 @@ public class InstrumentEditor : MonoBehaviour {
             instruments.CreateInstrument ( );
 
         UpdateAttributes ( );
-    }
-
-    private void UpdateAttributes() {
-        m_VolumeEnvelope = ArrayToString ( instrument.volumeTable );
-        m_Arpeggio = ArrayToString ( instrument.arpreggio );
     }
 
     private string ArrayToString(int[] array) {

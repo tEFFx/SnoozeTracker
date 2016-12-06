@@ -88,7 +88,7 @@ public class PatternView : MonoBehaviour {
             pos.x += chnlWidth + channelSpacing;
         }
 
-        m_Scroll = GUI.BeginScrollView ( new Rect ( padding.x, pos.y + size.y, Screen.width, Screen.height - padding.y ), m_Scroll, new Rect(0, 0, data.channels * chnlWidth + size.x, data.patternLength * size.y) );
+        m_Scroll = GUI.BeginScrollView ( new Rect ( padding.x, pos.y + size.y, Screen.width, Screen.height - padding.y ), m_Scroll, new Rect(0, 0, data.channels * chnlWidth + size.x, data.patternLength * size.y + size.y) );
         pos.y = -size.y;
         for ( int i = 0; i < length; i++)
         {
