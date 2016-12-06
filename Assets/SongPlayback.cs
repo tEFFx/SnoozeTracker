@@ -146,6 +146,13 @@ public class SongPlayback : MonoBehaviour {
                             m_Instruments [ i ].SetAutoPortamento ( relFreq, fxVal, System.Math.Sign(relFreq) );
                             break;
 
+                        case 0x04:
+                            int speed, depth;
+                            SplitByte ( fxVal, out depth, out speed );
+                            m_Instruments [ i ].vibratoDepth = depth;
+                            m_Instruments [ i ].vibratoSpeed = speed;
+                            break;
+
                         case 0x0F:
                             playbackSpeed = fxVal;
                             break;

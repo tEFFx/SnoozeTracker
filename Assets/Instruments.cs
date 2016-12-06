@@ -10,7 +10,7 @@ public class Instruments : MonoBehaviour {
             get {
                 if ( arpreggio == null )
                     return false;
-                return arpreggio.Length > 1 || portamentoSpeed != 0 || m_AutoPortamento;
+                return arpreggio.Length > 1 || portamentoSpeed != 0 || m_AutoPortamento || (vibratoDepth > 0 && vibratoSpeed > 0);
             }
         }
 
@@ -39,6 +39,9 @@ public class Instruments : MonoBehaviour {
                 m_PortamentoTimer++;
             else if(m_PortamentoTimer > 0)
                 m_PortamentoTimer--;
+
+            if ( vibratoSpeed > 0 && vibratoDepth > 0 )
+                m_VibratoTimer++;
         }
 
         public void SetAutoPortamento(int baseFreq, int speed, int dir) {
@@ -47,8 +50,6 @@ public class Instruments : MonoBehaviour {
 
             m_PortamentoTimer = System.Math.Abs(baseFreq) / speed;
             portamentoSpeed = speed * -dir;
-            Debug.Log ( speed * -dir );
-            Debug.Log ( m_PortamentoTimer );
             m_AutoPortamento = true;
         }
 
@@ -66,12 +67,14 @@ public class Instruments : MonoBehaviour {
         }
 
         public int GetFreqOffset() {
+            int vibrato = Mathf.RoundToInt(Mathf.Sin ( m_VibratoTimer * 0.1f * vibratoSpeed ) * vibratoDepth);
+
             if(m_AutoPortamento && m_PortamentoTimer == 0 ) {
                 m_AutoPortamento = false;
                 portamentoSpeed = 0;
             }
 
-            return m_PortamentoTimer * portamentoSpeed;
+            return m_PortamentoTimer * portamentoSpeed + vibrato;
         }
     }
 
