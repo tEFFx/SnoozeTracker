@@ -30,6 +30,7 @@ public class PatternView : MonoBehaviour {
     private bool m_Dragging;
     private int m_DragSelectStart;
     private int m_DragSelectEnd;
+    private Vector2 m_Scroll = new Vector2();
 
     void Update()
     {
@@ -87,6 +88,8 @@ public class PatternView : MonoBehaviour {
             pos.x += chnlWidth + channelSpacing;
         }
 
+        m_Scroll = GUI.BeginScrollView ( new Rect ( padding.x, pos.y + size.y, Screen.width, Screen.height - padding.y ), m_Scroll, new Rect(0, 0, data.channels * chnlWidth + size.x, data.patternLength * size.y) );
+        pos.y = -size.y;
         for ( int i = 0; i < length; i++)
         {
             int lineNr = i / lineOffset;
@@ -152,6 +155,8 @@ public class PatternView : MonoBehaviour {
             }
 
         }
+
+        GUI.EndScrollView ( );
     }
 
     bool IsInSelection(int i) {

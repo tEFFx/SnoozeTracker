@@ -53,7 +53,7 @@ public class InstrumentEditor : MonoBehaviour {
             else
                 m_HideFields = false;
         }
-        Rect rect = new Rect ( new Vector2 ( Screen.width - padding.x - size.x, padding.y ), size );
+        Rect rect = new Rect ( new Vector2 ( padding.x, padding.y ), size );
 
         GUILayout.BeginArea ( rect );
 
