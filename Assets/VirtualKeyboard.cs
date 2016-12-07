@@ -40,8 +40,6 @@ public class VirtualKeyboard : MonoBehaviour {
     public NoteKey[] noteBinds;
 
     private Instruments.InstrumentInstance m_Instrument;
-    private Note m_PlayingNote;
-    private int m_PlayingOctave;
     private bool m_Pressed;
 
     void Awake() {
@@ -65,19 +63,18 @@ public class VirtualKeyboard : MonoBehaviour {
 
                 if (noteBinds[i].note != Note.None && noteBinds[i].note != Note.NoteOff)
                 {
-                    m_PlayingNote = noteBinds [ i ].note;
-                    m_PlayingOctave = currentOctave + noteBinds [ i ].octaveOffset;
                     m_Instrument = instruments.presets [ currentInstrument ];
+                    m_Instrument.note = noteBinds[i].note;
+                    m_Instrument.octave = currentOctave + noteBinds[i].octaveOffset;
+                    m_Instrument.relativeVolume = 0xF;
                     m_Pressed = true;
-                    psg.SetFrequency ( patternView.selectedChannel, ( int ) m_PlayingNote, m_PlayingOctave );
                 }
             }
         }
 
         for ( int i = 0 ; i < noteBinds.Length ; i++ ) {
-            if ( noteBinds [ i ].GetNoteUp ( ) && m_PlayingNote == noteBinds [ i ].note ) {
-                psg.SetAttenuation ( patternView.selectedChannel, 0x0 );
-                m_Pressed = false;
+            if ( noteBinds [ i ].GetNoteUp ( ) && m_Instrument.note == noteBinds [ i ].note ) {
+                m_Instrument.note = Note.NoteOff;
             }
         }
     }
@@ -86,11 +83,7 @@ public class VirtualKeyboard : MonoBehaviour {
         if ( !m_Pressed )
             return;
 
-        m_Instrument.Clock ( );
-        psg.SetAttenuation ( patternView.selectedChannel, m_Instrument.GetCurrentVol());
-
-        if(m_Instrument.updatesFrequency)
-            psg.SetFrequency ( patternView.selectedChannel, (int)m_PlayingNote + m_Instrument.GetNoteOffset(), m_PlayingOctave, m_Instrument.GetFreqOffset ( ) );
+        m_Instrument.UpdatePSG ( psg, patternView.selectedChannel );
     }
 
     public static Note GetNote(int noteData)

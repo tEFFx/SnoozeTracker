@@ -64,7 +64,6 @@ public class SN76489 {
             mAttn[mCurrentReg] = _data & 0x0f;
         } else if ( first && mCurrentReg == 3 ) {
             mFreq[3] = _data & 7;
-            mNoiseSR = 0x8000;
         } else if ( first ) {
             mFreq[mCurrentReg] = ( mFreq [ mCurrentReg ] & 0x3f0 ) | ( _data & 0x0f );
         } else {

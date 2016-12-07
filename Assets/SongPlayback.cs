@@ -18,11 +18,8 @@ public class SongPlayback : MonoBehaviour {
     private bool m_IsPlaying;
     private float m_LastLineTick;
     private int m_MoveLine;
-    private VirtualKeyboard.Note[] m_PrevNotes;
-    private VirtualKeyboard.Note[] m_CurrentNotes;
-    private int[] m_PrevOctaves;
-    private int[] m_CurrentOctaves;
     private Instruments.InstrumentInstance[] m_Instruments;
+    private Instruments.InstrumentInstance[] m_PrevInstruments;
     private bool m_NoiseFB;
     private bool m_NoiseChn3;
 
@@ -31,11 +28,7 @@ public class SongPlayback : MonoBehaviour {
         psg.AddIrqCallback(50, OnIrqCallback);
         mute = new bool [ data.channels ];
         m_Instruments = new Instruments.InstrumentInstance [ data.channels ];
-
-        m_CurrentOctaves = new int [ data.channels ];
-        m_PrevOctaves = new int [ data.channels ];
-        m_CurrentNotes = new VirtualKeyboard.Note [ data.channels ];
-        m_PrevNotes = new VirtualKeyboard.Note [ data.channels ];
+        m_PrevInstruments = new Instruments.InstrumentInstance[data.channels];
     }
 
     void Update()
@@ -74,8 +67,7 @@ public class SongPlayback : MonoBehaviour {
             for (int i = 0; i < data.channels; i++)
             {
                 if ( mute [ i ] ) {
-                    m_CurrentNotes [ i ] = VirtualKeyboard.Note.NoteOff;
-                    psg.SetAttenuation ( i, 0 );
+                    m_Instruments [ i ].note = VirtualKeyboard.Note.NoteOff;
                     continue;
                 }
 
@@ -90,27 +82,14 @@ public class SongPlayback : MonoBehaviour {
                 {
                     VirtualKeyboard.Note note = VirtualKeyboard.GetNote ( col.data [ m_CurrentLine, 0 ] );
                     if ( note == VirtualKeyboard.Note.NoteOff ) {
-                        m_CurrentNotes [ i ] = VirtualKeyboard.Note.NoteOff;
+                        m_Instruments [ i ].note = VirtualKeyboard.Note.NoteOff;
                         psg.SetAttenuation ( i, 0 );
                     } else {
-                        m_PrevNotes [ i ] = m_CurrentNotes [ i ];
-                        m_CurrentNotes [ i ] = note;
-                        m_PrevOctaves [ i ] = m_CurrentOctaves [ i ];
-                        m_CurrentOctaves [ i ] = VirtualKeyboard.GetOctave ( col.data [ m_CurrentLine, 0 ] );
+                        m_PrevInstruments[i] = m_Instruments[i];
                         m_Instruments [ i ] = instruments.presets [ col.data [ m_CurrentLine, 1 ] ];
                         m_Instruments [ i ].relativeVolume = volume >= 0 ? volume : 0xF;
-
-                        if ( i < 3 ) {
-                            psg.SetFrequency ( i, ( int ) m_CurrentNotes [ i ], m_CurrentOctaves [ i ] );
-                        } else {
-                            if ( !m_NoiseChn3 ) {
-                                int cmd = 0xE0 | ( ( ( int ) note - 1 ) % 3 ) | ( ( m_NoiseFB ? 1 : 0 ) << 2 );
-                                psg.chip.Write ( cmd );
-                            } else {
-                                psg.chip.Write ( 0xE7 );
-                                psg.SetFrequency ( 2, ( int ) m_CurrentNotes [ i ], m_CurrentOctaves [ i ] );
-                            }
-                        }
+                        m_Instruments[i].note = note;
+                        m_Instruments[i].octave = VirtualKeyboard.GetOctave(col.data[m_CurrentLine, 0]);
                     } 
                 }
 
@@ -123,7 +102,6 @@ public class SongPlayback : MonoBehaviour {
                         case 0x00:
                             if ( fxVal == 0 ) {
                                 m_Instruments [ i ].arpreggio = new int [ 0 ];
-                                psg.SetFrequency ( i, ( int ) m_CurrentNotes [ i ], m_CurrentOctaves [ i ] );
                             } else {
                                 int hiArp, loArp;
                                 SplitByte ( fxVal, out hiArp, out loArp );
@@ -140,12 +118,7 @@ public class SongPlayback : MonoBehaviour {
                             break;
 
                         case 0x03:
-                            if ( m_PrevNotes [ i ] == VirtualKeyboard.Note.NoteOff || m_PrevNotes [ i ] == VirtualKeyboard.Note.None )
-                                break;
-                            int prevFreq = PSGWrapper.CalculateFrequency ( ( int ) m_PrevNotes [ i ], m_PrevOctaves [ i ] );
-                            int currFreq = PSGWrapper.CalculateFrequency ( ( int ) m_CurrentNotes [ i ], m_PrevOctaves[ i ] );
-                            int relFreq = prevFreq - currFreq;
-                            m_Instruments [ i ].SetAutoPortamento ( relFreq, fxVal, System.Math.Sign(relFreq) );
+                            m_Instruments [ i ].SetAutoPortamento (m_PrevInstruments[i], fxVal);
                             break;
 
                         case 0x04:
@@ -186,17 +159,7 @@ public class SongPlayback : MonoBehaviour {
         }
 
         for ( int i = 0 ; i < data.channels ; i++ ) {
-            if ( m_CurrentNotes [ i ] != VirtualKeyboard.Note.None && m_CurrentNotes[i] != VirtualKeyboard.Note.NoteOff ) {
-                int vol = m_Instruments [ i ].GetCurrentVol ( );
-                //Debug.Log ( vol );
-                vol = Mathf.RoundToInt(vol * ( m_Instruments [ i ].relativeVolume / 15f ));
-                psg.SetAttenuation ( i, vol );
-
-                if ( m_Instruments [ i ].updatesFrequency ) {
-                    psg.SetFrequency ( i, ( int ) m_CurrentNotes [ i ] + m_Instruments [ i ].GetNoteOffset ( ), m_CurrentOctaves [ i ], m_Instruments [ i ].GetFreqOffset ( ) );
-                }
-                m_Instruments [ i ].Clock ( );
-            }
+            m_Instruments[i].UpdatePSG(psg, i);
         }
     }
 
