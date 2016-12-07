@@ -131,14 +131,29 @@ public class SongData : MonoBehaviour {
 
     public void AddPatternLine()
     {
-        m_LookupTable.Add(new int[channels]);
+        int [ ] table = new int [ channels ];
+        if ( m_LookupTable.Count > 0 )
+            currentPattern++;
+        m_LookupTable.Insert ( currentPattern, table );
 
         for (int j = 0; j < channels; j++)
         {
             int index = GetFirstUnallocatedIndex();
             AllocatePage(index);
-            m_LookupTable[m_LookupTable.Count - 1][j] = index;
+            table[j] = index;
         }
+    }
+
+    public void CopyPatternLine() {
+        int [ ] table = new int [ channels ];
+        Array.Copy ( m_LookupTable [ currentPattern ], table, m_LookupTable [ currentPattern ].Length );
+        m_LookupTable.Add ( table );
+    }
+
+    public void DeletePatternLine() {
+        m_LookupTable.RemoveAt ( currentPattern );
+        if ( currentPattern >= m_LookupTable.Count )
+            currentPattern--;
     }
 
     public void AllocatePage(int index = -1)

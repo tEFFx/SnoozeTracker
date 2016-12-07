@@ -23,15 +23,6 @@ public class PatternMatrix : MonoBehaviour {
         {
             GUILayout.BeginHorizontal();
             GUI.color = Color.blue;
-            if(GUILayout.Button ( "x" ) ) {
-                if(data.lookupTable.Count > 1 ) {
-                    if ( i == data.currentPattern && data.lookupTable.Count - 1 == i ) {
-                        data.currentPattern--;
-                    }
-                    data.lookupTable.RemoveAt ( i );
-                    continue;
-                }
-            }
             GUI.color = data.currentPattern == i ? selectedColor : neutralColor;
             for (int j = 0; j < data.channels; j++)
             {
@@ -55,8 +46,15 @@ public class PatternMatrix : MonoBehaviour {
 
         GUILayout.EndScrollView ( );
         GUI.color = Color.white;
-        if (GUILayout.Button("Add line"))
+        GUILayout.BeginHorizontal ( );
+        if (GUILayout.Button("Insert"))
             data.AddPatternLine();
+        if ( GUILayout.Button ( "Delete" ) )
+            data.DeletePatternLine ( );        
+        if ( GUILayout.Button ( "Copy" ) ) 
+            data.CopyPatternLine ( );
+        
+        GUILayout.EndHorizontal ( );
         GUILayout.EndArea();
     }
 }
