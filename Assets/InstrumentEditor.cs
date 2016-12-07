@@ -70,6 +70,16 @@ public class InstrumentEditor : MonoBehaviour {
         GUILayout.Box ( "Arpeggio" );
         arpEnvelope = TabSafeTextField ( arpEnvelope );
 
+        bool samp = instruments.presets[keyboard.currentInstrument].samplePlayback;
+        samp = GUILayout.Toggle(samp, "SID");
+
+        if(samp != instruments.presets[keyboard.currentInstrument].samplePlayback)
+        {
+            Instruments.InstrumentInstance ins = instruments.presets[keyboard.currentInstrument];
+            ins.samplePlayback = samp;
+            instruments.presets[keyboard.currentInstrument] = ins;
+        }
+
         GUILayout.EndArea ( );
     }
 

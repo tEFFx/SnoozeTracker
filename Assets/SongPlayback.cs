@@ -26,6 +26,7 @@ public class SongPlayback : MonoBehaviour {
     void Start()
     {
         psg.AddIrqCallback(50, OnIrqCallback);
+        psg.AddIrqCallback(Instruments.InstrumentInstance.SAMPLE_RATE, OnSampleCallback);
         mute = new bool [ data.channels ];
         m_Instruments = new Instruments.InstrumentInstance [ data.channels ];
         m_PrevInstruments = new Instruments.InstrumentInstance[data.channels];
@@ -52,6 +53,17 @@ public class SongPlayback : MonoBehaviour {
                 }
                 m_LastLineTick = Time.time;
             }
+        }
+    }
+
+    public void OnSampleCallback()
+    {
+        if (!m_IsPlaying)
+            return;
+
+        for (int i = 0; i < data.channels; i++)
+        {
+            m_Instruments[i].UpdatePSGSample(psg, i);
         }
     }
 

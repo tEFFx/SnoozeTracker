@@ -44,6 +44,7 @@ public class VirtualKeyboard : MonoBehaviour {
 
     void Awake() {
         psg.AddIrqCallback ( 50, OnIrqCallback );
+        psg.AddIrqCallback(Instruments.InstrumentInstance.SAMPLE_RATE, OnSampleCallback);
     }
 
     void Update()
@@ -84,6 +85,14 @@ public class VirtualKeyboard : MonoBehaviour {
             return;
 
         m_Instrument.UpdatePSG ( psg, patternView.selectedChannel );
+    }
+
+    private void OnSampleCallback()
+    {
+        if (!m_Pressed)
+            return;
+
+        m_Instrument.UpdatePSGSample(psg, patternView.selectedChannel);
     }
 
     public static Note GetNote(int noteData)

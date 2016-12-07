@@ -72,14 +72,18 @@ public class SN76489 {
     }
 
     public float Render() {
-        float output = 0;
         while(mCycleCount > 0) {
             for ( int i = 0 ; i < 4; i++ ) {
                 mCount [ i ]--;
                 if ( mCount [ i ] <= 0 ) {
                     if ( i < 3 ) {
                         mCount [ i ] = mFreq [ i ];
-                        mFlipFlop [ i ] = !mFlipFlop [ i ];
+                        if (mFreq[i] > 1)
+                            mFlipFlop[i] = !mFlipFlop[i];
+                        else if (mFreq[i] == 1)
+                            mFlipFlop[i] = true;
+                        else
+                            mFlipFlop[i] = false;
                     } else {
                         int nf = mFreq [ 3 ] & 3;
                         int fb = ( mFreq [ 3 ] >> 2 ) & 1;
@@ -89,17 +93,19 @@ public class SN76489 {
                         mFlipFlop [ 3 ] = (mNoiseSR & 1) != 0;
                     }
                 }
-
-                output += mFlipFlop[i] ? VOLUME_TABLE [ mAttn [ i ] ] : -VOLUME_TABLE [ mAttn [ i ] ];
             }
 
             mCycleCount -= 1.0f;
         }
 
         mCycleCount += mCyclesPerSample;
-        output *= 0.25f / (float)Math.Ceiling(mCycleCount);
 
-        return output;
+        return (GetVolume(0) + GetVolume(1) + GetVolume(2) + GetVolume(3)) * 0.25f;
+    }
+
+    private float GetVolume(int _chn)
+    {
+        return mFlipFlop[_chn] ? VOLUME_TABLE[mAttn[_chn]] : -VOLUME_TABLE[mAttn[_chn]];
     }
 
     private int Parity(int _val) {

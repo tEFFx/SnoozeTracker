@@ -6,6 +6,7 @@ public class Instruments : MonoBehaviour {
 
     [System.Serializable]
     public struct InstrumentInstance {
+        public static readonly int SAMPLE_RATE = 16000;
         public static bool m_NoiseFB = true;
         public static bool m_NoiseChn3 = false;
 
@@ -25,11 +26,14 @@ public class Instruments : MonoBehaviour {
         public int relativeVolume;
         public VirtualKeyboard.Note note;
         public int octave;
+        public bool samplePlayback;
+        public int pulseWidth;
 
         private int m_VolumeOffset;
         private int m_ArpOffset;
         private int m_VibratoTimer;
         private int m_PortamentoTimer;
+        private long m_SampleTimer;
         private bool m_AutoPortamento;
         private bool m_UpdatedFrequency;
 
@@ -37,8 +41,8 @@ public class Instruments : MonoBehaviour {
             if (speed == 0 || prev.note == VirtualKeyboard.Note.None || prev.note == VirtualKeyboard.Note.NoteOff)
                 return;
 
-            int prevFreq = PSGWrapper.CalculateFrequency((int)prev.note, prev.octave);
-            int currFreq = PSGWrapper.CalculateFrequency((int)note, octave);
+            int prevFreq = PSGWrapper.CalculatePSGFreq((int)prev.note, prev.octave);
+            int currFreq = PSGWrapper.CalculatePSGFreq((int)note, octave);
             int relFreq = prevFreq - currFreq;
 
             m_PortamentoTimer = System.Math.Abs(relFreq) / speed;
@@ -54,14 +58,16 @@ public class Instruments : MonoBehaviour {
                 return;
             }
 
-            int vol = Mathf.RoundToInt(GetCurrentVol() * (relativeVolume / 15f));
-            psg.SetAttenuation(chn, vol);
+            psg.SetAttenuation(chn, GetCurrentVol());
 
-            if (!m_UpdatedFrequency || updatesFrequency)
+            if (!m_UpdatedFrequency || (updatesFrequency && !samplePlayback))
             {
                 if (chn < 3)
                 {
-                    psg.SetFrequency(chn, (int)note + GetNoteOffset(), octave, GetFreqOffset());
+                    if (!samplePlayback)
+                        psg.SetNote(chn, (int)note + GetNoteOffset(), octave, GetFreqOffset());
+                    else
+                        psg.SetFrequency(chn, 1);
                 }
                 else
                 {
@@ -73,13 +79,35 @@ public class Instruments : MonoBehaviour {
                     else
                     {
                         psg.chip.Write(0xE7);
-                        psg.SetFrequency(2, (int)note + GetNoteOffset(), octave, GetFreqOffset());
+                        psg.SetNote(2, (int)note + GetNoteOffset(), octave, GetFreqOffset());
                     }
                 }
             }
 
-            Clock();
+            ClockInstrument();
             m_UpdatedFrequency = true;
+        }
+
+        bool flipFlop;
+        public void UpdatePSGSample(PSGWrapper psg, int chn)
+        {
+            if (note == VirtualKeyboard.Note.None || note == VirtualKeyboard.Note.NoteOff)
+            {
+                psg.SetAttenuation(chn, 0);
+                return;
+            }
+
+            if (!samplePlayback || chn == 3)
+                return;
+
+            int div = (int)(SAMPLE_RATE / PSGWrapper.CalculateNoteFeq((int)note, octave + 1));
+
+            if (m_SampleTimer % div == 0)
+                flipFlop = !flipFlop;
+
+            psg.SetAttenuation(chn, flipFlop ? GetCurrentVol() : 0);
+
+            m_SampleTimer++;
         }
 
         private int GetNoteOffset()
@@ -110,7 +138,7 @@ public class Instruments : MonoBehaviour {
             return volumeTable[m_VolumeOffset] - (0xF - relativeVolume);
         }
 
-        private void Clock()
+        private void ClockInstrument()
         {
             if (volumeTable == null || m_VolumeOffset < volumeTable.Length - 1)
                 m_VolumeOffset++;

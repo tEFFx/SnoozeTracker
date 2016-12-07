@@ -13,7 +13,7 @@ public class PSGWrapper : MonoBehaviour {
 
         public IrqCallback(int sampleRate, int frequency, System.Action callback = null)
         {
-            m_Divider = frequency / sampleRate;
+            m_Divider = sampleRate / frequency;
             onCounterReset += callback;
         }
 
@@ -50,17 +50,17 @@ public class PSGWrapper : MonoBehaviour {
 
         for (int i = 0; i < data.Length; i+=channels)
         {
+            for (int j = 0; j < m_Callbacks.Count; j++)
+            {
+                m_Callbacks[j].Clock();
+            }
+
             float sample = m_PSGChip.Render();
 
             for (int j = 0; j < channels; j++)
             {
                 data[i + j] = sample;
             }
-        }
-
-        for (int i = 0; i < m_Callbacks.Count; i++)
-        {
-            m_Callbacks[i].Clock();
         }
     }
 
@@ -74,23 +74,29 @@ public class PSGWrapper : MonoBehaviour {
 
     public void AddIrqCallback(int frequency, System.Action callback)
     {
+        Debug.Log("Added IRQ " + frequency + " (" + (AudioSettings.outputSampleRate / frequency) + ")");
         m_Callbacks.Add(new IrqCallback(AudioSettings.outputSampleRate, frequency, callback));
     }
 
-    public void SetFrequency(int channel, int note, int octave, int fineTune = 0)
+    public void SetNote(int channel, int note, int octave, int fineTune = 0)
     {
         if (channel < 3)
         {
-            int freq = CalculateFrequency(note, octave) - fineTune;
-            byte reg = (byte)((channel * 2) << 4);
-            byte data = (byte)(0x80 | reg | (freq & 0xF));
-            m_PSGChip.Write(data);
-            byte data1 = data;
-            data = (byte)((freq >> 4) & 0x3F);
-            m_PSGChip.Write(data);
+            int freq = CalculatePSGFreq(note, octave) - fineTune;
+            SetFrequency(channel, freq);
 
             //Debug.Log("Data sent: " + System.Convert.ToString(data1, 2) + ", " + System.Convert.ToString(data, 2) + ". Should be " + System.Convert.ToString(freq, 2) + " (" + freq.ToString("X2") + ")");
         }
+    }
+
+    public void SetFrequency(int channel, int frequency)
+    {
+        byte reg = (byte)((channel * 2) << 4);
+        byte data = (byte)(0x80 | reg | (frequency & 0xF));
+        m_PSGChip.Write(data);
+        byte data1 = data;
+        data = (byte)((frequency >> 4) & 0x3F);
+        m_PSGChip.Write(data);
     }
 
     public void SetAttenuation(int channel, int attenuation)
@@ -101,12 +107,16 @@ public class PSGWrapper : MonoBehaviour {
         m_PSGChip.Write(data);
     }
 
-    public static int CalculateFrequency(int note, int octave)
+    public static int CalculatePSGFreq(int note, int octave)
     {
-        int relativeNote = (note + octave * 12) - 58;
-        float freq = 440 * Mathf.Pow(Mathf.Pow(2, 1f / 12f), relativeNote);
-        int div = (int)SN76489.Clock.PAL / 32 / (int)freq;
+        int div = (int)SN76489.Clock.PAL / 32 / (int)CalculateNoteFeq(note, octave);
         //Debug.Log(div.ToString("X2"));
         return div;
+    }
+
+    public static float CalculateNoteFeq(int note, int octave)
+    {
+        int relativeNote = (note + octave * 12) - 58;
+        return 440 * Mathf.Pow(Mathf.Pow(2, 1f / 12f), relativeNote);
     }
 }
