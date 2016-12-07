@@ -2,6 +2,8 @@
 using System.Collections;
 
 public class SongPlayback : MonoBehaviour {
+    public bool isPlaying { get { return m_IsPlaying; } }
+
     public PSGWrapper psg;
     public SongData data;
     public PatternView view;

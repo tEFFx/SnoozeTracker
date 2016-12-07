@@ -11,6 +11,7 @@ public class FileManagement : MonoBehaviour {
     public SongData data;
     public Instruments instruments;
     public InstrumentEditor insEditor;
+    public SongPlayback playback;
 
     [System.Serializable]
     internal class SongFile {
@@ -23,6 +24,8 @@ public class FileManagement : MonoBehaviour {
     }
     
     public void SaveFile() {
+        playback.Stop ( );
+
         SaveFileDialog sfd = new SaveFileDialog ( );
         sfd.Filter = fileFilter;
 
@@ -41,6 +44,9 @@ public class FileManagement : MonoBehaviour {
     }
 
     public void OpenFile() {
+        playback.Stop ( );
+        data.currentPattern = 0;
+
         OpenFileDialog ofd = new OpenFileDialog ( );
         ofd.Filter = fileFilter;
 
