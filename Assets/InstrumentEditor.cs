@@ -36,6 +36,7 @@ public class InstrumentEditor : MonoBehaviour {
     public VirtualKeyboard keyboard;
     public Vector2 padding;
     public Vector2 size;
+    public float volWidth;
 
     private string m_VolumeEnvelope;
     private string m_Arpeggio;
@@ -58,28 +59,44 @@ public class InstrumentEditor : MonoBehaviour {
         GUILayout.BeginArea ( rect );
 
         GUILayout.BeginHorizontal ( );
+
+        GUILayout.BeginVertical (GUILayout.Width(size.x - volWidth - 16));
+        GUILayout.BeginHorizontal ( );
         GUILayout.Box ( "Ins " + keyboard.currentInstrument );
         if ( GUILayout.Button ( "<" ) )
             IncInstrument ( -1 );
         if ( GUILayout.Button ( ">" ) )
             IncInstrument ( 1 );
         GUILayout.EndHorizontal ( );
-
-        GUILayout.Box ( "Volume Envelope" );
-        volumeEnvelope = TabSafeTextField ( volumeEnvelope );
         GUILayout.Box ( "Arpeggio" );
         arpEnvelope = TabSafeTextField ( arpEnvelope );
 
-        bool samp = instruments.presets[keyboard.currentInstrument].samplePlayback;
-        samp = GUILayout.Toggle(samp, "SID");
+        bool samp = instruments.presets [ keyboard.currentInstrument ].samplePlayback;
+        samp = GUILayout.Toggle ( samp, "SID" );
 
-        if(samp != instruments.presets[keyboard.currentInstrument].samplePlayback)
-        {
-            Instruments.InstrumentInstance ins = instruments.presets[keyboard.currentInstrument];
+        if ( samp != instruments.presets [ keyboard.currentInstrument ].samplePlayback ) {
+            Instruments.InstrumentInstance ins = instruments.presets [ keyboard.currentInstrument ];
             ins.samplePlayback = samp;
-            instruments.presets[keyboard.currentInstrument] = ins;
+            instruments.presets [ keyboard.currentInstrument ] = ins;
         }
 
+        GUILayout.EndVertical ( );
+
+        GUILayout.BeginVertical ( GUILayout.Width ( volWidth ) );
+        GUILayout.Box ( "Volume Envelope" );
+        ArraySlider ( instrument.volumeTable, 0, 0xF );
+
+        GUILayout.FlexibleSpace ( );
+        GUILayout.BeginHorizontal ( );
+        GUILayout.Box ( instrument.volumeTable.Length.ToString ( "X2" ) );
+        if ( GUILayout.Button ( "-" ) )
+            ChangeVolTableSize ( -1 );
+        if ( GUILayout.Button ( "+" ) )
+            ChangeVolTableSize ( 1 );
+        GUILayout.EndHorizontal ( );
+        GUILayout.EndVertical ( );
+
+        GUILayout.EndHorizontal ( );
         GUILayout.EndArea ( );
     }
 
@@ -90,6 +107,18 @@ public class InstrumentEditor : MonoBehaviour {
         return res;
     }
 
+    void ArraySlider(int[] array, int min, int max) {
+        GUILayout.BeginHorizontal ( );
+
+        for ( int i = 0 ; i < array.Length ; i++ ) {
+            GUILayout.BeginVertical ( GUILayout.Width(8) );
+            array[i] = (int)GUILayout.VerticalSlider ( array [ i ], max, min, GUILayout.Height(64) );
+            GUILayout.Box ( array [ i ].ToString ( "X" ), GUILayout.Width(16));
+            GUILayout.EndVertical ( );
+        }
+
+        GUILayout.EndHorizontal ( );
+    }
 
     public void UpdateAttributes() {
         m_VolumeEnvelope = ArrayToString ( instrument.volumeTable );
@@ -104,6 +133,19 @@ public class InstrumentEditor : MonoBehaviour {
             instruments.CreateInstrument ( );
 
         UpdateAttributes ( );
+    }
+
+    private void ChangeVolTableSize(int inc) {
+        if ( inc < 0 && instrument.volumeTable.Length <= 1 )
+            return;
+
+        Instruments.InstrumentInstance ins = instrument;
+        System.Array.Resize ( ref ins.volumeTable, ins.volumeTable.Length + inc );
+
+        if ( inc > 0 )
+            ins.volumeTable [ ins.volumeTable.Length - 1 ] = ins.volumeTable [ ins.volumeTable.Length - 2 ];
+
+        instruments.presets [ keyboard.currentInstrument ] = ins;
     }
 
     private string ArrayToString(int[] array) {
