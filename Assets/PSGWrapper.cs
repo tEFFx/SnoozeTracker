@@ -82,7 +82,7 @@ public class PSGWrapper : MonoBehaviour {
     {
         if (channel < 3)
         {
-            int freq = CalculatePSGFreq(note, octave) - fineTune;
+            int freq = CalculatePSGFreq(note, octave, fineTune);
             SetFrequency(channel, freq);
 
             //Debug.Log("Data sent: " + System.Convert.ToString(data1, 2) + ", " + System.Convert.ToString(data, 2) + ". Should be " + System.Convert.ToString(freq, 2) + " (" + freq.ToString("X2") + ")");
@@ -107,9 +107,9 @@ public class PSGWrapper : MonoBehaviour {
         m_PSGChip.Write(data);
     }
 
-    public static int CalculatePSGFreq(int note, int octave)
+    public static int CalculatePSGFreq(int note, int octave, int fineTune = 0)
     {
-        int div = (int)SN76489.Clock.PAL / 32 / (int)CalculateNoteFreq(note, octave);
+        int div = (int)SN76489.Clock.PAL / 32 / (int)(CalculateNoteFreq(note, octave) + fineTune);
         //Debug.Log(div.ToString("X2"));
         return div;
     }

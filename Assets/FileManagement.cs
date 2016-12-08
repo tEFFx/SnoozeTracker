@@ -36,7 +36,7 @@ public class FileManagement : MonoBehaviour {
             song.songData = data.songData;
             song.instruments = instruments.presets;
 
-            IFormatter formatter = new BinaryFormatter ( );
+            IFormatter formatter = new BinaryFormatter ();
             Stream fs = sfd.OpenFile ( );
             formatter.Serialize ( fs, song );
             fs.Close ( );

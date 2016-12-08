@@ -27,7 +27,7 @@ public class InstrumentEditor : MonoBehaviour {
                 return;
             Instruments.InstrumentInstance preset = instrument;
             m_Arpeggio = value;
-            StringToArray ( m_Arpeggio, ref preset.arpreggio );
+            StringToArray ( m_Arpeggio, ref preset.arpeggio );
             instruments.presets [ keyboard.currentInstrument ] = preset;
         }
     }
@@ -93,7 +93,7 @@ public class InstrumentEditor : MonoBehaviour {
 
     public void UpdateAttributes() {
         m_VolumeEnvelope = ArrayToString ( instrument.volumeTable );
-        m_Arpeggio = ArrayToString ( instrument.arpreggio );
+        m_Arpeggio = ArrayToString ( instrument.arpeggio );
     }
 
     private void IncInstrument(int dir) {

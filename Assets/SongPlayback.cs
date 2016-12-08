@@ -113,11 +113,11 @@ public class SongPlayback : MonoBehaviour {
                         //arpreggio
                         case 0x00:
                             if ( fxVal == 0 ) {
-                                m_Instruments [ i ].arpreggio = new int [ 0 ];
+                                m_Instruments [ i ].arpeggio = new int [ 0 ];
                             } else {
                                 int hiArp, loArp;
                                 SplitByte ( fxVal, out hiArp, out loArp );
-                                m_Instruments [ i ].arpreggio = new int [ 3 ] { 0, loArp, hiArp };
+                                m_Instruments [ i ].arpeggio = new int [ 3 ] { 0, loArp, hiArp };
                             }
                             break;
 
@@ -130,6 +130,8 @@ public class SongPlayback : MonoBehaviour {
                             break;
 
                         case 0x03:
+                            if ( m_Instruments [ i ].samplePlayback )
+                                m_Instruments [ i ].pulseWidth = m_PrevInstruments [ i ].pulseWidth;
                             m_Instruments [ i ].SetAutoPortamento (m_PrevInstruments[i], fxVal);
                             break;
 
@@ -149,6 +151,10 @@ public class SongPlayback : MonoBehaviour {
                             SplitByte ( fxVal, out mode, out fb );
                             m_NoiseFB = fb > 0;
                             m_NoiseChn3 = mode > 0;
+                            break;
+
+                        case 0x40:
+                            m_Instruments [ i ].pulseWidthPanSpeed = fxVal;
                             break;
 
                         case 0xFF:
@@ -175,7 +181,7 @@ public class SongPlayback : MonoBehaviour {
         }
     }
 
-    private void SplitByte(int val, out int b1, out int b2) {
+    public static void SplitByte(int val, out int b1, out int b2) {
         b1 = val & 0xF;
         b2 = ( val >> 4 ) & 0xF;
     }

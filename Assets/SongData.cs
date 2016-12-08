@@ -3,16 +3,26 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using System.Runtime.Serialization;
 
 public class SongData : MonoBehaviour {
-    [System.Serializable]
-    public class ColumnEntry
+    [Serializable]
+    public class ColumnEntry : ISerializable
     {
         public ColumnEntry(int numRows, int numDataEntries)
         {
             data = new int[numRows, numDataEntries];
             m_DataEntries = numDataEntries;
             ResetRange ( 0, numRows );
+        }
+
+        public ColumnEntry(SerializationInfo info, StreamingContext context) {
+            data = ( int [ , ] ) info.GetValue ( "data", typeof ( int [ , ] ) );
+            m_DataEntries = data.GetLength ( 1 );
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context) {
+            info.AddValue ( "data", data );
         }
 
         public int[,] data;
