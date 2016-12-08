@@ -109,12 +109,12 @@ public class PSGWrapper : MonoBehaviour {
 
     public static int CalculatePSGFreq(int note, int octave)
     {
-        int div = (int)SN76489.Clock.PAL / 32 / (int)CalculateNoteFeq(note, octave);
+        int div = (int)SN76489.Clock.PAL / 32 / (int)CalculateNoteFreq(note, octave);
         //Debug.Log(div.ToString("X2"));
         return div;
     }
 
-    public static float CalculateNoteFeq(int note, int octave)
+    public static float CalculateNoteFreq(int note, int octave)
     {
         int relativeNote = (note + octave * 12) - 58;
         return 440 * Mathf.Pow(Mathf.Pow(2, 1f / 12f), relativeNote);

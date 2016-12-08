@@ -7,6 +7,7 @@ public class Instruments : MonoBehaviour {
     [System.Serializable]
     public struct InstrumentInstance {
         public static readonly int SAMPLE_RATE = 16000;
+        public static readonly int PWM_STEPS = 32;
         public static bool m_NoiseFB = true;
         public static bool m_NoiseChn3 = false;
 
@@ -33,9 +34,10 @@ public class Instruments : MonoBehaviour {
         private int m_ArpOffset;
         private int m_VibratoTimer;
         private int m_PortamentoTimer;
-        private long m_SampleTimer;
+        private float m_SampleTimer;
         private bool m_AutoPortamento;
         private bool m_UpdatedFrequency;
+        private int m_PWMTimer;
 
         public void SetAutoPortamento(InstrumentInstance prev, int speed) {
             if (speed == 0 || prev.note == VirtualKeyboard.Note.None || prev.note == VirtualKeyboard.Note.NoteOff)
@@ -50,6 +52,7 @@ public class Instruments : MonoBehaviour {
             m_AutoPortamento = true;
         }
 
+        int pwm;
         public void UpdatePSG(PSGWrapper psg, int chn)
         {
             if (note == VirtualKeyboard.Note.None || note == VirtualKeyboard.Note.NoteOff)
@@ -91,23 +94,28 @@ public class Instruments : MonoBehaviour {
         bool flipFlop;
         public void UpdatePSGSample(PSGWrapper psg, int chn)
         {
-            if (note == VirtualKeyboard.Note.None || note == VirtualKeyboard.Note.NoteOff)
+            if ( !samplePlayback || chn == 3 )
+                return;
+
+            if ( note == VirtualKeyboard.Note.None || note == VirtualKeyboard.Note.NoteOff)
             {
                 psg.SetAttenuation(chn, 0);
                 return;
             }
 
-            if (!samplePlayback || chn == 3)
-                return;
+            if ( m_SampleTimer <= 0 ) {
+                m_SampleTimer += ( SAMPLE_RATE / PSGWrapper.CalculateNoteFreq ( ( int ) note, octave ) / PWM_STEPS );
+                m_PWMTimer++;
 
-            int div = (int)(SAMPLE_RATE / PSGWrapper.CalculateNoteFeq((int)note, octave + 1));
-
-            if (m_SampleTimer % div == 0)
-                flipFlop = !flipFlop;
+                if ( m_PWMTimer >= ( flipFlop ? pwm : PWM_STEPS - pwm ) ) {
+                    flipFlop = !flipFlop;
+                    m_PWMTimer = 0;
+                }
+            }
 
             psg.SetAttenuation(chn, flipFlop ? GetCurrentVol() : 0);
 
-            m_SampleTimer++;
+            m_SampleTimer--;
         }
 
         private int GetNoteOffset()
@@ -154,6 +162,10 @@ public class Instruments : MonoBehaviour {
 
             if (vibratoSpeed > 0 && vibratoDepth > 0)
                 m_VibratoTimer++;
+
+            pwm++;
+            if ( pwm >= PWM_STEPS )
+                pwm = 0;
         }
     }
 
