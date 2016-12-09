@@ -103,7 +103,7 @@ public class SN76489 {
 
         mCycleCount += mCyclesPerSample;
 
-        output = (output / (float)Math.Ceiling(mCycleCount)) * 0.25f;
+        output = (output / (float)Math.Ceiling(mCycleCount)) * 0.25f * 1;
 
         return output;
     }

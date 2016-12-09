@@ -35,14 +35,13 @@ public class ScopeView : MonoBehaviour {
         GL.Begin(GL.LINES);
         GL.Color(lineColor);
 
-
         int end = Mathf.Min(m_SampleData.Length, m_SampleCount + m_SamplesPerFrame - m_Channels);
         m_LineSpacing = box.width / m_SamplesPerFrame;
-        m_LineHeight = box.height;
+        m_LineHeight = box.height * 0.5f;
 
         for (int i = m_SampleCount; i < end; i += m_Channels)
         {
-            Vector3 boxPos = new Vector3(box.xMin, Screen.height - box.yMin);
+            Vector3 boxPos = new Vector3(box.xMin, Screen.height - (box.yMin + m_LineHeight));
             Vector3 pos = Vector3.zero;
             pos.x += (i % m_SamplesPerFrame) * m_LineSpacing;
             pos.y += m_SampleData[i] * m_LineHeight;
@@ -59,6 +58,11 @@ public class ScopeView : MonoBehaviour {
         
         GL.End();
         GL.PopMatrix();
+    }
+
+    void OnGUI()
+    {
+        GUI.Box(box, "");
     }
 
     void DrawLine(int index)

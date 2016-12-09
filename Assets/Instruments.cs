@@ -159,13 +159,13 @@ public class Instruments : MonoBehaviour {
 
                 case Wave.Saw:
                     attn = Mathf.Ceil(((m_SampleTimer % divider) / divider) * 0xF) ;
-                    attn = LINEAR_VOLUME_TABLE[(int)attn] - (0xF - GetCurrentVol());
+                    attn = Math.Max(0, LINEAR_VOLUME_TABLE[(int)attn] - (0xF - GetCurrentVol()));
                     break;
 
                 case Wave.Triangle:
                     attn = ((m_SampleTimer % divider) / divider) * 0x1C;
                     attn = Mathf.Ceil(Mathf.Abs(attn - 0xE));
-                    attn = LINEAR_VOLUME_TABLE[(int)attn] - (0xF - GetCurrentVol());
+                    attn = Math.Max(0, LINEAR_VOLUME_TABLE[(int)attn] - (0xF - GetCurrentVol()));
                     break;
             }
 
@@ -194,7 +194,7 @@ public class Instruments : MonoBehaviour {
             return m_PortamentoTimer * portamentoSpeed + vibrato;
         }
 
-        private int GetCurrentVol(bool linear = false)
+        private int GetCurrentVol()
         {
             if (volumeTable == null)
                 return 0;
@@ -216,8 +216,10 @@ public class Instruments : MonoBehaviour {
             if ( pulseWidthPanSpeed == 0 || m_IrqTimer % pulseWidthPanSpeed == 0 ) {
                 m_PWM += m_PWMDir ? -1 : 1;
                 if ( m_PWM > pulseWidthMax ) {
+                    m_PWM = pulseWidthMax;
                     m_PWMDir = true;
                 }else if(m_PWM < pulseWidthMin ) {
+                    m_PWM = pulseWidthMin;
                     m_PWMDir = false;
                 }
             }
