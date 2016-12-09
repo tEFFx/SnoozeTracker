@@ -29,6 +29,9 @@ public class PSGWrapper : MonoBehaviour {
         }
     }
 
+    public delegate void OnSampleRead(float[] data, int channels);
+    public OnSampleRead onSampleReadCallback;
+
     public long currentSample { get { return m_CurrentSample; } }
     public SN76489 chip { get { return m_PSGChip; } }
     public AudioSource audioSource;
@@ -46,8 +49,6 @@ public class PSGWrapper : MonoBehaviour {
 
     void OnAudioFilterRead(float[] data, int channels)
     {
-        //Debug.Log ( "Filter read! "+ data.Length * channels);
-
         for (int i = 0; i < data.Length; i+=channels)
         {
             for (int j = 0; j < m_Callbacks.Count; j++)
@@ -62,6 +63,9 @@ public class PSGWrapper : MonoBehaviour {
                 data[i + j] = sample;
             }
         }
+
+        if (onSampleReadCallback != null)
+            onSampleReadCallback(data, channels);
     }
 
     public void Mute()

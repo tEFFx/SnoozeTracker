@@ -103,12 +103,14 @@ public class SN76489 {
 
         mCycleCount += mCyclesPerSample;
 
-        return (output / (float)Math.Ceiling(mCycleCount)) * 0.25f;
+        output = (output / (float)Math.Ceiling(mCycleCount)) * 0.25f;
+
+        return output;
     }
 
     private float GetVolume(int _chn)
     {
-        return mFlipFlop[_chn] ? VOLUME_TABLE[mAttn[_chn]] : -VOLUME_TABLE[mAttn[_chn]];
+        return mFlipFlop[_chn] ? VOLUME_TABLE[mAttn[_chn]] : 0;
     }
 
     private int Parity(int _val) {

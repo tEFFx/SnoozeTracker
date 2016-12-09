@@ -54,6 +54,7 @@ public class Instruments : MonoBehaviour {
         public static readonly int PWM_STEPS = 100;
         public static bool m_NoiseFB = true;
         public static bool m_NoiseChn3 = false;
+        public static readonly int[] LINEAR_VOLUME_TABLE = { 0xF, 0xF, 0xF, 0xE, 0xE, 0xD, 0xD, 0xC, 0xC, 0xB, 0xA, 0x9, 0x8, 0x6, 0x3, 0x0 };
 
         public bool updatesFrequency {
             get {
@@ -157,12 +158,14 @@ public class Instruments : MonoBehaviour {
                     break;
 
                 case Wave.Saw:
-                    attn = Mathf.Ceil(((m_SampleTimer % divider) / divider) * GetCurrentVol());
+                    attn = Mathf.Ceil(((m_SampleTimer % divider) / divider) * 0xF) ;
+                    attn = LINEAR_VOLUME_TABLE[(int)attn] - (0xF - GetCurrentVol());
                     break;
 
                 case Wave.Triangle:
-                    attn = (m_SampleTimer % (divider) / (divider)) * GetCurrentVol() * 2;
-                    attn = Mathf.Ceil(Mathf.Abs(attn - GetCurrentVol()));
+                    attn = ((m_SampleTimer % divider) / divider) * 0x1C;
+                    attn = Mathf.Ceil(Mathf.Abs(attn - 0xE));
+                    attn = LINEAR_VOLUME_TABLE[(int)attn] - (0xF - GetCurrentVol());
                     break;
             }
 
@@ -191,7 +194,7 @@ public class Instruments : MonoBehaviour {
             return m_PortamentoTimer * portamentoSpeed + vibrato;
         }
 
-        private int GetCurrentVol()
+        private int GetCurrentVol(bool linear = false)
         {
             if (volumeTable == null)
                 return 0;
