@@ -72,12 +72,21 @@ public class InstrumentEditor : MonoBehaviour {
         arpEnvelope = TabSafeTextField ( arpEnvelope );
 
         bool samp = instruments.presets [ keyboard.currentInstrument ].samplePlayback;
-        samp = GUILayout.Toggle ( samp, "SID" );
+        samp = GUILayout.Toggle ( samp, "Custom waves" );
 
         if ( samp != instruments.presets [ keyboard.currentInstrument ].samplePlayback ) {
             Instruments.InstrumentInstance ins = instruments.presets [ keyboard.currentInstrument ];
             ins.samplePlayback = samp;
             instruments.presets [ keyboard.currentInstrument ] = ins;
+        }
+
+        if (samp)
+        {
+            GUILayout.BeginHorizontal();
+            WaveButton(Instruments.InstrumentInstance.Wave.Pulse);
+            WaveButton(Instruments.InstrumentInstance.Wave.Saw);
+            WaveButton(Instruments.InstrumentInstance.Wave.Triangle);
+            GUILayout.EndHorizontal();
         }
 
         GUILayout.EndVertical ( );
@@ -118,6 +127,19 @@ public class InstrumentEditor : MonoBehaviour {
         }
 
         GUILayout.EndHorizontal ( );
+    }
+
+    void WaveButton(Instruments.InstrumentInstance.Wave wave)
+    {
+        Instruments.InstrumentInstance ins = instruments.presets[keyboard.currentInstrument];
+        bool sel = ins.customWaveform == wave;
+        sel = GUILayout.Toggle(sel, wave.ToString());
+
+        if(sel && ins.customWaveform != wave)
+        {
+            ins.customWaveform = wave;
+            instruments.presets[keyboard.currentInstrument] = ins;
+        }
     }
 
     public void UpdateAttributes() {

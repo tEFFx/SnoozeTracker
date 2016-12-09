@@ -19,6 +19,7 @@ public class Instruments : MonoBehaviour {
             arpeggio = new int [ ] { 0x0 };
             pulseWidthMin = 4;
             pulseWidthMax = 26;
+            customWaveform = Wave.Pulse;
 
             foreach (SerializationEntry e in info) {
                 switch ( e.Name ) {
@@ -27,6 +28,7 @@ public class Instruments : MonoBehaviour {
                     case "vd": vibratoDepth = ( int ) e.Value; break;
                     case "vs": vibratoSpeed = ( int ) e.Value; break;
                     case "sp": samplePlayback = ( bool ) e.Value; break;
+                    case "wav": customWaveform = (Wave)e.Value; break;
                     case "pmi": pulseWidthMin = ( int ) e.Value; break;
                     case "pma": pulseWidthMax = ( int ) e.Value; break;
                     case "ps": pulseWidthPanSpeed = ( int ) e.Value; break;
@@ -46,8 +48,10 @@ public class Instruments : MonoBehaviour {
             info.AddValue ( "ps", pulseWidthPanSpeed );
         }
 
-        public static readonly int SAMPLE_RATE = 16000;
-        public static readonly int PWM_STEPS = 32;
+        public enum Wave { Pulse, Saw, Triangle, Table }
+
+        public static readonly int SAMPLE_RATE = 22050;
+        public static readonly int PWM_STEPS = 100;
         public static bool m_NoiseFB = true;
         public static bool m_NoiseChn3 = false;
 
@@ -67,6 +71,7 @@ public class Instruments : MonoBehaviour {
         public VirtualKeyboard.Note note;
         public int octave;
 
+        //serialized
         public int[] volumeTable;
         public int[] arpeggio;
         public int vibratoDepth;
@@ -75,7 +80,9 @@ public class Instruments : MonoBehaviour {
         public int pulseWidthMin;
         public int pulseWidthMax;
         public int pulseWidthPanSpeed;
+        public Wave customWaveform;
 
+        //not serialized
         private int m_IrqTimer, m_PortamentoTimer, m_VolumeOffset, m_PWMTimer, m_PWM;
         private float m_SampleTimer;
         private bool m_AutoPortamento, m_UpdatedFrequency, m_PWMDir, m_PWMFlipFlop;
@@ -133,28 +140,34 @@ public class Instruments : MonoBehaviour {
 
         public void UpdatePSGSample(PSGWrapper psg, int chn)
         {
-            if ( !samplePlayback || chn == 3 )
+            if (!samplePlayback || chn == 3)
                 return;
 
-            if ( note == VirtualKeyboard.Note.None || note == VirtualKeyboard.Note.NoteOff)
+            if (note == VirtualKeyboard.Note.None || note == VirtualKeyboard.Note.NoteOff)
             {
                 psg.SetAttenuation(chn, 0);
                 return;
             }
 
-            if ( m_SampleTimer <= 0 ) {
-                m_SampleTimer += ( SAMPLE_RATE / (PSGWrapper.CalculateNoteFreq ( ( int ) note + GetNoteOffset ( ), octave ) + GetFreqOffset()) / PWM_STEPS );
-                m_PWMTimer++;
+            float divider = SAMPLE_RATE / (PSGWrapper.CalculateNoteFreq((int)note + GetNoteOffset(), octave) + GetFreqOffset());
+            float attn = 0;
+            switch (customWaveform) {
+                case Wave.Pulse:
+                    attn = (m_SampleTimer % divider) / divider < ((float)m_PWM / (float)PWM_STEPS) ? GetCurrentVol() : 0;
+                    break;
 
-                if ( m_PWMTimer >= ( m_PWMFlipFlop ? m_PWM : PWM_STEPS - m_PWM ) ) {
-                    m_PWMFlipFlop = !m_PWMFlipFlop;
-                    m_PWMTimer = 0;
-                }
+                case Wave.Saw:
+                    attn = Mathf.Ceil(((m_SampleTimer % divider) / divider) * GetCurrentVol());
+                    break;
+
+                case Wave.Triangle:
+                    attn = (m_SampleTimer % (divider) / (divider)) * GetCurrentVol() * 2;
+                    attn = Mathf.Ceil(Mathf.Abs(attn - GetCurrentVol()));
+                    break;
             }
 
-            psg.SetAttenuation(chn, m_PWMFlipFlop ? GetCurrentVol() : 0);
-
-            m_SampleTimer--;
+            m_SampleTimer++;
+            psg.SetAttenuation(chn, (int)attn);
         }
 
         private int GetNoteOffset()
@@ -218,8 +231,8 @@ public class Instruments : MonoBehaviour {
         InstrumentInstance created = new InstrumentInstance ( );
         created.volumeTable = new int [ ] { 0xF, 0xE, 0xD, 0xC };
         created.arpeggio = new int [ ] { 0x0 };
-        created.pulseWidthMin = 8;
-        created.pulseWidthMax = 26;
+        created.pulseWidthMin = 25;
+        created.pulseWidthMax = 75;
         presets.Add ( created );
     }
     

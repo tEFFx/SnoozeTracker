@@ -72,6 +72,7 @@ public class SN76489 {
     }
 
     public float Render() {
+        float output = 0;
         while(mCycleCount > 0) {
             for ( int i = 0 ; i < 4; i++ ) {
                 mCount [ i ]--;
@@ -93,6 +94,8 @@ public class SN76489 {
                         mFlipFlop [ 3 ] = (mNoiseSR & 1) != 0;
                     }
                 }
+
+                output += GetVolume(i);
             }
 
             mCycleCount -= 1.0f;
@@ -100,7 +103,7 @@ public class SN76489 {
 
         mCycleCount += mCyclesPerSample;
 
-        return (GetVolume(0) + GetVolume(1) + GetVolume(2) + GetVolume(3)) * 0.25f;
+        return (output / (float)Math.Ceiling(mCycleCount)) * 0.25f;
     }
 
     private float GetVolume(int _chn)
