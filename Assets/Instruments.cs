@@ -13,12 +13,13 @@ public class Instruments : MonoBehaviour {
             relativeVolume = 0xF;
             note = VirtualKeyboard.Note.None;
             m_SampleTimer = 0;
-            pulseWidthPanSpeed = vibratoDepth = vibratoSpeed = octave = portamentoSpeed = m_LastSample = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
+            vibratoDepth = vibratoSpeed = octave = portamentoSpeed = m_LastSample = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
             samplePlayback = m_AutoPortamento = m_UpdatedFrequency = m_PWMDir = m_PWMFlipFlop = false;
             volumeTable = new int [ ] { 0xF, 0xE, 0xD, 0xC };
             arpeggio = new int [ ] { 0x0 };
-            pulseWidthMin = 4;
-            pulseWidthMax = 26;
+            pulseWidthMin = 25;
+            pulseWidthMax = 75;
+            pulseWidthPanSpeed = 1;
             customWaveform = Wave.Pulse;
 
             foreach (SerializationEntry e in info) {
@@ -29,9 +30,9 @@ public class Instruments : MonoBehaviour {
                     case "vs": vibratoSpeed = ( int ) e.Value; break;
                     case "sp": samplePlayback = ( bool ) e.Value; break;
                     case "wav": customWaveform = (Wave)e.Value; break;
-                    case "pmi": pulseWidthMin = ( int ) e.Value; break;
-                    case "pma": pulseWidthMax = ( int ) e.Value; break;
-                    case "ps": pulseWidthPanSpeed = ( int ) e.Value; break;
+                    //case "pmi": pulseWidthMin = ( int ) e.Value; break;
+                    //case "pma": pulseWidthMax = ( int ) e.Value; break;
+                    //case "ps": pulseWidthPanSpeed = ( int ) e.Value; break;
                     default: Debug.LogWarning ( "Serialized field " + e.Name + " does not exist." ); break;
                 }
             }
@@ -51,7 +52,7 @@ public class Instruments : MonoBehaviour {
 
         public enum Wave { Pulse, Saw, Triangle, Table }
 
-        public static readonly int SAMPLE_RATE = 11025;
+        public static readonly int SAMPLE_RATE = 44100;
         public static readonly int PWM_STEPS = 100;
         public static bool NOISE_FB = true;
         public static bool NOISE_CHN3 = false;
@@ -153,16 +154,17 @@ public class Instruments : MonoBehaviour {
             }
 
             float divider = SAMPLE_RATE / (PSGWrapper.CalculateNoteFreq((int)note + GetNoteOffset(), octave) + GetFreqOffset());
+            float phase = ( m_SampleTimer % divider ) / divider;
             float attn = 0;
             int smp = 0;
             switch (customWaveform) {
                 case Wave.Pulse:
-                    attn = (m_SampleTimer % divider) / divider < ((float)m_PWM / (float)PWM_STEPS) ? 0 : 0x7;
+                    attn = phase < ((float)m_PWM / (float)PWM_STEPS) ? 0 : 0x7;
                     smp = ( int ) attn;
                     break;
 
                 case Wave.Saw:
-                    attn = Mathf.Ceil(((m_SampleTimer % divider) / divider) * 0x7);
+                    attn = Mathf.Ceil(phase * 0x7);
                     smp = ( int ) attn;
                     break;
 
@@ -225,10 +227,10 @@ public class Instruments : MonoBehaviour {
             if ( pulseWidthPanSpeed == 0 || m_IrqTimer % pulseWidthPanSpeed == 0 ) {
                 m_PWM += m_PWMDir ? -1 : 1;
                 if ( m_PWM > pulseWidthMax ) {
-                    m_PWM = pulseWidthMax - 1;
+                    m_PWM = pulseWidthMax;
                     m_PWMDir = true;
                 }else if(m_PWM < pulseWidthMin ) {
-                    m_PWM = pulseWidthMin + 1;
+                    m_PWM = pulseWidthMin;
                     m_PWMDir = false;
                 }
             }

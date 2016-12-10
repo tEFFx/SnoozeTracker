@@ -39,6 +39,7 @@ public class VirtualKeyboard : MonoBehaviour {
     public int currentInstrument;
     public int patternAdd = 1;
     public NoteKey[] noteBinds;
+    public bool recording;
 
     private Instruments.InstrumentInstance m_Instrument;
 
@@ -49,6 +50,10 @@ public class VirtualKeyboard : MonoBehaviour {
 
     void Update()
     {
+        if ( Input.GetKeyDown ( KeyCode.Space ) ) {
+            recording = !recording;
+        }
+
         int sel = patternView.selection;
         if (sel % SongData.SONG_DATA_COUNT != 0)
             return;
@@ -58,9 +63,11 @@ public class VirtualKeyboard : MonoBehaviour {
             byte noteData;
             if (noteBinds[i].GetNoteDown(currentOctave, out noteData))
             {
-                patternView.data[sel] = noteData;
-                patternView.data [ sel + 1 ] = (byte)currentInstrument;
-                patternView.MoveLine(patternAdd);
+                if ( recording ) {
+                    patternView.data [ sel ] = noteData;
+                    patternView.data [ sel + 1 ] = ( byte ) currentInstrument;
+                    patternView.MoveLine ( patternAdd );
+                }
 
                 if (noteBinds[i].note != Note.None && noteBinds[i].note != Note.NoteOff)
                 {

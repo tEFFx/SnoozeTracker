@@ -12,13 +12,14 @@ public class PatternView : MonoBehaviour {
 
     public SongData data;
     public SongPlayback playback;
+    public VirtualKeyboard keyboard;
     public float[] lineWidths;
     public float lineHeight;
     public float channelSpacing;
     public Vector2 padding;
-    public Color selectionColor;
-    public Color multipleSelectColor;
+    public Color recordColor;
     public Color lineColor;
+    public Color multipleSelectColor;
     public Color neutralColor;
 
     private int m_Selection;
@@ -106,9 +107,12 @@ public class PatternView : MonoBehaviour {
             }
 
 
-            GUI.backgroundColor = lineNr == currentLine ? lineColor : neutralColor;
+            Color sel = keyboard.recording ? recordColor : lineColor;
+            Color line = sel;
+            line.a = 0.5f;
+            GUI.backgroundColor = lineNr == currentLine ? line : neutralColor;
             GUI.backgroundColor = IsInSelection ( i ) && m_DragSelectStart != m_DragSelectEnd ? multipleSelectColor : GUI.backgroundColor;
-            GUI.backgroundColor = i == m_Selection ? selectionColor : GUI.backgroundColor;
+            GUI.backgroundColor = i == m_Selection ? sel : GUI.backgroundColor;
 
             int wId = i % SongData.SONG_DATA_COUNT;
             string text;
