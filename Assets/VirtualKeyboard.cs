@@ -32,6 +32,7 @@ public class VirtualKeyboard : MonoBehaviour {
     }
 
     public PSGWrapper psg;
+    public SongPlayback playback;
     public PatternView patternView;
     public Instruments instruments;
     public int currentOctave = 3;
@@ -40,7 +41,6 @@ public class VirtualKeyboard : MonoBehaviour {
     public NoteKey[] noteBinds;
 
     private Instruments.InstrumentInstance m_Instrument;
-    private bool m_Pressed;
 
     void Awake() {
         psg.AddIrqCallback ( 50, OnIrqCallback );
@@ -68,7 +68,6 @@ public class VirtualKeyboard : MonoBehaviour {
                     m_Instrument.note = noteBinds[i].note;
                     m_Instrument.octave = currentOctave + noteBinds[i].octaveOffset;
                     m_Instrument.relativeVolume = 0xF;
-                    m_Pressed = true;
                 }
             }
         }
@@ -81,7 +80,7 @@ public class VirtualKeyboard : MonoBehaviour {
     }
 
     private void OnIrqCallback() {
-        if ( !m_Pressed )
+        if ( playback.isPlaying )
             return;
 
         m_Instrument.UpdatePSG ( psg, patternView.selectedChannel );
@@ -89,7 +88,7 @@ public class VirtualKeyboard : MonoBehaviour {
 
     private void OnSampleCallback()
     {
-        if (!m_Pressed)
+        if ( playback.isPlaying )
             return;
 
         m_Instrument.UpdatePSGSample(psg, patternView.selectedChannel);

@@ -12,8 +12,8 @@ public class Instruments : MonoBehaviour {
         public InstrumentInstance(SerializationInfo info, StreamingContext context) {
             relativeVolume = 0xF;
             note = VirtualKeyboard.Note.None;
-            m_LastSample = m_SampleTimer = 0;
-            pulseWidthPanSpeed = vibratoDepth = vibratoSpeed = octave = portamentoSpeed = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
+            m_SampleTimer = 0;
+            pulseWidthPanSpeed = vibratoDepth = vibratoSpeed = octave = portamentoSpeed = m_LastSample = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
             samplePlayback = m_AutoPortamento = m_UpdatedFrequency = m_PWMDir = m_PWMFlipFlop = false;
             volumeTable = new int [ ] { 0xF, 0xE, 0xD, 0xC };
             arpeggio = new int [ ] { 0x0 };
@@ -84,8 +84,8 @@ public class Instruments : MonoBehaviour {
         public Wave customWaveform;
 
         //not serialized
-        private int m_IrqTimer, m_PortamentoTimer, m_VolumeOffset, m_PWMTimer, m_PWM;
-        private float m_SampleTimer, m_LastSample;
+        private int m_IrqTimer, m_PortamentoTimer, m_VolumeOffset, m_PWMTimer, m_PWM, m_LastSample;
+        private float m_SampleTimer;
         private bool m_AutoPortamento, m_UpdatedFrequency, m_PWMDir, m_PWMFlipFlop;
 
         public void SetAutoPortamento(InstrumentInstance prev, int speed) {
@@ -109,7 +109,8 @@ public class Instruments : MonoBehaviour {
                 return;
             }
 
-            psg.SetAttenuation(chn, GetCurrentVol());
+            if ( !samplePlayback )
+                psg.SetAttenuation ( chn, GetCurrentVol ( ) );
 
             if (!m_UpdatedFrequency || (updatesFrequency && !samplePlayback))
             {
@@ -152,29 +153,32 @@ public class Instruments : MonoBehaviour {
 
             float divider = SAMPLE_RATE / (PSGWrapper.CalculateNoteFreq((int)note + GetNoteOffset(), octave) + GetFreqOffset());
             float attn = 0;
+            int smp = 0;
             switch (customWaveform) {
                 case Wave.Pulse:
-                    attn = (m_SampleTimer % divider) / divider < ((float)m_PWM / (float)PWM_STEPS) ? GetCurrentVol() : 0;
+                    attn = (m_SampleTimer % divider) / divider < ((float)m_PWM / (float)PWM_STEPS) ? 0xF : 0;
+                    smp = ( int ) attn;
                     break;
 
                 case Wave.Saw:
-                    attn = Mathf.Ceil(((m_SampleTimer % divider) / divider) * 0xF) ;
-                    attn = Math.Max(0, LINEAR_VOLUME_TABLE[(int)attn] - (0xF - GetCurrentVol()));
+                    attn = Mathf.Ceil(((m_SampleTimer % divider) / divider) * 0xF);
+                    smp = ( int ) attn;
                     break;
 
                 case Wave.Triangle:
                     attn = ((m_SampleTimer % divider) / divider) * 0x1C;
                     attn = Mathf.Ceil(Mathf.Abs(attn - 0xE));
-                    attn = Math.Max(0, LINEAR_VOLUME_TABLE[(int)attn] - (0xF - GetCurrentVol()));
+                    smp = ( int ) attn;
                     break;
             }
 
             m_SampleTimer++;
 
-            if(!Mathf.Approximately(attn, m_LastSample))
-                psg.SetAttenuation(chn, (int)attn);
-
-            m_LastSample = attn;
+            if ( m_LastSample != smp ) {
+                attn = Math.Max ( 0, LINEAR_VOLUME_TABLE [ smp ] - ( 0xF - GetCurrentVol ( ) ) );
+                psg.SetAttenuation ( chn, ( int ) attn );
+            }
+            m_LastSample = smp;
         }
 
         private int GetNoteOffset()
