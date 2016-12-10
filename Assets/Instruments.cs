@@ -13,7 +13,7 @@ public class Instruments : MonoBehaviour {
             relativeVolume = 0xF;
             note = VirtualKeyboard.Note.None;
             m_SampleTimer = 0;
-            vibratoDepth = vibratoSpeed = octave = portamentoSpeed = m_LastSample = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
+            waveTableSampleRate = vibratoDepth = vibratoSpeed = octave = portamentoSpeed = m_LastSample = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
             samplePlayback = m_AutoPortamento = m_UpdatedFrequency = m_PWMDir = m_PWMFlipFlop = false;
             volumeTable = new int [ ] { 0xF, 0xE, 0xD, 0xC };
             arpeggio = new int [ ] { 0x0 };
@@ -21,6 +21,8 @@ public class Instruments : MonoBehaviour {
             pulseWidthMax = 75;
             pulseWidthPanSpeed = 1;
             customWaveform = Wave.Pulse;
+            waveTable = new int [ 0 ];
+            loopSample = false;
 
             foreach (SerializationEntry e in info) {
                 switch ( e.Name ) {
@@ -30,6 +32,9 @@ public class Instruments : MonoBehaviour {
                     case "vs": vibratoSpeed = ( int ) e.Value; break;
                     case "sp": samplePlayback = ( bool ) e.Value; break;
                     case "wav": customWaveform = (Wave)e.Value; break;
+                    case "wt": waveTable = ( int [ ] ) e.Value; break;
+                    case "wl": loopSample = ( bool ) e.Value; break;
+                    case "wsr": waveTableSampleRate = ( int ) e.Value; break;
                     //case "pmi": pulseWidthMin = ( int ) e.Value; break;
                     //case "pma": pulseWidthMax = ( int ) e.Value; break;
                     //case "ps": pulseWidthPanSpeed = ( int ) e.Value; break;
@@ -45,12 +50,15 @@ public class Instruments : MonoBehaviour {
             info.AddValue ( "vs", vibratoSpeed );
             info.AddValue ( "sp", samplePlayback );
             info.AddValue ( "wav", customWaveform );
+            info.AddValue ( "wt", waveTable );
+            info.AddValue ( "wl", loopSample );
+            info.AddValue ( "wsr", waveTableSampleRate );
             info.AddValue ( "pmi", pulseWidthMin );
             info.AddValue ( "pma", pulseWidthMax );
             info.AddValue ( "ps", pulseWidthPanSpeed );
         }
 
-        public enum Wave { Pulse, Saw, Triangle, Table }
+        public enum Wave { Pulse, Saw, Triangle, Sample }
 
         public static readonly int SAMPLE_RATE = 44100;
         public static readonly int PWM_STEPS = 100;
@@ -76,6 +84,7 @@ public class Instruments : MonoBehaviour {
 
         //serialized
         public int[] volumeTable;
+        public int[] waveTable;
         public int[] arpeggio;
         public int vibratoDepth;
         public int vibratoSpeed;
@@ -84,6 +93,8 @@ public class Instruments : MonoBehaviour {
         public int pulseWidthMax;
         public int pulseWidthPanSpeed;
         public Wave customWaveform;
+        public bool loopSample;
+        public int waveTableSampleRate;
 
         //not serialized
         private int m_IrqTimer, m_PortamentoTimer, m_VolumeOffset, m_PWMTimer, m_PWM, m_LastSample;
@@ -169,9 +180,21 @@ public class Instruments : MonoBehaviour {
                     break;
 
                 case Wave.Triangle:
-                    attn = ((m_SampleTimer % divider) / divider) * 0xE;
+                    attn = phase * 0xE;
                     attn = Mathf.Ceil(Mathf.Abs(attn - 0x7));
                     smp = ( int ) attn;
+                    break;
+
+                case Wave.Sample:
+                    if ( waveTable != null ) {
+                        float noteOffset = ( PSGWrapper.CalculateNoteFreq ( ( int ) note + GetNoteOffset ( ), octave ) + GetFreqOffset ( ) ) / PSGWrapper.CalculateNoteFreq ( 1, 4 );
+                        divider = SAMPLE_RATE / (waveTableSampleRate * noteOffset);
+                        int sampleIndex = ( int ) ( (m_SampleTimer / divider) % waveTable.Length );
+                        if ( loopSample || ( m_SampleTimer / divider ) < waveTable.Length )
+                            smp = waveTable [ sampleIndex ];
+                        else
+                            smp = 0x7;
+                    }
                     break;
             }
 

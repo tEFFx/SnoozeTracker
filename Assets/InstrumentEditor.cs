@@ -32,6 +32,9 @@ public class InstrumentEditor : MonoBehaviour {
         }
     }
 
+    enum EditorScreen { Volume, Wave, Pitch }
+
+    public FileManagement fileMan;
     public Instruments instruments;
     public VirtualKeyboard keyboard;
     public Vector2 padding;
@@ -41,6 +44,7 @@ public class InstrumentEditor : MonoBehaviour {
     private string m_VolumeEnvelope;
     private string m_Arpeggio;
     private bool m_HideFields;
+    private EditorScreen m_CurrentScreen;
 
     void Start() {
         UpdateAttributes ( );
@@ -68,41 +72,78 @@ public class InstrumentEditor : MonoBehaviour {
         if ( GUILayout.Button ( ">" ) )
             IncInstrument ( 1 );
         GUILayout.EndHorizontal ( );
-        GUILayout.Box ( "Arpeggio" );
-        arpEnvelope = TabSafeTextField ( arpEnvelope );
-
-        bool samp = instruments.presets [ keyboard.currentInstrument ].samplePlayback;
-        samp = GUILayout.Toggle ( samp, "Custom waves" );
-
-        if ( samp != instruments.presets [ keyboard.currentInstrument ].samplePlayback ) {
-            Instruments.InstrumentInstance ins = instruments.presets [ keyboard.currentInstrument ];
-            ins.samplePlayback = samp;
-            instruments.presets [ keyboard.currentInstrument ] = ins;
-        }
-
-        if (samp)
-        {
-            GUILayout.BeginHorizontal();
-            WaveButton(Instruments.InstrumentInstance.Wave.Pulse);
-            WaveButton(Instruments.InstrumentInstance.Wave.Saw);
-            WaveButton(Instruments.InstrumentInstance.Wave.Triangle);
-            GUILayout.EndHorizontal();
-        }
-
+        //GUILayout.Box ( "Arpeggio" );
+        //arpEnvelope = TabSafeTextField ( arpEnvelope );
         GUILayout.EndVertical ( );
 
         GUILayout.BeginVertical ( GUILayout.Width ( volWidth ) );
-        GUILayout.Box ( "Volume Envelope" );
-        ArraySlider ( instrument.volumeTable, 0, 0xF );
-
-        GUILayout.FlexibleSpace ( );
         GUILayout.BeginHorizontal ( );
-        GUILayout.Box ( instrument.volumeTable.Length.ToString ( "X2" ) );
-        if ( GUILayout.Button ( "-" ) )
-            ChangeVolTableSize ( -1 );
-        if ( GUILayout.Button ( "+" ) )
-            ChangeVolTableSize ( 1 );
+        if ( GUILayout.Button ( "Volume" ) )
+            m_CurrentScreen = EditorScreen.Volume;
+        GUILayout.Button ( "Note" );
+        if ( GUILayout.Button ( "Wave" ) )
+            m_CurrentScreen = EditorScreen.Wave;
         GUILayout.EndHorizontal ( );
+
+        switch ( m_CurrentScreen ) {
+            case EditorScreen.Volume:
+                ArraySlider ( instrument.volumeTable, 0, 0xF );
+
+                GUILayout.FlexibleSpace ( );
+                GUILayout.BeginHorizontal ( );
+                GUILayout.Box ( instrument.volumeTable.Length.ToString ( "X2" ) );
+                if ( GUILayout.Button ( "-" ) )
+                    ChangeVolTableSize ( -1 );
+                if ( GUILayout.Button ( "+" ) )
+                    ChangeVolTableSize ( 1 );
+                GUILayout.EndHorizontal ( );
+                break;
+            case EditorScreen.Pitch:
+                break;
+            case EditorScreen.Wave:
+                bool samp = instruments.presets [ keyboard.currentInstrument ].samplePlayback;
+                samp = GUILayout.Toggle ( samp, "Custom waves" );
+
+                if ( samp != instruments.presets [ keyboard.currentInstrument ].samplePlayback ) {
+                    Instruments.InstrumentInstance ins = instruments.presets [ keyboard.currentInstrument ];
+                    ins.samplePlayback = samp;
+                    instruments.presets [ keyboard.currentInstrument ] = ins;
+                }
+
+                if ( samp ) {
+                    GUILayout.BeginHorizontal ( );
+                    WaveButton ( Instruments.InstrumentInstance.Wave.Pulse );
+                    WaveButton ( Instruments.InstrumentInstance.Wave.Saw );
+                    WaveButton ( Instruments.InstrumentInstance.Wave.Triangle );
+                    WaveButton ( Instruments.InstrumentInstance.Wave.Sample );
+                    GUILayout.EndHorizontal ( );
+
+                    switch ( instrument.customWaveform ) {
+                        case Instruments.InstrumentInstance.Wave.Pulse:
+                            GUILayout.Box ( "PWM stuff" );
+                            break;
+
+                        case Instruments.InstrumentInstance.Wave.Sample:
+                            if ( GUILayout.Button ( "Load sample" ) ) {
+                                Instruments.InstrumentInstance ins = instrument;
+                                if(fileMan.LoadSample ( ref ins.waveTable, ref ins.waveTableSampleRate ) ) {
+                                    instruments.presets [ keyboard.currentInstrument ] = ins;
+                                }
+                            }
+
+                            if ( instrument.waveTable != null && instrument.waveTable.Length > 0 ) {
+                                GUILayout.BeginHorizontal ( );
+                                GUILayout.Box ( instrument.waveTable.Length + " samples (" + instrument.waveTableSampleRate + "Hz)" );
+                                //GUILayout.Toggle()
+                                GUILayout.EndHorizontal ( );
+                            }
+
+                            break;
+                    }
+                }
+                break;
+        }
+
         GUILayout.EndVertical ( );
 
         GUILayout.EndHorizontal ( );

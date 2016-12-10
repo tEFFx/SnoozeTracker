@@ -183,4 +183,42 @@ public class FileManagement : MonoBehaviour {
         playback.psg.RecordRegisters(false);
         playback.Stop();
     }
+
+    public bool LoadSample(ref int[] samples, ref int sampleRate) {
+        OpenFileDialog ofd = new OpenFileDialog ( );
+        ofd.Filter = "Wave-file (*.wav)|*.wav";
+
+        if ( ofd.ShowDialog ( ) == DialogResult.OK ) {
+            BinaryReader br = new BinaryReader ( ofd.OpenFile ( ) );
+
+            WaveReader wav = new WaveReader ( br );
+
+            if ( wav.loaded ) {
+                sampleRate = wav.sampleRate;
+
+                samples = new int [ wav.samples.Length ];
+                for ( int i = 0 ; i < samples.Length ; i++ ) {
+                    samples [ i ] = Mathf.RoundToInt ( ( wav.samples [ i ] / 255f ) * 0x7 );
+                }
+            }
+
+            br.Close ( );
+
+            return wav.loaded;
+        }
+
+        return false;
+    }
+
+    public static bool CompareHeader(BinaryReader reader, string str) {
+        byte [ ] ascii = Encoding.ASCII.GetBytes ( str );
+        byte [ ] header = reader.ReadBytes ( ascii.Length );
+
+        for ( int i = 0 ; i < ascii.Length ; i++ ) {
+            if ( ascii [ i ] != header [ i ] )
+                return false;
+        }
+
+        return true;
+    }
 }
