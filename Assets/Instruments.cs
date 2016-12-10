@@ -43,6 +43,7 @@ public class Instruments : MonoBehaviour {
             info.AddValue ( "vd", vibratoDepth );
             info.AddValue ( "vs", vibratoSpeed );
             info.AddValue ( "sp", samplePlayback );
+            info.AddValue ( "wav", customWaveform );
             info.AddValue ( "pmi", pulseWidthMin );
             info.AddValue ( "pma", pulseWidthMax );
             info.AddValue ( "ps", pulseWidthPanSpeed );
@@ -54,7 +55,7 @@ public class Instruments : MonoBehaviour {
         public static readonly int PWM_STEPS = 100;
         public static bool NOISE_FB = true;
         public static bool NOISE_CHN3 = false;
-        public static readonly int[] LINEAR_VOLUME_TABLE = { 0xF, 0xF, 0xF, 0xE, 0xE, 0xD, 0xD, 0xC, 0xC, 0xB, 0xA, 0x9, 0x8, 0x6, 0x3, 0x0 };
+        public static readonly int[] LINEAR_VOLUME_TABLE = { 0xF, 0xE, 0xD, 0xC, 0xA, 0x8, 0x4, 0x0 };
 
         public bool updatesFrequency {
             get {
@@ -156,18 +157,18 @@ public class Instruments : MonoBehaviour {
             int smp = 0;
             switch (customWaveform) {
                 case Wave.Pulse:
-                    attn = (m_SampleTimer % divider) / divider < ((float)m_PWM / (float)PWM_STEPS) ? 0xF : 0;
+                    attn = (m_SampleTimer % divider) / divider < ((float)m_PWM / (float)PWM_STEPS) ? 0 : 0x7;
                     smp = ( int ) attn;
                     break;
 
                 case Wave.Saw:
-                    attn = Mathf.Ceil(((m_SampleTimer % divider) / divider) * 0xF);
+                    attn = Mathf.Ceil(((m_SampleTimer % divider) / divider) * 0x7);
                     smp = ( int ) attn;
                     break;
 
                 case Wave.Triangle:
-                    attn = ((m_SampleTimer % divider) / divider) * 0x1C;
-                    attn = Mathf.Ceil(Mathf.Abs(attn - 0xE));
+                    attn = ((m_SampleTimer % divider) / divider) * 0xE;
+                    attn = Mathf.Ceil(Mathf.Abs(attn - 0x7));
                     smp = ( int ) attn;
                     break;
             }
