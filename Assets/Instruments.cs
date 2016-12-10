@@ -12,7 +12,7 @@ public class Instruments : MonoBehaviour {
         public InstrumentInstance(SerializationInfo info, StreamingContext context) {
             relativeVolume = 0xF;
             note = VirtualKeyboard.Note.None;
-            m_SampleTimer = 0;
+            m_LastSample = m_SampleTimer = 0;
             pulseWidthPanSpeed = vibratoDepth = vibratoSpeed = octave = portamentoSpeed = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
             samplePlayback = m_AutoPortamento = m_UpdatedFrequency = m_PWMDir = m_PWMFlipFlop = false;
             volumeTable = new int [ ] { 0xF, 0xE, 0xD, 0xC };
@@ -85,7 +85,7 @@ public class Instruments : MonoBehaviour {
 
         //not serialized
         private int m_IrqTimer, m_PortamentoTimer, m_VolumeOffset, m_PWMTimer, m_PWM;
-        private float m_SampleTimer;
+        private float m_SampleTimer, m_LastSample;
         private bool m_AutoPortamento, m_UpdatedFrequency, m_PWMDir, m_PWMFlipFlop;
 
         public void SetAutoPortamento(InstrumentInstance prev, int speed) {
@@ -170,7 +170,11 @@ public class Instruments : MonoBehaviour {
             }
 
             m_SampleTimer++;
-            psg.SetAttenuation(chn, (int)attn);
+
+            if(!Mathf.Approximately(attn, m_LastSample))
+                psg.SetAttenuation(chn, (int)attn);
+
+            m_LastSample = attn;
         }
 
         private int GetNoteOffset()
