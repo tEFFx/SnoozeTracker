@@ -138,10 +138,37 @@ public class FileManagement : MonoBehaviour {
                 bw.Write((byte)dataSamples[i].data);
             }
 
-            int eofOffset = (int)bw.BaseStream.Position;
+            bw.Write((byte)0x66);
+
+            int gd3Offset = (int)bw.BaseStream.Position - 0x14;
+            bw.Write(Encoding.ASCII.GetBytes("Gd3 "));
+            bw.Write((uint)0x00010000);
+            int sizeOffset = (int)bw.BaseStream.Position;
+            bw.Write((uint)0);
+            bw.Write(Encoding.Unicode.GetBytes("Track name\0")); //track name
+            bw.Write(Encoding.Unicode.GetBytes("\0"));
+            bw.Write(Encoding.Unicode.GetBytes("Really cool game\0")); //game name
+            bw.Write(Encoding.Unicode.GetBytes("\0"));
+            bw.Write(Encoding.Unicode.GetBytes("Unity Chiptune Tracker\0")); //system name
+            bw.Write(Encoding.Unicode.GetBytes("\0"));
+            bw.Write(Encoding.Unicode.GetBytes("tEFFx\0")); //artist name
+            bw.Write(Encoding.Unicode.GetBytes("\0"));
+            bw.Write(Encoding.Unicode.GetBytes("2016\0")); //release date
+            bw.Write(Encoding.Unicode.GetBytes("\0"));
+            bw.Write(Encoding.Unicode.GetBytes("Unity Chiptune Tracker by tEFFx\0")); //converter
+            bw.Write(Encoding.Unicode.GetBytes("\0"));
+            bw.Write(Encoding.Unicode.GetBytes("Nothing to see here, for now...\0")); //notes
+
+            int eofOffset = (int)bw.BaseStream.Position - 0x04;
+
+            bw.Seek(sizeOffset, SeekOrigin.Begin);
+            bw.Write((uint)(eofOffset - sizeOffset));
 
             bw.Seek(0x04, SeekOrigin.Begin);
-            bw.Write((uint)(eofOffset - 4));
+            bw.Write((uint)(eofOffset));
+
+            bw.Seek(0x14, SeekOrigin.Begin);
+            bw.Write((uint)(gd3Offset));
 
             bw.Seek(0x18, SeekOrigin.Begin);
             bw.Write((uint)waitAmount);
