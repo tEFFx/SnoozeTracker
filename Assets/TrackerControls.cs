@@ -17,7 +17,7 @@ public class TrackerControls : MonoBehaviour {
 	}
 
     void OnGUI() {
-        Rect rect = new Rect ( Vector2.zero, new Vector2 ( 480, 32 ) );
+        Rect rect = new Rect ( Vector2.zero, new Vector2 ( 640, 32 ) );
 
         GUILayout.BeginArea ( rect );
         GUILayout.BeginHorizontal ( );
@@ -43,6 +43,8 @@ public class TrackerControls : MonoBehaviour {
             fileMan.SaveFile ( );
         if ( GUILayout.Button ( "Open" ) )
             fileMan.OpenFile ( );
+        if (GUILayout.Button("VGM"))
+            fileMan.SaveVGM();
 
         GUILayout.EndHorizontal ( );
         GUILayout.EndArea ( );

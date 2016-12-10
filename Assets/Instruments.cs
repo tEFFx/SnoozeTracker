@@ -52,8 +52,8 @@ public class Instruments : MonoBehaviour {
 
         public static readonly int SAMPLE_RATE = 22050;
         public static readonly int PWM_STEPS = 100;
-        public static bool m_NoiseFB = true;
-        public static bool m_NoiseChn3 = false;
+        public static bool NOISE_FB = true;
+        public static bool NOISE_CHN3 = false;
         public static readonly int[] LINEAR_VOLUME_TABLE = { 0xF, 0xF, 0xF, 0xE, 0xE, 0xD, 0xD, 0xC, 0xC, 0xB, 0xA, 0x9, 0x8, 0x6, 0x3, 0x0 };
 
         public bool updatesFrequency {
@@ -122,14 +122,14 @@ public class Instruments : MonoBehaviour {
                 }
                 else
                 {
-                    if (!m_NoiseChn3)
+                    if (!NOISE_CHN3)
                     {
-                        int cmd = 0xE0 | (((int)note - 1) % 3) | ((m_NoiseFB ? 1 : 0) << 2);
-                        psg.chip.Write(cmd);
+                        int cmd = 0xE0 | (((int)note - 1) % 3) | ((NOISE_FB ? 1 : 0) << 2);
+                        psg.PSGDirectWrite(cmd);
                     }
                     else
                     {
-                        psg.chip.Write(0xE7);
+                        psg.PSGDirectWrite(0xE7);
                         psg.SetNote(2, (int)note + GetNoteOffset(), octave, GetFreqOffset());
                     }
                 }

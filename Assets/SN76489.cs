@@ -28,6 +28,9 @@ public class SN76489 {
 
     public static readonly int CLOCK_DIVIDER = 16;
     public static readonly int NOISE_TAPPED = 0x9;
+    public static readonly int NOISE_SR_WIDTH = 16;
+
+    public int clock { get { return mClock; } }
 
     private int mClock;
     private int mSampleRate;
@@ -90,7 +93,7 @@ public class SN76489 {
                         int fb = ( mFreq [ 3 ] >> 2 ) & 1;
                         mCount [ 3 ] = nf == 3 ? mFreq[2] : (0x10 << nf);
 
-                        mNoiseSR = ( mNoiseSR >> 1 ) | ( ( fb == 1 ? Parity ( mNoiseSR & NOISE_TAPPED ) : mNoiseSR & 1 ) << 15 );
+                        mNoiseSR = ( mNoiseSR >> 1 ) | ( ( fb == 1 ? Parity ( mNoiseSR & NOISE_TAPPED ) : mNoiseSR & 1 ) << (NOISE_SR_WIDTH - 1) );
                         mFlipFlop [ 3 ] = (mNoiseSR & 1) != 0;
                     }
                 }

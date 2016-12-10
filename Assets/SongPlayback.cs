@@ -3,6 +3,7 @@ using System.Collections;
 
 public class SongPlayback : MonoBehaviour {
     public bool isPlaying { get { return m_IsPlaying; } }
+    public int playbackRate { get { return m_PlaybackRate; } }
 
     public PSGWrapper psg;
     public SongData data;
@@ -10,6 +11,7 @@ public class SongPlayback : MonoBehaviour {
     public Instruments instruments;
     public int playbackSpeed;
     public bool[] mute;
+    public bool loop = true;
 
     private int m_CurrentPattern;
     private int m_CurrentLine;
@@ -22,10 +24,11 @@ public class SongPlayback : MonoBehaviour {
     private Instruments.InstrumentInstance[] m_PrevInstruments;
     private bool m_NoiseFB;
     private bool m_NoiseChn3;
+    private int m_PlaybackRate = 50;
 
     void Start()
     {
-        psg.AddIrqCallback(50, OnIrqCallback);
+        psg.AddIrqCallback(m_PlaybackRate, OnIrqCallback);
         psg.AddIrqCallback(Instruments.InstrumentInstance.SAMPLE_RATE, OnSampleCallback);
         mute = new bool [ data.channels ];
         m_Instruments = new Instruments.InstrumentInstance [ data.channels ];
@@ -149,8 +152,8 @@ public class SongPlayback : MonoBehaviour {
                         case 0x20:
                             int mode, fb;
                             SplitByte ( fxVal, out mode, out fb );
-                            m_NoiseFB = fb > 0;
-                            m_NoiseChn3 = mode > 0;
+                            Instruments.InstrumentInstance.NOISE_FB = fb > 0;
+                            Instruments.InstrumentInstance.NOISE_CHN3 = mode > 0;
                             break;
 
                         case 0x40:
@@ -158,7 +161,7 @@ public class SongPlayback : MonoBehaviour {
                             break;
 
                         case 0xFF:
-                            psg.chip.Write ( fxVal );
+                            psg.PSGDirectWrite(fxVal);
                             break;
                     }
                 }
@@ -172,7 +175,12 @@ public class SongPlayback : MonoBehaviour {
                 m_CurrentLine = 0;
                 m_CurrentPattern++;
                 if (m_CurrentPattern >= data.numPatterns)
-                    m_CurrentPattern = 0;
+                {
+                    if(loop)
+                        m_CurrentPattern = 0;
+                    else
+                        m_IsPlaying = false;
+                }
             }
         }
 
