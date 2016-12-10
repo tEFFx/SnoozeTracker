@@ -99,6 +99,7 @@ public class SN76489 {
                 }
 
                 output += GetVolume(i);
+                output /= 2;
             }
 
             mCycleCount -= 1.0f;
@@ -106,9 +107,7 @@ public class SN76489 {
 
         mCycleCount += mCyclesPerSample;
 
-        output = (output / (float)Math.Ceiling(mCycleCount)) * 0.25f * 1;
-
-        return output;
+        return output * 4;
     }
 
     private float GetVolume(int _chn)

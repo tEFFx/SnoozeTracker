@@ -114,8 +114,6 @@ public class PSGWrapper : MonoBehaviour {
         {
             int freq = CalculatePSGFreq(note, octave, fineTune);
             SetFrequency(channel, freq);
-
-            //Debug.Log("Data sent: " + System.Convert.ToString(data1, 2) + ", " + System.Convert.ToString(data, 2) + ". Should be " + System.Convert.ToString(freq, 2) + " (" + freq.ToString("X2") + ")");
         }
     }
 

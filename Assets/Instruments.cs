@@ -50,7 +50,7 @@ public class Instruments : MonoBehaviour {
 
         public enum Wave { Pulse, Saw, Triangle, Table }
 
-        public static readonly int SAMPLE_RATE = 22050;
+        public static readonly int SAMPLE_RATE = 11025;
         public static readonly int PWM_STEPS = 100;
         public static bool NOISE_FB = true;
         public static bool NOISE_CHN3 = false;
@@ -141,7 +141,7 @@ public class Instruments : MonoBehaviour {
 
         public void UpdatePSGSample(PSGWrapper psg, int chn)
         {
-            if (!samplePlayback || chn == 3)
+            if (!samplePlayback || chn == 3 || GetCurrentVol() == 0)
                 return;
 
             if (note == VirtualKeyboard.Note.None || note == VirtualKeyboard.Note.NoteOff)
@@ -216,10 +216,10 @@ public class Instruments : MonoBehaviour {
             if ( pulseWidthPanSpeed == 0 || m_IrqTimer % pulseWidthPanSpeed == 0 ) {
                 m_PWM += m_PWMDir ? -1 : 1;
                 if ( m_PWM > pulseWidthMax ) {
-                    m_PWM = pulseWidthMax;
+                    m_PWM = pulseWidthMax - 1;
                     m_PWMDir = true;
                 }else if(m_PWM < pulseWidthMin ) {
-                    m_PWM = pulseWidthMin;
+                    m_PWM = pulseWidthMin + 1;
                     m_PWMDir = false;
                 }
             }
