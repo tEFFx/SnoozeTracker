@@ -72,15 +72,14 @@ public class InstrumentEditor : MonoBehaviour {
         if ( GUILayout.Button ( ">" ) )
             IncInstrument ( 1 );
         GUILayout.EndHorizontal ( );
-        //GUILayout.Box ( "Arpeggio" );
-        //arpEnvelope = TabSafeTextField ( arpEnvelope );
         GUILayout.EndVertical ( );
 
         GUILayout.BeginVertical ( GUILayout.Width ( volWidth ) );
         GUILayout.BeginHorizontal ( );
         if ( GUILayout.Button ( "Volume" ) )
             m_CurrentScreen = EditorScreen.Volume;
-        GUILayout.Button ( "Note" );
+        if ( GUILayout.Button ( "Note" ) )
+            m_CurrentScreen = EditorScreen.Pitch;
         if ( GUILayout.Button ( "Wave" ) )
             m_CurrentScreen = EditorScreen.Wave;
         GUILayout.EndHorizontal ( );
@@ -99,6 +98,8 @@ public class InstrumentEditor : MonoBehaviour {
                 GUILayout.EndHorizontal ( );
                 break;
             case EditorScreen.Pitch:
+                GUILayout.Box ( "Arpeggio" );
+                arpEnvelope = TabSafeTextField ( arpEnvelope );
                 break;
             case EditorScreen.Wave:
                 bool samp = instruments.presets [ keyboard.currentInstrument ].samplePlayback;
