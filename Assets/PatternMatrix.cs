@@ -17,7 +17,6 @@ public class PatternMatrix : MonoBehaviour {
     void Update() {
         if ( playback.isPlaying ) {
             m_Scroll.y = Mathf.Max(0, data.currentPattern * (buttonSize.y + 8) - size.y);
-            Debug.Log ( m_Scroll.y );
         }
     }
 
@@ -51,7 +50,7 @@ public class PatternMatrix : MonoBehaviour {
             GUI.color = data.currentPattern == i ? selectedColor : neutralColor;
             for (int j = 0; j < data.channels; j++)
             {
-                if(GUILayout.Button(data.lookupTable[i][j].ToString("X2"), GUILayout.Width(buttonSize.x), GUILayout.Height(buttonSize.y)))
+                if(GUILayout.Button(data.lookupTable[i][j].ToString("X2"), GUILayout.Width(buttonSize.x), GUILayout.Height(buttonSize.y)) && !playback.isPlaying)
                 {
                     if( data.currentPattern == i)
                     {

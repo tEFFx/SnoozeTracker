@@ -104,8 +104,11 @@ public class FileManagement : MonoBehaviour {
             {
                 playback.psg.ManualClock();
             }
+            playback.psg.RecordRegisters ( false );
+            playback.psg.Mute ( );
 
             int waitAmount = 0;
+            int loopOffset = 0x40;
             for (int i = 0; i < dataSamples.Count; i++)
             {
                 if(dataSamples[i].wait > 0)
@@ -134,8 +137,10 @@ public class FileManagement : MonoBehaviour {
                     waitAmount += dataSamples[i].wait;
                 }
 
-                bw.Write((byte)0x50);
-                bw.Write((byte)dataSamples[i].data);
+                if ( !dataSamples [ i ].end ) {
+                    bw.Write ( ( byte ) 0x50 );
+                    bw.Write ( ( byte ) dataSamples [ i ].data );
+                }
             }
 
             bw.Write((byte)0x66);
@@ -171,6 +176,9 @@ public class FileManagement : MonoBehaviour {
             bw.Seek(0x18, SeekOrigin.Begin);
             bw.Write((uint)waitAmount);
 
+            bw.Write ( ( uint ) (loopOffset - 0x1C) );
+            bw.Write ( ( uint ) (waitAmount) );
+
             bw.Close();
         }
 
@@ -178,7 +186,6 @@ public class FileManagement : MonoBehaviour {
         playback.psg.audioSource.enabled = true;
         playback.psg.enabled = false;
         playback.psg.enabled = true;
-        playback.psg.RecordRegisters(false);
         playback.Stop();
     }
 

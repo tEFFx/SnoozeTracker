@@ -18,6 +18,7 @@ public class SongPlayback : MonoBehaviour {
     private int m_Counter;
     private long m_StartSample;
     private bool m_IsPlaying;
+    private bool m_IsStopping;
     private float m_LastLineTick;
     private int m_MoveLine;
     private Instruments.InstrumentInstance[] m_Instruments;
@@ -78,6 +79,12 @@ public class SongPlayback : MonoBehaviour {
         m_Counter++;
         if(m_Counter >= playbackSpeed)
         {
+            if ( m_IsStopping ) {
+                m_IsPlaying = false;
+                m_IsStopping = true;
+                return;
+            }
+
             m_Counter = 0;
             for (int i = 0; i < data.channels; i++)
             {
@@ -176,17 +183,16 @@ public class SongPlayback : MonoBehaviour {
                 m_CurrentPattern++;
                 if (m_CurrentPattern >= data.numPatterns)
                 {
-                    if(loop)
-                        m_CurrentPattern = 0;
-                    else
-                        m_IsPlaying = false;
+                    m_CurrentPattern = 0;
+                    m_IsStopping = !loop;
                 }
             }
         }
 
         for ( int i = 0 ; i < data.channels ; i++ ) {
-            m_Instruments[i].UpdatePSG(psg, i);
+            m_Instruments [ i ].UpdatePSG ( psg, i );
         }
+
     }
 
     public static void SplitByte(int val, out int b1, out int b2) {
@@ -199,6 +205,7 @@ public class SongPlayback : MonoBehaviour {
         m_StartSample = psg.currentSample;
         m_CurrentPattern = data.currentPattern;
         m_CurrentLine = 0;
+        m_Counter = 10000;
         view.MoveLine ( -view.currentLine );
         m_LastLineTick = Time.time;
         m_IsPlaying = true;

@@ -168,27 +168,28 @@ public class PatternView : MonoBehaviour {
             if ( wId == 4 )
                 pos.x += channelSpacing;
 
-            if(Input.GetMouseButtonDown(0)) {
-                Vector2 mPos = Event.current.mousePosition;
-                if ( buttonRect.Contains ( mPos ) ) {
-                    m_LastSelection = m_Selection;
-                    m_Selection = i;
-                    m_DragSelectStart = m_DragSelectEnd = i;
-                    m_Dragging = true;
+            if ( !playback.isPlaying ) {
+                if ( Input.GetMouseButtonDown ( 0 ) ) {
+                    Vector2 mPos = Event.current.mousePosition;
+                    if ( buttonRect.Contains ( mPos ) ) {
+                        m_LastSelection = m_Selection;
+                        m_Selection = i;
+                        m_DragSelectStart = m_DragSelectEnd = i;
+                        m_Dragging = true;
+                    }
+                }
+
+                if ( m_Dragging ) {
+                    Vector2 mPos = Event.current.mousePosition;
+                    if ( buttonRect.Contains ( mPos ) ) {
+                        m_DragSelectEnd = i;
+                    }
+                }
+
+                if ( Input.GetMouseButtonUp ( 0 ) ) {
+                    m_Dragging = false;
                 }
             }
-
-            if ( m_Dragging ) {
-                Vector2 mPos = Event.current.mousePosition;
-                if ( buttonRect.Contains ( mPos ) ) {
-                    m_DragSelectEnd = i;
-                }
-            }
-
-            if ( Input.GetMouseButtonUp ( 0 ) ) {
-                m_Dragging = false;
-            }
-
         }
 
         GUI.EndScrollView ( );

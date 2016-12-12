@@ -13,7 +13,7 @@ public class PSGWrapper : MonoBehaviour {
 
         public IrqCallback(int sampleRate, int frequency, System.Action callback = null)
         {
-            m_Divider = sampleRate / frequency;
+            m_Count = m_Divider = sampleRate / frequency;
             onCounterReset += callback;
         }
 
@@ -27,17 +27,21 @@ public class PSGWrapper : MonoBehaviour {
                     onCounterReset();
             }
         }
+
+        bool firstCallback = false;
     }
 
     public class RegisterWrite
     {
         public int data;
         public int wait;
+        public bool end;
 
-        public RegisterWrite(int _data, int _wait)
+        public RegisterWrite(int _wait, int _data, bool _end = false)
         {
             data = _data;
             wait = _wait;
+            end = _end;
         }
     }
 
@@ -155,17 +159,27 @@ public class PSGWrapper : MonoBehaviour {
             m_RegisterWrites.Clear();
         }
 
+        if ( recordRegisters && !record ) {
+            m_RegisterWrites.Add ( new RegisterWrite ( m_WriteWait, 0, true ) );
+        }
+
         recordRegisters = record;
 
         return m_RegisterWrites;
     }
 
+    bool firstWrite = false;
     private void RegisterWritten(int data)
     {
         if (!recordRegisters)
             return;
 
-        m_RegisterWrites.Add(new RegisterWrite(data, m_WriteWait));
+        if ( !firstWrite ) {
+            firstWrite = true;
+            Debug.Log ( "First write after " + m_WriteWait + " samples" );
+        }
+
+        m_RegisterWrites.Add(new RegisterWrite(m_WriteWait, data));
         m_WriteWait = 0;
     }
 
