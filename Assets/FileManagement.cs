@@ -107,20 +107,24 @@ public class FileManagement : MonoBehaviour {
             playback.psg.RecordRegisters ( false );
             playback.psg.Mute ( );
 
+            int loopWaitAmount = 0;
             int waitAmount = 0;
             int loopOffset = 0x40;
+            int bytesWritten = 0;
             for (int i = 0; i < dataSamples.Count; i++)
             {
-                if(dataSamples[i].wait > 0)
+                if (dataSamples[i].wait > 0)
                 {
                     switch (dataSamples[i].wait)
                     {
                         case 735:
                             bw.Write((byte)0x62);
+                            bytesWritten++;
                             break;
 
                         case 882:
                             bw.Write((byte)0x63);
+                            bytesWritten++;
                             break;
 
                         default:
@@ -130,16 +134,25 @@ public class FileManagement : MonoBehaviour {
                                 bw.Write((byte)0x61);
                                 bw.Write((ushort)System.Math.Min(65535, totalWait));
                                 totalWait -= 65535;
+                                bytesWritten += 3;
                             } while (totalWait > 65535);
                             break;
                     }
 
-                    waitAmount += dataSamples[i].wait;
+                    if(dataSamples[i].pattern >= playback.patternLoop)
+                        loopWaitAmount += dataSamples[i].wait;
+                    waitAmount += dataSamples [ i ].wait;
                 }
 
                 if ( !dataSamples [ i ].end ) {
                     bw.Write ( ( byte ) 0x50 );
                     bw.Write ( ( byte ) dataSamples [ i ].data );
+                    bytesWritten += 2;
+                }
+
+                if ( dataSamples [ i ].pattern == playback.patternLoop && loopOffset == 0x40 ) {
+                    loopOffset += bytesWritten;
+                    Debug.Log ( "Found pattern " + dataSamples [ i ].pattern + " in sample " + i );
                 }
             }
 
@@ -177,7 +190,7 @@ public class FileManagement : MonoBehaviour {
             bw.Write((uint)waitAmount);
 
             bw.Write ( ( uint ) (loopOffset - 0x1C) );
-            bw.Write ( ( uint ) (waitAmount) );
+            bw.Write ( ( uint ) (loopWaitAmount) );
 
             bw.Close();
         }

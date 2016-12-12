@@ -4,6 +4,8 @@ using System.Collections;
 public class SongPlayback : MonoBehaviour {
     public bool isPlaying { get { return m_IsPlaying; } }
     public int playbackRate { get { return m_PlaybackRate; } }
+    public int patternLoop { get { return m_PatternLoop; } }
+    public int currentPattern { get { return m_PlayingPattern; } }
 
     public PSGWrapper psg;
     public SongData data;
@@ -14,6 +16,7 @@ public class SongPlayback : MonoBehaviour {
     public bool loop = true;
 
     private int m_CurrentPattern;
+    private int m_PlayingPattern;
     private int m_CurrentLine;
     private int m_Counter;
     private long m_StartSample;
@@ -26,6 +29,7 @@ public class SongPlayback : MonoBehaviour {
     private bool m_NoiseFB;
     private bool m_NoiseChn3;
     private int m_PlaybackRate = 50;
+    private int m_PatternLoop = 0;
 
     void Start()
     {
@@ -53,8 +57,9 @@ public class SongPlayback : MonoBehaviour {
                 if ( view.currentLine == 0 ) {
                     data.currentPattern++;
                     if ( data.currentPattern >= data.numPatterns )
-                        data.currentPattern = 0;
+                        data.currentPattern = m_PatternLoop;
                 }
+
                 m_LastLineTick = Time.time;
             }
         }
@@ -93,6 +98,7 @@ public class SongPlayback : MonoBehaviour {
                     continue;
                 }
 
+                m_PlayingPattern = m_CurrentPattern;
                 SongData.ColumnEntry col = data.GetCurrentLine(m_CurrentPattern, i);
 
                 int volume = col.data [ m_CurrentLine, 2 ];
@@ -152,6 +158,10 @@ public class SongPlayback : MonoBehaviour {
                             m_Instruments [ i ].vibratoSpeed = speed;
                             break;
 
+                        case 0x0B:
+                            //loop point
+                            break;
+
                         case 0x0F:
                             playbackSpeed = fxVal;
                             break;
@@ -181,9 +191,10 @@ public class SongPlayback : MonoBehaviour {
             {
                 m_CurrentLine = 0;
                 m_CurrentPattern++;
+
                 if (m_CurrentPattern >= data.numPatterns)
                 {
-                    m_CurrentPattern = 0;
+                    m_CurrentPattern = m_PatternLoop;
                     m_IsStopping = !loop;
                 }
             }
@@ -192,7 +203,6 @@ public class SongPlayback : MonoBehaviour {
         for ( int i = 0 ; i < data.channels ; i++ ) {
             m_Instruments [ i ].UpdatePSG ( psg, i );
         }
-
     }
 
     public static void SplitByte(int val, out int b1, out int b2) {
@@ -202,6 +212,7 @@ public class SongPlayback : MonoBehaviour {
 
     public void Play()
     {
+        m_PatternLoop = data.FindLoopPoint ( );
         m_StartSample = psg.currentSample;
         m_CurrentPattern = data.currentPattern;
         m_CurrentLine = 0;

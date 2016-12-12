@@ -36,12 +36,14 @@ public class PSGWrapper : MonoBehaviour {
         public int data;
         public int wait;
         public bool end;
+        public int pattern;
 
-        public RegisterWrite(int _wait, int _data, bool _end = false)
+        public RegisterWrite(int _wait, int _data, int _pattern, bool _end = false)
         {
             data = _data;
             wait = _wait;
             end = _end;
+            pattern = _pattern;
         }
     }
 
@@ -51,6 +53,7 @@ public class PSGWrapper : MonoBehaviour {
     public long currentSample { get { return m_CurrentSample; } }
     public SN76489 chip { get { return m_PSGChip; } }
     public AudioSource audioSource;
+    public SongPlayback playback;
     [HideInInspector]
     public bool recordRegisters;
 
@@ -160,7 +163,7 @@ public class PSGWrapper : MonoBehaviour {
         }
 
         if ( recordRegisters && !record ) {
-            m_RegisterWrites.Add ( new RegisterWrite ( m_WriteWait, 0, true ) );
+            m_RegisterWrites.Add ( new RegisterWrite ( m_WriteWait, 0, playback.currentPattern, true ) );
         }
 
         recordRegisters = record;
@@ -168,18 +171,12 @@ public class PSGWrapper : MonoBehaviour {
         return m_RegisterWrites;
     }
 
-    bool firstWrite = false;
     private void RegisterWritten(int data)
     {
         if (!recordRegisters)
             return;
 
-        if ( !firstWrite ) {
-            firstWrite = true;
-            Debug.Log ( "First write after " + m_WriteWait + " samples" );
-        }
-
-        m_RegisterWrites.Add(new RegisterWrite(m_WriteWait, data));
+        m_RegisterWrites.Add(new RegisterWrite(m_WriteWait, data, playback.currentPattern));
         m_WriteWait = 0;
     }
 

@@ -105,6 +105,18 @@ public class SongData : MonoBehaviour {
         }
     }
 
+    public int FindLoopPoint() {
+        for ( int i = 0 ; i < m_SongData.Count ; i++ ) {
+            ColumnEntry col = m_SongData [ i ];
+            for (int j = 0 ; j < col.data.GetLength(0) ; j++ ) {
+                if ( col.data [ j, 3 ] == 0xB )
+                    return col.data [ j, 4 ];
+            }
+        }
+
+        return 0;
+    }
+
     public void SetPatternLength(int len) {
         len = Math.Max ( len, 1 );
 
