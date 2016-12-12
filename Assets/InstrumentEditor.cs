@@ -64,7 +64,7 @@ public class InstrumentEditor : MonoBehaviour {
 
         GUILayout.BeginHorizontal ( );
 
-        GUILayout.BeginVertical (GUILayout.Width(size.x - volWidth - 16));
+        GUILayout.BeginVertical (GUILayout.Width(size.x - volWidth - 32));
         GUILayout.BeginHorizontal ( );
         GUILayout.Box ( "Ins " + keyboard.currentInstrument );
         if ( GUILayout.Button ( "<" ) )
@@ -73,7 +73,7 @@ public class InstrumentEditor : MonoBehaviour {
             IncInstrument ( 1 );
         GUILayout.EndHorizontal ( );
         GUILayout.EndVertical ( );
-
+        GUILayout.Space ( 16 );
         GUILayout.BeginVertical ( GUILayout.Width ( volWidth ) );
         GUILayout.BeginHorizontal ( );
         if ( GUILayout.Button ( "Volume" ) )

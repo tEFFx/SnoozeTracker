@@ -4,6 +4,7 @@ using System.Collections;
 public class PatternMatrix : MonoBehaviour {
     public SongData data;
     public PatternView view;
+    public SongPlayback playback;
     public Vector2 padding;
     public Vector2 size;
     public Vector2 buttonSize;
@@ -13,12 +14,36 @@ public class PatternMatrix : MonoBehaviour {
     private bool m_Inputting;
     private Vector2 m_Scroll;
 
+    void Update() {
+        if ( playback.isPlaying ) {
+            m_Scroll.y = Mathf.Max(0, data.currentPattern * (buttonSize.y + 8) - size.y);
+            Debug.Log ( m_Scroll.y );
+        }
+    }
+
 	void OnGUI()
     {
         Rect rect = new Rect(new Vector2(padding.x, padding.y), size);
 
         GUILayout.BeginArea(rect);
-        m_Scroll = GUILayout.BeginScrollView ( m_Scroll, false, true );
+        GUILayout.BeginHorizontal ( );
+        GUILayout.BeginVertical ( GUILayout.Width(24) );
+        if ( GUILayout.Button ( "▲" ) )
+            data.MovePattern ( -1 );
+        if ( GUILayout.Button ( "▼" ) )
+            data.MovePattern ( 1 );
+        if ( GUILayout.Button ( "+" ) )
+            data.AddPatternLine ( );
+        if ( GUILayout.Button ( "-" ) )
+            data.DeletePatternLine ( );
+        if ( GUILayout.Button ( "=" ) )
+            data.CopyPatternLine ( );
+        GUILayout.EndVertical ( );
+
+        Vector2 scroll = GUILayout.BeginScrollView ( m_Scroll, false, true );
+        if ( !playback.isPlaying )
+            m_Scroll = scroll;
+
         for (int i = 0; i < data.lookupTable.Count; i++)
         {
             GUILayout.BeginHorizontal();
@@ -44,17 +69,8 @@ public class PatternMatrix : MonoBehaviour {
             GUILayout.EndHorizontal();
         }
 
+        GUILayout.EndHorizontal();
         GUILayout.EndScrollView ( );
-        GUI.color = Color.white;
-        GUILayout.BeginHorizontal ( );
-        if (GUILayout.Button("Insert"))
-            data.AddPatternLine();
-        if ( GUILayout.Button ( "Delete" ) )
-            data.DeletePatternLine ( );        
-        if ( GUILayout.Button ( "Copy" ) ) 
-            data.CopyPatternLine ( );
-        
-        GUILayout.EndHorizontal ( );
         GUILayout.EndArea();
     }
 }

@@ -64,7 +64,8 @@ public class Instruments : MonoBehaviour {
         public static readonly int PWM_STEPS = 100;
         public static bool NOISE_FB = true;
         public static bool NOISE_CHN3 = false;
-        public static readonly int[] LINEAR_VOLUME_TABLE = { 0xF, 0xE, 0xD, 0xC, 0xA, 0x8, 0x4, 0x0 };
+        public static readonly int LINEAR_STEPS = 0xF;
+        public static readonly int[] LINEAR_VOLUME_TABLE = { 0xF, 0xF, 0xE, 0xE, 0xE, 0xD, 0xD, 0xC, 0xC, 0xB, 0xA, 0x9, 0x8, 0x6, 0x3, 0x0};
 
         public bool updatesFrequency {
             get {
@@ -170,18 +171,18 @@ public class Instruments : MonoBehaviour {
             int smp = 0;
             switch (customWaveform) {
                 case Wave.Pulse:
-                    attn = phase < ((float)m_PWM / (float)PWM_STEPS) ? 0 : 0x7;
+                    attn = phase < ((float)m_PWM / (float)PWM_STEPS) ? 0 : LINEAR_STEPS;
                     smp = ( int ) attn;
                     break;
 
                 case Wave.Saw:
-                    attn = Mathf.Ceil(phase * 0x7);
+                    attn = Mathf.Ceil(phase * LINEAR_STEPS );
                     smp = ( int ) attn;
                     break;
 
                 case Wave.Triangle:
-                    attn = phase * 0xE;
-                    attn = Mathf.Ceil(Mathf.Abs(attn - 0x7));
+                    attn = phase * LINEAR_STEPS * 2;
+                    attn = Mathf.Ceil(Mathf.Abs(attn - LINEAR_STEPS ) );
                     smp = ( int ) attn;
                     break;
 
@@ -193,18 +194,18 @@ public class Instruments : MonoBehaviour {
                         if ( loopSample || ( m_SampleTimer / divider ) < waveTable.Length )
                             smp = waveTable [ sampleIndex ];
                         else
-                            smp = 0x7;
+                            smp = LINEAR_STEPS;
                     }
                     break;
             }
 
             m_SampleTimer++;
 
-            if ( m_LastSample != smp ) {
+            if ( m_LastSample != LINEAR_VOLUME_TABLE [ smp ] ) {
                 attn = Math.Max ( 0, LINEAR_VOLUME_TABLE [ smp ] - ( 0xF - GetCurrentVol ( ) ) );
                 psg.SetAttenuation ( chn, ( int ) attn );
             }
-            m_LastSample = smp;
+            m_LastSample = LINEAR_VOLUME_TABLE [ smp ];
         }
 
         private int GetNoteOffset()

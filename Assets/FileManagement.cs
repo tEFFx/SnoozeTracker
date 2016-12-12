@@ -196,7 +196,7 @@ public class FileManagement : MonoBehaviour {
 
                 samples = new int [ wav.samples.Length ];
                 for ( int i = 0 ; i < samples.Length ; i++ ) {
-                    samples [ i ] = Mathf.RoundToInt ( ( wav.samples [ i ] / 255f ) * 0x7 );
+                    samples [ i ] = Mathf.RoundToInt ( ( wav.samples [ i ] / 255f ) * Instruments.InstrumentInstance.LINEAR_STEPS );
                 }
             }
 

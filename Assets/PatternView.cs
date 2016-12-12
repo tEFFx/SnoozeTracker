@@ -13,6 +13,7 @@ public class PatternView : MonoBehaviour {
     public SongData data;
     public SongPlayback playback;
     public VirtualKeyboard keyboard;
+    public Instruments instruments;
     public float[] lineWidths;
     public float lineHeight;
     public float channelSpacing;
@@ -21,6 +22,10 @@ public class PatternView : MonoBehaviour {
     public Color lineColor;
     public Color multipleSelectColor;
     public Color neutralColor;
+    public Color lineHighlightColor;
+    public Color effectColor;
+    public Gradient volumeGradient;
+    public Gradient instrumentGradient;
 
     private int m_Selection;
     private int m_LastSelection;
@@ -68,6 +73,10 @@ public class PatternView : MonoBehaviour {
 
         if ( Input.GetKeyDown ( KeyCode.Return ) )
             m_Input = "";
+
+        if ( playback.isPlaying ) {
+            m_Scroll.y = currentLine * 24 - (Screen.height - padding.y) * 0.5f;
+        }
     }
 
 	void OnGUI()
@@ -91,7 +100,9 @@ public class PatternView : MonoBehaviour {
 
         Rect scrollRect = new Rect ( padding.x, pos.y + size.y, Screen.width, Screen.height - padding.y );
         Rect viewRect = new Rect ( 0, 0, data.channels * chnlWidth + size.x,  (playback.isPlaying ? scrollRect.height : ( data.patternLength * size.y + size.y ) ) );
-        m_Scroll = GUI.BeginScrollView (scrollRect, m_Scroll, viewRect );
+        Vector2 scroll = GUI.BeginScrollView (scrollRect, m_Scroll, viewRect );
+        if ( !playback.isPlaying )
+            m_Scroll = scroll;
         pos.y = (playback.isPlaying ? -size.y * 2 - (currentLine * size.y - scrollRect.height / 2) : -size.y );
         for ( int i = 0; i < length; i++)
         {
@@ -110,24 +121,40 @@ public class PatternView : MonoBehaviour {
             Color sel = keyboard.recording ? recordColor : lineColor;
             Color line = sel;
             line.a = 0.5f;
-            GUI.backgroundColor = lineNr == currentLine ? line : neutralColor;
-            GUI.backgroundColor = IsInSelection ( i ) && m_DragSelectStart != m_DragSelectEnd ? multipleSelectColor : GUI.backgroundColor;
-            GUI.backgroundColor = i == m_Selection ? sel : GUI.backgroundColor;
+
+            Color bg = lineNr % 8 == 0 ? lineHighlightColor : neutralColor;
+            bg = IsInSelection ( i ) && m_DragSelectStart != m_DragSelectEnd ? multipleSelectColor : bg;
+            bg = lineNr == currentLine ? line : bg;
+            bg = i == m_Selection ? sel : bg;
+            GUI.backgroundColor = bg;
 
             int wId = i % SongData.SONG_DATA_COUNT;
-            string text;
+            string text = "-";
 
-            if ( data [ i ] < 0 ) {
-                text = "-";
-            } else {
+            if ( data [ i ] >= 0 ) {
                 switch ( wId ) {
                     case 0:
+                        GUI.contentColor = Color.white;
                         text = VirtualKeyboard.FormatNote ( data [ i ] );
                         break;
+                    case 1:
+                        if ( data [ i ] != -1 )
+                            GUI.contentColor = instrumentGradient.Evaluate ( data [ i ] < instruments.presets.Count ? 1 : 0 );
+                        text = data [ i ].ToString ( "X2" );
+                        break;
                     case 2:
+                        if ( data [ i ] != -1 )
+                            GUI.contentColor = volumeGradient.Evaluate ( data [ i ] / 15.0f );
                         text = data [ i ].ToString ( "X" );
                         break;
-                    default:
+                    case 3:
+                        if ( data [ i ] != -1 )
+                            GUI.contentColor = effectColor;
+                        text = data [ i ].ToString ( "X2" );
+                        break;
+                    case 4:
+                        if ( data [ i ] != -1 )
+                            GUI.contentColor = effectColor;
                         text = data [ i ].ToString ( "X2" );
                         break;
                 }
@@ -135,6 +162,8 @@ public class PatternView : MonoBehaviour {
 
             Rect buttonRect = new Rect ( pos, new Vector2 ( size.x * lineWidths [ wId ], size.y ) );
             GUI.Button(buttonRect, text);
+            GUI.contentColor = Color.white;
+
             pos.x += size.x * lineWidths [ wId ];
             if ( wId == 4 )
                 pos.x += channelSpacing;

@@ -154,6 +154,18 @@ public class SongData : MonoBehaviour {
         }
     }
 
+    public void MovePattern(int dir) {
+        int targetIndex = currentPattern + dir;
+        if ( targetIndex < 0 || targetIndex >= m_LookupTable.Count )
+            return;
+
+        int [ ] temp = m_LookupTable [ targetIndex ];
+        m_LookupTable [ targetIndex ] = m_LookupTable [ currentPattern ];
+        m_LookupTable [ currentPattern ] = temp;
+
+        currentPattern += dir;
+    }
+
     public void CopyPatternLine() {
         int [ ] table = new int [ channels ];
         Array.Copy ( m_LookupTable [ currentPattern ], table, m_LookupTable [ currentPattern ].Length );
@@ -161,6 +173,8 @@ public class SongData : MonoBehaviour {
     }
 
     public void DeletePatternLine() {
+        if ( m_LookupTable.Count <= 1 )
+            return;
         m_LookupTable.RemoveAt ( currentPattern );
         if ( currentPattern >= m_LookupTable.Count )
             currentPattern--;
