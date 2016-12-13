@@ -41,16 +41,26 @@ public class ScopeView : MonoBehaviour {
 
         for (int i = m_SampleCount; i < end; i += m_Channels)
         {
+            float s = m_SampleData [ i ];
+            if ( m_Channels > 1 )
+                s += m_SampleData [ i + 1 ];
+            s /= ( float ) m_Channels;
+
             Vector3 boxPos = new Vector3(box.xMin, Screen.height - (box.yMin + m_LineHeight));
             Vector3 pos = Vector3.zero;
             pos.x += (i % m_SamplesPerFrame) * m_LineSpacing;
-            pos.y += m_SampleData[i] * m_LineHeight;
+            pos.y += s * m_LineHeight;
 
             GL.Vertex(pos + boxPos);
 
+            s = m_SampleData [ i + m_Channels ];
+            if ( m_Channels > 1 )
+                s += m_SampleData [ i + m_Channels + 1 ];
+            s /= ( float ) m_Channels;
+
             pos = Vector3.zero;
             pos.x += ((i + m_Channels) % m_SamplesPerFrame) * m_LineSpacing;
-            pos.y += m_SampleData[i + m_Channels] * m_LineHeight;
+            pos.y += s * m_LineHeight;
 
             GL.Vertex(pos + boxPos);
         }

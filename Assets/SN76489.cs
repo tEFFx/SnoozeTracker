@@ -31,6 +31,7 @@ public class SN76489 {
     public static readonly int NOISE_SR_WIDTH = 16;
 
     public int clock { get { return mClock; } }
+    public int stereoByte { get { return mStereoByte; } }
 
     private int mClock;
     private int mSampleRate;
@@ -43,7 +44,7 @@ public class SN76489 {
     public int[] mAttn = new int[4];
     private bool[] mFlipFlop = new bool[4];
     private int mNoiseSR = 0x8000;
-    private int mNoiseTap;
+    private int mStereoByte = 0xFF;
 
     private int mCurrentReg;
     private int mCurrentType;
@@ -74,8 +75,23 @@ public class SN76489 {
         }
     }
 
-    public float Render() {
-        float output = 0;
+    public void SetStereo(int channel, bool left, bool right) {
+        int leftBit = ( 1 << ( channel + 4 ) );
+        int rightBit = ( 1 << channel );
+
+        if ( left )
+            mStereoByte |= leftBit;
+        else
+            mStereoByte &= ~leftBit;
+
+        if ( right )
+            mStereoByte |= rightBit;
+        else
+            mStereoByte &= ~rightBit;
+    }
+
+    public void Render(out float left, out float right) {
+        left = right = 0;
         while(mCycleCount > 0) {
             for ( int i = 0 ; i < 4; i++ ) {
                 mCount [ i ]--;
@@ -98,7 +114,11 @@ public class SN76489 {
                     }
                 }
 
-                output += GetVolume(i);
+                if ( CheckBit ( mStereoByte, i + 4 ) )
+                    left += GetVolume ( i );
+
+                if( CheckBit ( mStereoByte, i))
+                    right += GetVolume ( i );
             }
 
             mCycleCount -= 1.0f;
@@ -106,7 +126,12 @@ public class SN76489 {
 
         mCycleCount += mCyclesPerSample;
 
-        return (output / (float)Math.Ceiling(mCycleCount)) * 0.25f;
+        left = ( left / ( float ) Math.Ceiling ( mCycleCount ) ) * 0.25f;
+        right = ( right / ( float ) Math.Ceiling ( mCycleCount ) ) * 0.25f;
+    }
+
+    private bool CheckBit(int _byte, int _bit) {
+        return ( _byte & ( 1 << _bit ) ) != 0;
     }
 
     private float GetVolume(int _chn)

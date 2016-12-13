@@ -33,13 +33,15 @@ public class PSGWrapper : MonoBehaviour {
 
     public class RegisterWrite
     {
+        public FileManagement.VGMCommands command;
         public int data;
         public int wait;
         public bool end;
         public int pattern;
 
-        public RegisterWrite(int _wait, int _data, int _pattern, bool _end = false)
+        public RegisterWrite(FileManagement.VGMCommands _command, int _wait, int _data, int _pattern, bool _end = false)
         {
+            command = _command;
             data = _data;
             wait = _wait;
             end = _end;
@@ -67,7 +69,7 @@ public class PSGWrapper : MonoBehaviour {
     {
         m_PSGChip = new SN76489(AudioSettings.outputSampleRate, (int)SN76489.Clock.PAL);
         Debug.Log ( AudioSettings.outputSampleRate );   
-        Mute();
+        ResetChip();
     }
 
     void OnAudioFilterRead(float[] data, int channels)
@@ -79,11 +81,14 @@ public class PSGWrapper : MonoBehaviour {
                 m_Callbacks[j].Clock();
             }
 
-            float sample = m_PSGChip.Render();
+            float left, right;
+            m_PSGChip.Render(out left, out right);
 
-            for (int j = 0; j < channels; j++)
-            {
-                data[i + j] = sample;
+            if ( channels < 2 ) {
+                data [ i ] = ( left + right ) * 0.5f;
+            } else {
+                data [ i ] = left;
+                data [ i + 1 ] = right;
             }
         }
 
@@ -101,11 +106,12 @@ public class PSGWrapper : MonoBehaviour {
         m_WriteWait++;
     }
 
-    public void Mute()
+    public void ResetChip()
     {
         for (int i = 0; i < 4; i++)
         {
             SetAttenuation(i, 0);
+            m_PSGChip.SetStereo ( i, true, true );
         }
     }
 
@@ -130,13 +136,13 @@ public class PSGWrapper : MonoBehaviour {
         byte data = (byte)(0x80 | reg | (frequency & 0xF));
         m_PSGChip.Write(data);
 
-        RegisterWritten(data);
+        RegisterWritten( FileManagement.VGMCommands.PSGWrite, data );
 
         byte data1 = data;
         data = (byte)((frequency >> 4) & 0x3F);
         m_PSGChip.Write(data);
 
-        RegisterWritten(data);
+        RegisterWritten( FileManagement.VGMCommands.PSGWrite, data );
     }
 
     public void SetAttenuation(int channel, int attenuation)
@@ -146,13 +152,18 @@ public class PSGWrapper : MonoBehaviour {
         byte data = (byte)(0x80 | reg | (attenuation & 0x0F));
         m_PSGChip.Write(data);
 
-        RegisterWritten(data);
+        RegisterWritten( FileManagement.VGMCommands.PSGWrite, data );
+    }
+
+    public void SetStereo(int channel, bool left, bool right) {
+        m_PSGChip.SetStereo ( channel, left, right );
+        RegisterWritten ( FileManagement.VGMCommands.StereoSet, m_PSGChip.stereoByte );
     }
 
     public void PSGDirectWrite(int data)
     {
         m_PSGChip.Write(data);
-        RegisterWritten(data);
+        RegisterWritten( FileManagement.VGMCommands.PSGWrite, data );
     }
 
     public List<RegisterWrite> RecordRegisters(bool record = true)
@@ -163,7 +174,7 @@ public class PSGWrapper : MonoBehaviour {
         }
 
         if ( recordRegisters && !record ) {
-            m_RegisterWrites.Add ( new RegisterWrite ( m_WriteWait, 0, playback.currentPattern, true ) );
+            m_RegisterWrites.Add ( new RegisterWrite (FileManagement.VGMCommands.EOF, m_WriteWait, 0, playback.currentPattern, true ) );
         }
 
         recordRegisters = record;
@@ -171,12 +182,12 @@ public class PSGWrapper : MonoBehaviour {
         return m_RegisterWrites;
     }
 
-    private void RegisterWritten(int data)
+    private void RegisterWritten(FileManagement.VGMCommands command, int data)
     {
         if (!recordRegisters)
             return;
 
-        m_RegisterWrites.Add(new RegisterWrite(m_WriteWait, data, playback.currentPattern));
+        m_RegisterWrites.Add(new RegisterWrite(command, m_WriteWait, data, playback.currentPattern));
         m_WriteWait = 0;
     }
 

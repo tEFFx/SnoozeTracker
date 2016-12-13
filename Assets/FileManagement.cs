@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Text;
 
 public class FileManagement : MonoBehaviour {
+    public enum VGMCommands { StereoSet = 0x4F, PSGWrite = 0x50, WaitSamples = 0x61, Wait735 = 0x62, Wait882 = 0x63, EOF = 0x66 }
+
     public string fileFilter;
     public SongData data;
     public Instruments instruments;
@@ -97,8 +99,8 @@ public class FileManagement : MonoBehaviour {
             bw.Seek(0x24, SeekOrigin.Begin);
             bw.Write((uint)playback.playbackRate); //0x24
             bw.Write((ushort)SN76489.NOISE_TAPPED); //0x28
-            bw.Write((byte)SN76489.NOISE_SR_WIDTH);
-            bw.Write((byte)0x04);
+            bw.Write((byte)SN76489.NOISE_SR_WIDTH); //0x2A
+            bw.Write((byte)0x00);
 
             bw.Seek(0x34, SeekOrigin.Begin);
             bw.Write((uint)0x0C);
@@ -112,12 +114,13 @@ public class FileManagement : MonoBehaviour {
                 playback.psg.ManualClock();
             }
             playback.psg.RecordRegisters ( false );
-            playback.psg.Mute ( );
+            playback.psg.ResetChip ( );
 
             int loopWaitAmount = 0;
             int waitAmount = 0;
             int loopOffset = 0x40;
             int bytesWritten = 0;
+            bool foundLoop = false;
             for (int i = 0; i < dataSamples.Count; i++)
             {
                 if (dataSamples[i].wait > 0)
@@ -125,12 +128,12 @@ public class FileManagement : MonoBehaviour {
                     switch (dataSamples[i].wait)
                     {
                         case 735:
-                            bw.Write((byte)0x62);
+                            bw.Write((byte)VGMCommands.Wait735);
                             bytesWritten++;
                             break;
 
                         case 882:
-                            bw.Write((byte)0x63);
+                            bw.Write((byte)VGMCommands.Wait882);
                             bytesWritten++;
                             break;
 
@@ -138,7 +141,7 @@ public class FileManagement : MonoBehaviour {
                             int totalWait = dataSamples[i].wait;
                             do
                             {
-                                bw.Write((byte)0x61);
+                                bw.Write((byte)VGMCommands.WaitSamples);
                                 bw.Write((ushort)System.Math.Min(65535, totalWait));
                                 totalWait -= 65535;
                                 bytesWritten += 3;
@@ -151,19 +154,22 @@ public class FileManagement : MonoBehaviour {
                     waitAmount += dataSamples [ i ].wait;
                 }
 
-                if ( !dataSamples [ i ].end ) {
-                    bw.Write ( ( byte ) 0x50 );
+                bw.Write ( ( byte ) dataSamples[i].command);
+                bytesWritten++;
+                if ( dataSamples [ i ].command != VGMCommands.EOF ) {
                     bw.Write ( ( byte ) dataSamples [ i ].data );
-                    bytesWritten += 2;
+                    bytesWritten++;
                 }
 
-                if ( dataSamples [ i ].pattern == playback.patternLoop && loopOffset == 0x40 ) {
+                if ( dataSamples [ i ].pattern == playback.patternLoop && i == 0 )
+                    foundLoop = true;
+                if ( !foundLoop && dataSamples [ i ].pattern == playback.patternLoop ) {
                     loopOffset += bytesWritten;
-                    Debug.Log ( "Found pattern " + dataSamples [ i ].pattern + " in sample " + i );
+                    foundLoop = true;
                 }
             }
 
-            bw.Write((byte)0x66);
+            //bw.Write((byte)0x66);
 
             int gd3Offset = (int)bw.BaseStream.Position - 0x14;
             bw.Write(Encoding.ASCII.GetBytes("Gd3 "));
@@ -174,7 +180,7 @@ public class FileManagement : MonoBehaviour {
             bw.Write(Encoding.Unicode.GetBytes("\0"));
             bw.Write(Encoding.Unicode.GetBytes("\0")); //game name
             bw.Write(Encoding.Unicode.GetBytes("\0"));
-            bw.Write(Encoding.Unicode.GetBytes( "SN76489\0" ) ); //system name
+            bw.Write(Encoding.Unicode.GetBytes( "Sega Game Gear\0" ) ); //system name
             bw.Write(Encoding.Unicode.GetBytes("\0"));
             bw.Write(Encoding.Unicode.GetBytes(SongData.artistName + "\0")); //artist name
             bw.Write(Encoding.Unicode.GetBytes("\0"));

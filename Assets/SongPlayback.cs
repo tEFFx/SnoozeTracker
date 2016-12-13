@@ -158,6 +158,12 @@ public class SongPlayback : MonoBehaviour {
                             m_Instruments [ i ].vibratoSpeed = speed;
                             break;
 
+                        case 0x08:
+                            int left, right;
+                            SplitByte ( fxVal, out right, out left );
+                            psg.SetStereo ( i, left != 0, right != 0 );
+                            break;
+
                         case 0x0B:
                             //loop point
                             break;
@@ -227,6 +233,6 @@ public class SongPlayback : MonoBehaviour {
     {
         m_IsPlaying = false;
         m_Instruments = new Instruments.InstrumentInstance [ data.channels ];
-        psg.Mute();
+        psg.ResetChip();
     }
 }

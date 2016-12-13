@@ -38,7 +38,8 @@ public class Instruments : MonoBehaviour {
                     //case "pmi": pulseWidthMin = ( int ) e.Value; break;
                     //case "pma": pulseWidthMax = ( int ) e.Value; break;
                     //case "ps": pulseWidthPanSpeed = ( int ) e.Value; break;
-                    default: Debug.LogWarning ( "Serialized field " + e.Name + " does not exist." ); break;
+
+
                 }
             }
         }
