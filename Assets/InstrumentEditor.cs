@@ -43,7 +43,7 @@ public class InstrumentEditor : MonoBehaviour {
 
     private string m_VolumeEnvelope;
     private string m_Arpeggio;
-    private bool m_HideFields;
+    private bool m_HideFields = false;
     private EditorScreen m_CurrentScreen;
 
     void Start() {

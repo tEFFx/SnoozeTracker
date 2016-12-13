@@ -6,6 +6,8 @@ public class TrackerControls : MonoBehaviour {
     public SongData data;
     public FileManagement fileMan;
 
+    private bool m_HideTextFields;
+
 	// Use this for initialization
 	void Start () {
 	
@@ -17,7 +19,14 @@ public class TrackerControls : MonoBehaviour {
 	}
 
     void OnGUI() {
-        Rect rect = new Rect ( Vector2.zero, new Vector2 ( 640, 32 ) );
+        if ( Event.current.keyCode == KeyCode.Tab ) {
+            if ( Event.current.type == EventType.KeyDown )
+                m_HideTextFields = true;
+            else
+                m_HideTextFields = false;
+        }
+
+        Rect rect = new Rect ( Vector2.zero, new Vector2 ( Screen.width, 32 ) );
 
         GUILayout.BeginArea ( rect );
         GUILayout.BeginHorizontal ( );
@@ -46,6 +55,14 @@ public class TrackerControls : MonoBehaviour {
         if (GUILayout.Button("VGM"))
             fileMan.SaveVGM();
 
+        GUI.enabled = !m_HideTextFields;
+        GUILayout.Box ( "Artist: " );
+        SongData.artistName = GUILayout.TextField ( SongData.artistName, GUILayout.Width ( 160 ) );
+        GUILayout.Box ( "Song name: " );
+        SongData.songName = GUILayout.TextField ( SongData.songName, GUILayout.Width ( 160 ) );
+        GUI.enabled = true;
+
+        GUILayout.FlexibleSpace ( );
         GUILayout.EndHorizontal ( );
         GUILayout.EndArea ( );
     }

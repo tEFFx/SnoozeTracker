@@ -220,6 +220,7 @@ public class SongPlayback : MonoBehaviour {
         view.MoveLine ( -view.currentLine );
         m_LastLineTick = Time.time;
         m_IsPlaying = true;
+        m_IsStopping = false;
     }
 
     public void Stop()

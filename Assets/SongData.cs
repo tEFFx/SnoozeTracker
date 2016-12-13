@@ -52,6 +52,9 @@ public class SongData : MonoBehaviour {
 
     public static readonly int SONG_DATA_COUNT = 5;
 
+    public static string artistName = "";
+    public static string songName = "";
+
     public int pageOffset { get { return channels * m_PatternLength * SONG_DATA_COUNT; } }
     public int numPatterns { get { return m_LookupTable.Count; } }
     public int patternLength { get { return m_PatternLength; } }

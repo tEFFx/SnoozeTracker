@@ -93,7 +93,7 @@ public class SN76489 {
                         int fb = ( mFreq [ 3 ] >> 2 ) & 1;
                         mCount [ 3 ] = nf == 3 ? mFreq[2] : (0x10 << nf);
 
-                        mNoiseSR = ( mNoiseSR >> 1 ) | ( ( fb == 1 ? Parity ( mNoiseSR & NOISE_TAPPED ) : mNoiseSR & 1 ) << (NOISE_SR_WIDTH - 1) );
+                        mNoiseSR = ( mNoiseSR >> 1 ) | ( ( fb == 1 ? Parity ( mNoiseSR & NOISE_TAPPED ) : mNoiseSR & 1 ) << NOISE_SR_WIDTH );
                         mFlipFlop [ 3 ] = (mNoiseSR & 1) != 0;
                     }
                 }
