@@ -234,7 +234,7 @@ public class Instruments : MonoBehaviour {
         {
             if (volumeTable == null)
                 return 0;
-            return volumeTable[m_VolumeOffset] - (0xF - relativeVolume);
+            return Math.Max(0, volumeTable[m_VolumeOffset] - (0xF - relativeVolume));
         }
 
         private void ClockInstrument()

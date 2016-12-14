@@ -43,7 +43,7 @@ public class WaveReader {
 
         Debug.Log ( bitDepth );
         for ( int i = 0 ; i < dataSize ; i += bitDepth / 8 ) {
-            if ( reader.PeekChar ( ) == -1 )
+            if ( reader.BaseStream.Position >= reader.BaseStream.Length )
                 break;
 
             samples [ i ] = bitDepth == 8 ? reader.ReadByte ( ) : reader.ReadUInt16 ( );
