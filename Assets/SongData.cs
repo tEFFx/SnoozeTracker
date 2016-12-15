@@ -100,12 +100,7 @@ public class SongData : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if ( patternView.keyboard.recording && Input.GetKeyDown ( KeyCode.Delete ) ) {
-            currentColumn.data [patternView.currentLine, patternView.selectedAttribute ] = -1;
-            if ( patternView.selectedAttribute == 0 )
-                currentColumn.data [ patternView.currentLine, 1 ] = -1;
-            patternView.MoveLine ( 1 );
-        }
+
     }
 
     public int FindLoopPoint() {

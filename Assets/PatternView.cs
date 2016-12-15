@@ -9,6 +9,7 @@ public class PatternView : MonoBehaviour {
     public int selection { get { return m_Selection; } }
     public int selectedChannel { get { return (int)Math.Floor((double)m_Selection / (double)SongData.SONG_DATA_COUNT) % data.channels; } }
     public int selectedAttribute { get { return m_Selection % SongData.SONG_DATA_COUNT; } }
+    public bool multipleSelection { get { return m_DragSelectStart != m_DragSelectEnd; } }
 
     public SongData data;
     public SongPlayback playback;
@@ -40,39 +41,35 @@ public class PatternView : MonoBehaviour {
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.DownArrow))
-            MoveLine(1);
-        if (Input.GetKeyDown(KeyCode.UpArrow))
-            MoveLine(-1);
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-            m_Selection += (m_Selection % lineOffset == 0) ? lineOffset - 1 : -1;
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-            m_Selection += (m_Selection % lineOffset == lineOffset - 1) ? -lineOffset + 1 : 1;
-
-        if ( selectedAttribute != 0 && Input.inputString.Length > 0 && m_LastChar != Input.inputString[0]) {
+        if (keyboard.recording) {
             int maxLen = lineWidths[selectedAttribute % lineOffset] < 1 ? 1 : 2;
-
-            if ( m_Input.Length >= maxLen || m_Selection != m_InputSelection )
+            if (m_Input.Length >= maxLen || m_Selection != m_InputSelection)
                 m_Input = "";
 
-            m_InputSelection = m_Selection;
-            m_LastChar = Input.inputString [ 0 ];
-            m_Input += m_LastChar;
+            if (selectedAttribute != 0 && Input.inputString.Length > 0 && m_LastChar != Input.inputString[0])
+            {
+                m_InputSelection = m_Selection;
+                m_LastChar = Input.inputString[0];
+                m_Input += m_LastChar;
 
-            int res;
-            if(int.TryParse(m_Input, System.Globalization.NumberStyles.HexNumber, null, out res ) ) {
-                data [ selection ] = (byte)res;
+                int res;
+                if (int.TryParse(m_Input, System.Globalization.NumberStyles.HexNumber, null, out res))
+                {
+                    data[selection] = (byte)res;
+                }
+
+                if (m_Input.Length >= maxLen)
+                    MoveLine(1);
+
+            }
+            else if (Input.inputString.Length == 0 && m_LastChar != 0)
+            {
+                m_LastChar = (char)0;
             }
 
-            if ( m_Input.Length >= maxLen )
-                MoveLine ( 1 );
-
-        } else if(Input.inputString.Length == 0 && m_LastChar != 0 ) {
-            m_LastChar = (char)0;
+            if (Input.GetKeyDown(KeyCode.Return))
+                m_Input = "";
         }
-
-        if ( Input.GetKeyDown ( KeyCode.Return ) )
-            m_Input = "";
 
         if ( playback.isPlaying ) {
             m_Scroll.y = currentLine * 24 - (Screen.height - padding.y) * 0.5f;
@@ -234,5 +231,13 @@ public class PatternView : MonoBehaviour {
             m_Selection = m_Selection + length;
 
         //Debug.Log(m_Selection);
+    }
+
+    public void MoveColumn(int cols = 1)
+    {
+        if(cols < 0)
+            m_Selection += (m_Selection % lineOffset == 0) ? lineOffset - 1 : -1;
+        else
+            m_Selection += (m_Selection % lineOffset == lineOffset - 1) ? -lineOffset + 1 : 1;
     }
 }
