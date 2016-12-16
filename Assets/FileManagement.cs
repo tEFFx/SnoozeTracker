@@ -75,6 +75,43 @@ public class FileManagement : MonoBehaviour {
         }
     }
 
+    public void SaveWAV()
+    {
+        playback.Stop();
+        playback.loop = false;
+        playback.psg.audioSource.enabled = false;
+        data.currentPattern = 0;
+
+        SaveFileDialog sfd = new SaveFileDialog();
+        sfd.Filter = "WAVE-file (*.wav)|*.wav";
+
+        if (sfd.ShowDialog() == DialogResult.OK)
+        {
+            BinaryWriter bw = new BinaryWriter(sfd.OpenFile());
+            playback.Play();
+
+            List<float> samples = new List<float>();
+
+            while (playback.isPlaying)
+            {
+                playback.psg.ManualClock();
+
+                float left, right;
+                playback.psg.chip.Render(out left, out right);
+                samples.Add(left);
+                samples.Add(right);
+            }
+
+            WaveWriter.Write(bw, samples.ToArray(), 2, (uint)AudioSettings.outputSampleRate, 16);
+        }
+
+        playback.loop = true;
+        playback.psg.audioSource.enabled = true;
+        playback.psg.enabled = false;
+        playback.psg.enabled = true;
+        playback.Stop();
+    }
+
     public void SaveVGM()
     {
         playback.Stop();

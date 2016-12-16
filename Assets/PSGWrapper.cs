@@ -74,7 +74,12 @@ public class PSGWrapper : MonoBehaviour {
 
     void OnAudioFilterRead(float[] data, int channels)
     {
-        for (int i = 0; i < data.Length; i+=channels)
+        GetSamples(data, channels);
+    }
+
+    public void GetSamples(float[] data, int channels)
+    {
+        for (int i = 0; i < data.Length; i += channels)
         {
             for (int j = 0; j < m_Callbacks.Count; j++)
             {
@@ -84,11 +89,14 @@ public class PSGWrapper : MonoBehaviour {
             float left, right;
             m_PSGChip.Render(out left, out right);
 
-            if ( channels < 2 ) {
-                data [ i ] = ( left + right ) * 0.5f;
-            } else {
-                data [ i ] = left;
-                data [ i + 1 ] = right;
+            if (channels < 2)
+            {
+                data[i] = (left + right) * 0.5f;
+            }
+            else
+            {
+                data[i] = left;
+                data[i + 1] = right;
             }
         }
 
@@ -103,7 +111,8 @@ public class PSGWrapper : MonoBehaviour {
             m_Callbacks[j].Clock();
         }
 
-        m_WriteWait++;
+        if(recordRegisters)
+            m_WriteWait++;
     }
 
     public void ResetChip()

@@ -3,6 +3,46 @@ using System.Collections;
 using System.IO;
 using System.Text;
 
+public static class WaveWriter
+{
+    public static void Write(BinaryWriter writer, float[] samples, ushort channels, uint sampleRate, ushort bitDepth)
+    {
+        writer.Write(Encoding.ASCII.GetBytes("RIFF"));
+        writer.Write((uint)((samples.Length * bitDepth) / 8 + 36));
+        writer.Write(Encoding.ASCII.GetBytes("WAVE"));
+        writer.Write(Encoding.ASCII.GetBytes("fmt "));
+        writer.Write((uint)16);
+        writer.Write((ushort)1);
+        writer.Write(channels);
+        writer.Write(sampleRate);
+        writer.Write((sampleRate * channels * bitDepth) / (uint)8);
+        writer.Write((ushort)((channels * bitDepth) / 8));
+        writer.Write(bitDepth);
+        writer.Write(Encoding.ASCII.GetBytes("data"));
+        writer.Write((uint)((samples.Length * bitDepth) / 8));
+
+        for (int i = 0; i < samples.Length; i++)
+        {
+            switch (bitDepth)
+            {
+                case 8:
+                    writer.Write((byte)((samples[i] + 1) * 0.5f * byte.MaxValue));
+                    break;
+
+                case 16:
+                    writer.Write((short)(samples[i] * short.MaxValue));
+                    break;
+
+                case 32:
+                    writer.Write(samples[i]);
+                    break;
+            }
+        }
+
+        writer.Close();
+    }
+}
+
 public class WaveReader {
     public WaveReader(BinaryReader reader) {
         if ( !FileManagement.CompareHeader(reader, "RIFF") ) {
