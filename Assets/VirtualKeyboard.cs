@@ -58,23 +58,27 @@ public class VirtualKeyboard : MonoBehaviour {
         if (sel % SongData.SONG_DATA_COUNT != 0)
             return;
 
-        for (int i = 0; i < noteBinds.Length; i++)
+        if (!Input.GetKey(KeyCode.LeftControl))
         {
-            byte noteData;
-            if (noteBinds[i].GetNoteDown(currentOctave, out noteData))
+            for (int i = 0; i < noteBinds.Length; i++)
             {
-                if ( recording ) {
-                    patternView.data [ sel ] = noteData;
-                    patternView.data [ sel + 1 ] = ( byte ) currentInstrument;
-                    patternView.MoveLine ( patternAdd );
-                }
-
-                if (noteBinds[i].note != Note.None && noteBinds[i].note != Note.NoteOff)
+                byte noteData;
+                if (noteBinds[i].GetNoteDown(currentOctave, out noteData))
                 {
-                    m_Instrument = instruments.presets [ currentInstrument ];
-                    m_Instrument.note = noteBinds[i].note;
-                    m_Instrument.octave = currentOctave + noteBinds[i].octaveOffset;
-                    m_Instrument.relativeVolume = 0xF;
+                    if (recording)
+                    {
+                        patternView.data[sel] = noteData;
+                        patternView.data[sel + 1] = (byte)currentInstrument;
+                        patternView.MoveLine(patternAdd);
+                    }
+
+                    if (noteBinds[i].note != Note.None && noteBinds[i].note != Note.NoteOff)
+                    {
+                        m_Instrument = instruments.presets[currentInstrument];
+                        m_Instrument.note = noteBinds[i].note;
+                        m_Instrument.octave = currentOctave + noteBinds[i].octaveOffset;
+                        m_Instrument.relativeVolume = 0xF;
+                    }
                 }
             }
         }

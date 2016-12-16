@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System;
 
 public class PatternView : MonoBehaviour {
@@ -10,6 +11,8 @@ public class PatternView : MonoBehaviour {
     public int selectedChannel { get { return (int)Math.Floor((double)m_Selection / (double)SongData.SONG_DATA_COUNT) % data.channels; } }
     public int selectedAttribute { get { return m_Selection % SongData.SONG_DATA_COUNT; } }
     public bool multipleSelection { get { return m_DragSelectStart != m_DragSelectEnd; } }
+    public int dragSelectStart { get { return m_DragSelectStart; } }
+    public int dragSelectOffset { get { return m_DragSelectEnd - m_DragSelectStart; } }
 
     public SongData data;
     public SongPlayback playback;
@@ -218,6 +221,12 @@ public class PatternView : MonoBehaviour {
         return res;
             // && i % lineOffset >= m_DragSelectEnd % lineOffset && i % lineOffset <= m_DragSelectStart % lineOffset );
         //&& i % lineOffset >= m_DragSelectStart % lineOffset && i % lineOffset <= m_DragSelectEnd % lineOffset )
+    }
+
+    public void SetDragSelection(int _pos, int _offset)
+    {
+        m_DragSelectStart = _pos;
+        m_DragSelectEnd = _pos + _offset;
     }
 
     public void MoveLine(int lines = 1)
