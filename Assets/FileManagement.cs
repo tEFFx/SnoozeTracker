@@ -7,6 +7,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using Ionic.Zlib;
 
 public class FileManagement : MonoBehaviour {
     public enum VGMCommands { StereoSet = 0x4F, PSGWrite = 0x50, WaitSamples = 0x61, Wait735 = 0x62, Wait882 = 0x63, EOF = 0x66 }
@@ -135,11 +136,14 @@ public class FileManagement : MonoBehaviour {
         data.currentPattern = 0;
 
         SaveFileDialog sfd = new SaveFileDialog();
-        sfd.Filter = "VGM-file (*.vgm)|*.vgm";
+        sfd.Filter = "VGZ-file (*.vgz)|*.vgz|VGM-file (*.vgm)|*.vgm";
 
         if (sfd.ShowDialog() == DialogResult.OK)
         {
-            BinaryWriter bw = new BinaryWriter(sfd.OpenFile());
+            bool isCompressed = sfd.FileName.Contains ( ".vgz" );
+            Stream fileStream = isCompressed ? new MemoryStream() : sfd.OpenFile ( );
+
+            BinaryWriter bw = new BinaryWriter(fileStream);
             bw.Write(Encoding.ASCII.GetBytes("Vgm ")); //0x00
             //wrote eof offset later when we know 0x04
             bw.Seek(0x08, SeekOrigin.Begin);
@@ -257,7 +261,17 @@ public class FileManagement : MonoBehaviour {
             bw.Write ( ( uint ) (loopOffset - 0x1C) );
             bw.Write ( ( uint ) (loopWaitAmount) );
 
-            bw.Close();
+            if ( isCompressed ) {
+                Stream fs = sfd.OpenFile ( );
+                GZipStream gzipStream = new GZipStream ( fs, CompressionMode.Compress, CompressionLevel.BestCompression, true );
+                byte [ ] buffer = new byte [ fileStream.Length ];
+                fileStream.Position = 0;
+                fileStream.Read ( buffer, 0, (int)fileStream.Length );
+                gzipStream.Write ( buffer, 0, ( int ) fileStream.Length );
+                gzipStream.Close ( );
+            }
+
+            bw.Close ( );
         }
 
         playback.psg.audioSource.enabled = true;
