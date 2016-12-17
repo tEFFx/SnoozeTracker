@@ -13,7 +13,6 @@ public class SongPlayback : MonoBehaviour {
     public Instruments instruments;
     public int playbackSpeed;
     public bool[] mute;
-    public bool loop = true;
 
     private int m_CurrentPattern;
     private int m_PlayingPattern;
@@ -30,6 +29,7 @@ public class SongPlayback : MonoBehaviour {
     private bool m_NoiseChn3;
     private int m_PlaybackRate = 50;
     private int m_PatternLoop = 0;
+    private int m_Loops = -1;
 
     void Start()
     {
@@ -201,7 +201,10 @@ public class SongPlayback : MonoBehaviour {
                 if (m_CurrentPattern >= data.numPatterns)
                 {
                     m_CurrentPattern = m_PatternLoop;
-                    m_IsStopping = !loop;
+                    if ( m_Loops >= 0 ) {
+                        m_IsStopping = m_Loops == 0;
+                        m_Loops--;
+                    }
                 }
             }
         }
@@ -216,7 +219,7 @@ public class SongPlayback : MonoBehaviour {
         b2 = ( val >> 4 ) & 0xF;
     }
 
-    public void Play()
+    public void Play(int loops = -1)
     {
         m_PatternLoop = data.FindLoopPoint ( );
         m_StartSample = psg.currentSample;
@@ -227,6 +230,7 @@ public class SongPlayback : MonoBehaviour {
         m_LastLineTick = Time.time;
         m_IsPlaying = true;
         m_IsStopping = false;
+        m_Loops = loops;
     }
 
     public void Stop()

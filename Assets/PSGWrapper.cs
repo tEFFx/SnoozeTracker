@@ -86,17 +86,17 @@ public class PSGWrapper : MonoBehaviour {
                 m_Callbacks[j].Clock();
             }
 
-            float left, right;
+            double left, right;
             m_PSGChip.Render(out left, out right);
 
             if (channels < 2)
             {
-                data[i] = (left + right) * 0.5f;
+                data[i] = (float)(left + right) * 0.5f;
             }
             else
             {
-                data[i] = left;
-                data[i + 1] = right;
+                data[i] = (float)left;
+                data[i + 1] = (float)right;
             }
         }
 

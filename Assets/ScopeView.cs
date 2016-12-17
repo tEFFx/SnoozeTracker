@@ -28,6 +28,9 @@ public class ScopeView : MonoBehaviour {
 
     void OnPostRender()
     {
+        if ( m_SampleData == null )
+            return;
+
         GL.PushMatrix();
 
         lineMat.SetPass(0);

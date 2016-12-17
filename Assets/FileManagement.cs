@@ -6,6 +6,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 public class FileManagement : MonoBehaviour {
     public enum VGMCommands { StereoSet = 0x4F, PSGWrite = 0x50, WaitSamples = 0x61, Wait735 = 0x62, Wait882 = 0x63, EOF = 0x66 }
@@ -16,6 +17,10 @@ public class FileManagement : MonoBehaviour {
     public InstrumentEditor insEditor;
     public SongPlayback playback;
 
+    private Thread m_Thread;
+    private bool m_OperationInProgress;
+    private float m_Progress;
+
     [System.Serializable]
     internal class SongFile {
         public string songName = "";
@@ -24,6 +29,13 @@ public class FileManagement : MonoBehaviour {
         public List<int[]> lookupTable;
         public List<SongData.ColumnEntry> songData;
         public List<Instruments.InstrumentInstance> instruments;
+    }
+
+    void OnGUI() {
+        if ( m_OperationInProgress ) {
+            Rect boxRect = new Rect ( UnityEngine.Screen.width - 256, UnityEngine.Screen.height - 32, 256, 32 );
+            GUI.Box ( boxRect, m_Progress + "%" );
+        }
     }
     
     public void SaveFile() {
@@ -78,7 +90,6 @@ public class FileManagement : MonoBehaviour {
     public void SaveWAV()
     {
         playback.Stop();
-        playback.loop = false;
         playback.psg.audioSource.enabled = false;
         data.currentPattern = 0;
 
@@ -87,25 +98,30 @@ public class FileManagement : MonoBehaviour {
 
         if (sfd.ShowDialog() == DialogResult.OK)
         {
-            BinaryWriter bw = new BinaryWriter(sfd.OpenFile());
-            playback.Play();
+            m_OperationInProgress = true;
 
-            List<float> samples = new List<float>();
+            BinaryWriter bw = new BinaryWriter ( sfd.OpenFile ( ) );
+            playback.Play ( 1 );
 
-            while (playback.isPlaying)
-            {
-                playback.psg.ManualClock();
+            List<double> samples = new List<double> ( );
 
-                float left, right;
-                playback.psg.chip.Render(out left, out right);
-                samples.Add(left);
-                samples.Add(right);
+            while ( playback.isPlaying ) {
+                playback.psg.ManualClock ( );
+
+                double left, right;
+                playback.psg.chip.Render ( out left, out right );
+                samples.Add ( left );
+                samples.Add ( right );
+
+                m_Progress = (float)((playback.currentPattern / data.numPatterns) * (1f / 2f));
             }
 
-            WaveWriter.Write(bw, samples.ToArray(), 2, (uint)AudioSettings.outputSampleRate, 16);
+            WaveWriter.Write ( bw, samples.ToArray ( ), 2, ( uint ) AudioSettings.outputSampleRate, 16 );
+
+            m_OperationInProgress = false;
+
         }
 
-        playback.loop = true;
         playback.psg.audioSource.enabled = true;
         playback.psg.enabled = false;
         playback.psg.enabled = true;
@@ -115,7 +131,6 @@ public class FileManagement : MonoBehaviour {
     public void SaveVGM()
     {
         playback.Stop();
-        playback.loop = false;
         playback.psg.audioSource.enabled = false;
         data.currentPattern = 0;
 
@@ -145,7 +160,7 @@ public class FileManagement : MonoBehaviour {
             bw.Seek(0x40, SeekOrigin.Begin);
 
             List<PSGWrapper.RegisterWrite> dataSamples = playback.psg.RecordRegisters();
-            playback.Play();
+            playback.Play(0);
             while (playback.isPlaying)
             {
                 playback.psg.ManualClock();
@@ -245,7 +260,6 @@ public class FileManagement : MonoBehaviour {
             bw.Close();
         }
 
-        playback.loop = true;
         playback.psg.audioSource.enabled = true;
         playback.psg.enabled = false;
         playback.psg.enabled = true;
