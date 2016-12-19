@@ -101,6 +101,12 @@ public class SongPlayback : MonoBehaviour {
                 m_PlayingPattern = m_CurrentPattern;
                 SongData.ColumnEntry col = data.GetCurrentLine(m_CurrentPattern, i);
 
+                if ( col == null ) {
+                    //m_Instruments [ i ].note = VirtualKeyboard.Note.NoteOff;
+                    //psg.SetAttenuation ( i, 0 );
+                    continue;
+                }
+
                 int volume = col.data [ m_CurrentLine, 2 ];
                 if ( volume >= 0 ) {
                     m_Instruments [ i ].relativeVolume = volume;

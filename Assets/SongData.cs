@@ -69,6 +69,9 @@ public class SongData : MonoBehaviour {
         {
             int column, row, dataIndex;
             GetIndexOffset(i, out column, out row, out dataIndex);
+            if ( column < 0 )
+                return -2;
+
             //Debug.Log("i=" +i + " col=" + column + " row=" + row);
             return m_SongData[column].data[row, dataIndex];
         }
@@ -77,7 +80,10 @@ public class SongData : MonoBehaviour {
         {
             int column, row, dataIndex;
             GetIndexOffset(i, out column, out row, out dataIndex);
-            m_SongData[column].data[row, dataIndex] = value;
+            if ( column < 0 )
+                return;
+
+            m_SongData [column].data[row, dataIndex] = value;
             m_SongData[column].modified = true;
         }
     }
@@ -127,6 +133,9 @@ public class SongData : MonoBehaviour {
 
     public ColumnEntry GetCurrentLine(int pattern, int col)
     {
+        if ( m_LookupTable [ pattern ] [ col ] < 0 )
+            return null;
+
         return m_SongData[m_LookupTable[pattern][col]];
     }
 
@@ -134,7 +143,7 @@ public class SongData : MonoBehaviour {
     {
         int val = m_LookupTable[row][col] + inc;
 
-        if (val < 0)
+        if (val < -1)
             return;
 
         AllocatePage(val);

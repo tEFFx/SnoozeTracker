@@ -158,6 +158,8 @@ public class PatternView : MonoBehaviour {
                         text = data [ i ].ToString ( "X2" );
                         break;
                 }
+            }else if(data[i] == -2 ) {
+                text = "X";
             }
 
             Rect buttonRect = new Rect ( pos, new Vector2 ( size.x * lineWidths [ wId ], size.y ) );

@@ -50,7 +50,8 @@ public class PatternMatrix : MonoBehaviour {
             GUI.color = data.currentPattern == i ? selectedColor : neutralColor;
             for (int j = 0; j < data.channels; j++)
             {
-                if(GUILayout.Button(data.lookupTable[i][j].ToString("X2"), GUILayout.Width(buttonSize.x), GUILayout.Height(buttonSize.y)) && !playback.isPlaying)
+                string label = data.lookupTable[i][j] >= 0 ? data.lookupTable [ i ] [ j ].ToString ( "X2" ) : "X";
+                if (GUILayout.Button(label, GUILayout.Width(buttonSize.x), GUILayout.Height(buttonSize.y)) && !playback.isPlaying)
                 {
                     if( data.currentPattern == i)
                     {

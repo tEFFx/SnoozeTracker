@@ -102,6 +102,7 @@ public class SN76489 {
 
     public void Render(out double left, out double right) {
         left = right = 0;
+        int samples = 0;
         while(mCycleCount > 0) {
             for ( int i = 0 ; i < 4; i++ ) {
                 mCount [ i ]--;
@@ -123,20 +124,22 @@ public class SN76489 {
                         mFlipFlop [ 3 ] = (mNoiseSR & 1) != 0;
                     }
                 }
+
+                if ( CheckBit ( mStereoByte, i + 4 ) )
+                    left += GetVolume ( i ) * 0.25;
+
+                if ( CheckBit ( mStereoByte, i ) )
+                    right += GetVolume ( i ) * 0.25;
             }
 
             mCycleCount -= 1.0f;
+            samples++;
         }
 
         mCycleCount += mCyclesPerSample;
 
-        for ( int i = 0 ; i < 4 ; i++ ) {
-            if ( CheckBit ( mStereoByte, i + 4 ) )
-                left += GetVolume ( i ) * 0.25;
-
-            if ( CheckBit ( mStereoByte, i ) )
-                right += GetVolume ( i ) * 0.25;
-        }
+        left /= samples;
+        right /= samples;
 
         left = HighPass ( left, ref mLHPOut, ref mLHPIn );
         right = HighPass ( right, ref mRHPOut, ref mRHPIn );
