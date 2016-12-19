@@ -35,11 +35,9 @@ public class Instruments : MonoBehaviour {
                     case "wt": waveTable = ( int [ ] ) e.Value; break;
                     case "wl": loopSample = ( bool ) e.Value; break;
                     case "wsr": waveTableSampleRate = ( int ) e.Value; break;
-                    //case "pmi": pulseWidthMin = ( int ) e.Value; break;
-                    //case "pma": pulseWidthMax = ( int ) e.Value; break;
-                    //case "ps": pulseWidthPanSpeed = ( int ) e.Value; break;
-
-
+                    case "pmi": pulseWidthMin = ( int ) e.Value; break;
+                    case "pma": pulseWidthMax = ( int ) e.Value; break;
+                    case "ps": pulseWidthPanSpeed = ( int ) e.Value; break;
                 }
             }
         }
@@ -59,10 +57,11 @@ public class Instruments : MonoBehaviour {
             info.AddValue ( "ps", pulseWidthPanSpeed );
         }
 
-        public enum Wave { Pulse, Saw, Triangle, Sample }
+        public enum Wave { Pulse, Saw, Triangle, Sample, Sine }
 
         public static readonly int SAMPLE_RATE = 44100;
         public static readonly int PWM_STEPS = 100;
+        public static readonly int PWMSPEED_MAX = 10;
         public static bool NOISE_FB = true;
         public static bool NOISE_CHN3 = false;
         public static readonly int LINEAR_STEPS = 0xF;
@@ -166,7 +165,8 @@ public class Instruments : MonoBehaviour {
                 return;
             }
 
-            float divider = SAMPLE_RATE / (PSGWrapper.CalculateNoteFreq((int)note + GetNoteOffset(), octave) + GetFreqOffset());
+            float freq = ( PSGWrapper.CalculateNoteFreq ( ( int ) note + GetNoteOffset ( ), octave ) + GetFreqOffset ( ) ); 
+            float divider = SAMPLE_RATE / freq;
             float phase = ( m_SampleTimer % divider ) / divider;
             float attn = 0;
             int smp = 0;
@@ -197,6 +197,11 @@ public class Instruments : MonoBehaviour {
                         else
                             smp = LINEAR_STEPS;
                     }
+                    break;
+
+                case Wave.Sine:
+                    attn = ( 1f + Mathf.Sin ( 2 * Mathf.PI * freq * m_SampleTimer / SAMPLE_RATE ) ) * 0.5f * LINEAR_STEPS;
+                    smp = ( int ) attn;
                     break;
             }
 
@@ -249,12 +254,14 @@ public class Instruments : MonoBehaviour {
 
             m_IrqTimer++;
 
-            if ( pulseWidthPanSpeed == 0 || m_IrqTimer % pulseWidthPanSpeed == 0 ) {
-                m_PWM += m_PWMDir ? -1 : 1;
+            if(pulseWidthPanSpeed == 0)
+                m_PWM = pulseWidthMin;
+            else {
+                m_PWM += m_PWMDir ? -pulseWidthPanSpeed : pulseWidthPanSpeed;
                 if ( m_PWM > pulseWidthMax ) {
                     m_PWM = pulseWidthMax;
                     m_PWMDir = true;
-                }else if(m_PWM < pulseWidthMin ) {
+                } else if ( m_PWM < pulseWidthMin ) {
                     m_PWM = pulseWidthMin;
                     m_PWMDir = false;
                 }

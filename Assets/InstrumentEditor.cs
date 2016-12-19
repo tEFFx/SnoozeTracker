@@ -116,12 +116,44 @@ public class InstrumentEditor : MonoBehaviour {
                     WaveButton ( Instruments.InstrumentInstance.Wave.Pulse );
                     WaveButton ( Instruments.InstrumentInstance.Wave.Saw );
                     WaveButton ( Instruments.InstrumentInstance.Wave.Triangle );
+                    WaveButton ( Instruments.InstrumentInstance.Wave.Sine );
                     WaveButton ( Instruments.InstrumentInstance.Wave.Sample );
                     GUILayout.EndHorizontal ( );
 
                     switch ( instrument.customWaveform ) {
                         case Instruments.InstrumentInstance.Wave.Pulse:
-                            GUILayout.Box ( "PWM stuff" );
+                            int pwmStart, pwmEnd, pwmSpeed;
+                            pwmStart = instrument.pulseWidthMin;
+                            pwmEnd = instrument.pulseWidthMax;
+                            pwmSpeed = instrument.pulseWidthPanSpeed;
+
+                            GUILayout.BeginHorizontal ( );
+                            GUILayout.Box ( "PWM min", GUILayout.Width(96) );
+                            pwmStart = (int)GUILayout.HorizontalSlider ( pwmStart, 0, 100 );
+                            GUILayout.Box ( pwmStart.ToString(), GUILayout.Width ( 32 ) );
+                            GUILayout.EndHorizontal ( );
+
+                            GUILayout.BeginHorizontal ( );
+                            GUILayout.Box ( "PWM max", GUILayout.Width ( 96 ) );
+                            pwmEnd = ( int ) GUILayout.HorizontalSlider ( pwmEnd, 0, 100 );
+                            GUILayout.Box ( pwmEnd.ToString ( ), GUILayout.Width ( 32 ) );
+                            GUILayout.EndHorizontal ( );
+
+                            GUILayout.BeginHorizontal ( );
+                            GUILayout.Box ( "PWM spd", GUILayout.Width ( 96 ) );
+                            pwmSpeed = ( int ) GUILayout.HorizontalSlider ( pwmSpeed, 0, Instruments.InstrumentInstance.PWMSPEED_MAX - 1 );
+                            GUILayout.Box ( pwmSpeed.ToString ( ), GUILayout.Width ( 32 ) );
+                            GUILayout.EndHorizontal ( );
+
+                            if(pwmStart != instrument.pulseWidthMin ||
+                                pwmEnd != instrument.pulseWidthMax ||
+                                pwmSpeed != instrument.pulseWidthPanSpeed ) {
+                                Instruments.InstrumentInstance ins = instrument;
+                                ins.pulseWidthMin = pwmStart;
+                                ins.pulseWidthMax = pwmEnd;
+                                ins.pulseWidthPanSpeed = pwmSpeed;
+                                instruments.presets [ keyboard.currentInstrument ] = ins;
+                            }
                             break;
 
                         case Instruments.InstrumentInstance.Wave.Sample:

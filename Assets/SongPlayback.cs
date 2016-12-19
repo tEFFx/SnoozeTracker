@@ -6,12 +6,15 @@ public class SongPlayback : MonoBehaviour {
     public int playbackRate { get { return m_PlaybackRate; } }
     public int patternLoop { get { return m_PatternLoop; } }
     public int currentPattern { get { return m_PlayingPattern; } }
+    public int internalPattern { get { return m_CurrentPattern; } }
+    public float songProgress { get { return ( float ) m_CurrentPattern / ( float ) data.numPatterns; } }
 
     public PSGWrapper psg;
     public SongData data;
     public PatternView view;
     public Instruments instruments;
     public int playbackSpeed;
+    public bool follow = true;
     public bool[] mute;
 
     private int m_CurrentPattern;
@@ -50,7 +53,7 @@ public class SongPlayback : MonoBehaviour {
                 Play();
         }
 
-        if(m_IsPlaying && Time.time - m_LastLineTick > 1f / 50f) {
+        if(follow && m_IsPlaying && Time.time - m_LastLineTick > 1f / 50f) {
             while ( m_MoveLine > 0 ) {
                 m_MoveLine--;
                 view.MoveLine ( 1 );
