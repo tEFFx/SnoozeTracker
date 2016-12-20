@@ -37,6 +37,12 @@ public class KeyboardShortcuts : MonoBehaviour {
         {
             if (Input.GetKeyDown(KeyCode.Delete))
                 DeleteSelection();
+
+            if (Input.GetKeyDown(KeyCode.Backspace))
+                Erase();
+
+            if (Input.GetKeyDown(KeyCode.Insert))
+                Insert();
         }
     }
 
@@ -113,6 +119,31 @@ public class KeyboardShortcuts : MonoBehaviour {
             if (patternView.selectedAttribute == 0)
                 songData.currentColumn.data[patternView.currentLine, 1] = -1;
             patternView.MoveLine(1);
+        }
+    }
+
+    void Erase()
+    {
+        for (int i = patternView.currentLine; i < songData.patternLength - 1; i++)
+        {
+            for (int j = 0; j < SongData.SONG_DATA_COUNT; j++)
+            {
+                songData.currentColumn.data[i, j] = songData.currentColumn.data[i + 1, j];
+            }
+        }
+    }
+
+    void Insert()
+    {
+        for (int i = songData.patternLength - 1; i >= patternView.currentLine; i--)
+        {
+            for (int j = 0; j < SongData.SONG_DATA_COUNT; j++)
+            {
+                if (i == patternView.currentLine)
+                    songData.currentColumn.data[i, j] = -1;
+                else
+                    songData.currentColumn.data[i, j] = songData.currentColumn.data[i - 1, j];
+            }
         }
     }
 }
