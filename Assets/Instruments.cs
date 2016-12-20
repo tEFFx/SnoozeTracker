@@ -196,6 +196,7 @@ public class Instruments : MonoBehaviour {
                     if ( waveTable != null ) {
                         float noteOffset = ( PSGWrapper.CalculateNoteFreq ( ( int ) note + GetNoteOffset ( ), octave ) + GetFreqOffset ( ) ) / PSGWrapper.CalculateNoteFreq ( 1, 4 );
                         divider = SAMPLE_RATE / (waveTableSampleRate * noteOffset);
+                        float pos = divider - m_SampleTimer;
                         int sampleIndex = ( int ) ( (m_SampleTimer / divider) % waveTable.Length );
                         if ( loopSample || ( m_SampleTimer / divider ) < waveTable.Length )
                             smp = waveTable [ sampleIndex ];
@@ -210,7 +211,10 @@ public class Instruments : MonoBehaviour {
                     break;
             }
 
-            m_SampleTimer--;
+            if ( customWaveform == Wave.Sample )
+                m_SampleTimer++;
+            else
+                m_SampleTimer--;
 
             if ( m_LastSample != LINEAR_VOLUME_TABLE [ smp ] ) {
                 attn = Math.Max ( 0, LINEAR_VOLUME_TABLE [ smp ] - ( 0xF - GetCurrentVol ( ) ) );
