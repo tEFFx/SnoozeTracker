@@ -12,7 +12,7 @@ public class Instruments : MonoBehaviour {
         public InstrumentInstance(SerializationInfo info, StreamingContext context) {
             relativeVolume = 0xF;
             note = VirtualKeyboard.Note.None;
-            m_SampleTimer = 0;
+            m_SampleFreq = m_SampleTimer = 0;
             waveTableSampleRate = vibratoDepth = vibratoSpeed = octave = portamentoSpeed = m_LastSample = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
             samplePlayback = m_AutoPortamento = m_UpdatedFrequency = m_PWMDir = m_PWMFlipFlop = false;
             volumeTable = new int [ ] { 0xF, 0xE, 0xD, 0xC };
@@ -99,7 +99,7 @@ public class Instruments : MonoBehaviour {
 
         //not serialized
         private int m_IrqTimer, m_PortamentoTimer, m_VolumeOffset, m_PWMTimer, m_PWM, m_LastSample;
-        private float m_SampleTimer;
+        private float m_SampleTimer, m_SampleFreq;
         private bool m_AutoPortamento, m_UpdatedFrequency, m_PWMDir, m_PWMFlipFlop;
 
         public void SetAutoPortamento(InstrumentInstance prev, int speed) {
@@ -165,11 +165,16 @@ public class Instruments : MonoBehaviour {
                 return;
             }
 
-            float freq = ( PSGWrapper.CalculateNoteFreq ( ( int ) note + GetNoteOffset ( ), octave ) + GetFreqOffset ( ) ); 
-            float divider = SAMPLE_RATE / freq;
+            if ( m_SampleTimer <= 0 ) {
+                m_SampleFreq = ( PSGWrapper.CalculateNoteFreq ( ( int ) note + GetNoteOffset ( ), octave ) + GetFreqOffset ( ) );
+                m_SampleTimer = SAMPLE_RATE / m_SampleFreq;
+            }
+
+            float divider = SAMPLE_RATE / m_SampleFreq;
             float phase = ( m_SampleTimer % divider ) / divider;
             float attn = 0;
             int smp = 0;
+
             switch (customWaveform) {
                 case Wave.Pulse:
                     attn = phase < ((float)m_PWM / (float)PWM_STEPS) ? 0 : LINEAR_STEPS;
@@ -177,7 +182,7 @@ public class Instruments : MonoBehaviour {
                     break;
 
                 case Wave.Saw:
-                    attn = Mathf.Ceil(phase * LINEAR_STEPS );
+                    attn = Mathf.Ceil( phase * LINEAR_STEPS );
                     smp = ( int ) attn;
                     break;
 
@@ -200,12 +205,12 @@ public class Instruments : MonoBehaviour {
                     break;
 
                 case Wave.Sine:
-                    attn = ( 1f + Mathf.Sin ( 2 * Mathf.PI * freq * m_SampleTimer / SAMPLE_RATE ) ) * 0.5f * LINEAR_STEPS;
+                    attn = ( 1f + Mathf.Sin ( 2 * Mathf.PI * m_SampleFreq * m_SampleTimer / SAMPLE_RATE ) ) * 0.5f * LINEAR_STEPS;
                     smp = ( int ) attn;
                     break;
             }
 
-            m_SampleTimer++;
+            m_SampleTimer--;
 
             if ( m_LastSample != LINEAR_VOLUME_TABLE [ smp ] ) {
                 attn = Math.Max ( 0, LINEAR_VOLUME_TABLE [ smp ] - ( 0xF - GetCurrentVol ( ) ) );
