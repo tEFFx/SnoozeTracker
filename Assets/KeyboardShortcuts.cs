@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class KeyboardShortcuts : MonoBehaviour {
     public PatternView patternView;
     public SongData songData;
+    public History history;
 
     private List<int> m_CopyData = new List<int>();
     private int m_CopyOffset;
@@ -31,6 +32,9 @@ public class KeyboardShortcuts : MonoBehaviour {
                 CopySelection();
                 DeleteSelection();
             }
+
+            if (Input.GetKeyDown(KeyCode.Z))
+                history.Undo();
         }
 
         if (patternView.keyboard.recording)
@@ -105,6 +109,8 @@ public class KeyboardShortcuts : MonoBehaviour {
     {
         if (patternView.multipleSelection)
         {
+            history.AddHistoryEntry(patternView.GetChannelSelection(patternView.dragSelectStart), patternView.GetChannelSelection(patternView.dragSelectStart + patternView.dragSelectOffset));
+
             for (int i = 0; i < patternView.length; i++)
             {
                 if (patternView.IsInSelection(i))
@@ -115,6 +121,8 @@ public class KeyboardShortcuts : MonoBehaviour {
         }
         else
         {
+            history.AddHistoryEntry(patternView.selectedChannel);
+
             songData.currentColumn.data[patternView.currentLine, patternView.selectedAttribute] = -1;
             if (patternView.selectedAttribute == 0)
                 songData.currentColumn.data[patternView.currentLine, 1] = -1;
@@ -124,6 +132,8 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void Erase()
     {
+        history.AddHistoryEntry(patternView.selectedChannel);
+
         for (int i = patternView.currentLine; i < songData.patternLength - 1; i++)
         {
             for (int j = 0; j < SongData.SONG_DATA_COUNT; j++)
@@ -135,6 +145,8 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void Insert()
     {
+        history.AddHistoryEntry(patternView.selectedChannel);
+
         for (int i = songData.patternLength - 1; i >= patternView.currentLine; i--)
         {
             for (int j = 0; j < SongData.SONG_DATA_COUNT; j++)

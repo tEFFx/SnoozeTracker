@@ -9,11 +9,24 @@ public class SongData : MonoBehaviour {
     [Serializable]
     public class ColumnEntry : ISerializable
     {
-        public ColumnEntry(int numRows, int numDataEntries)
+        public static int s_PatternLength;
+
+        public ColumnEntry(ColumnEntry origin)
         {
-            data = new int[numRows, numDataEntries];
-            m_DataEntries = numDataEntries;
-            ResetRange ( 0, numRows );
+            data = new int[origin.data.GetLength(0), origin.data.GetLength(1)];
+            Array.Copy(origin.data, data, origin.data.Length);
+
+            m_DataEntries = origin.m_DataEntries;
+            modified = origin.modified;
+            m_ID = origin.m_ID;
+        }
+
+        public ColumnEntry(int _id)
+        {
+            data = new int[s_PatternLength, SONG_DATA_COUNT];
+            m_DataEntries = SONG_DATA_COUNT;
+            ResetRange ( 0, s_PatternLength );
+            m_ID = _id;
         }
 
         public ColumnEntry(SerializationInfo info, StreamingContext context) {
@@ -25,12 +38,15 @@ public class SongData : MonoBehaviour {
             info.AddValue ( "data", data );
         }
 
+        public int id { get { return m_ID; } }
+
         public int[,] data;
         public bool modified;
         private int m_DataEntries;
+        private int m_ID;
 
-        public void Resize(int numRows) {
-            Array temp = Array.CreateInstance ( data.GetType ( ).GetElementType ( ), numRows, data.GetLength ( 1 ) );
+        public void Resize() {
+            Array temp = Array.CreateInstance ( data.GetType ( ).GetElementType ( ), s_PatternLength, data.GetLength ( 1 ) );
             int prevLen = data.GetLength(0);
             int len = Math.Min ( temp.Length, data.Length );
             Array.ConstrainedCopy ( data, 0, temp, 0, len );
@@ -123,9 +139,10 @@ public class SongData : MonoBehaviour {
 
     public void SetPatternLength(int len) {
         len = Math.Max ( len, 1 );
+        ColumnEntry.s_PatternLength = len;
 
         for ( int i = 0 ; i < m_SongData.Count ; i++ ) {
-            m_SongData [ i ].Resize ( len );
+            m_SongData [ i ].Resize ( );
         }
 
         m_PatternLength = len;
@@ -203,7 +220,7 @@ public class SongData : MonoBehaviour {
     {
         if (index < 0 || m_SongData.Count >= index)
         {
-            m_SongData.Add(new ColumnEntry(m_PatternLength, SONG_DATA_COUNT));
+            m_SongData.Add(new ColumnEntry(m_SongData.Count));
         }
     }
 

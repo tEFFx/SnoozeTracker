@@ -31,6 +31,7 @@ public class VirtualKeyboard : MonoBehaviour {
         }
     }
 
+    public History history;
     public PSGWrapper psg;
     public SongPlayback playback;
     public PatternView patternView;
@@ -67,6 +68,8 @@ public class VirtualKeyboard : MonoBehaviour {
                 {
                     if (recording)
                     {
+                        history.AddHistoryEntry(patternView.selectedChannel);
+
                         patternView.data[sel] = noteData;
                         patternView.data[sel + 1] = (byte)currentInstrument;
                         patternView.MoveLine(patternAdd);

@@ -8,7 +8,7 @@ public class PatternView : MonoBehaviour {
     public int length { get { return data.channels * data.patternLength * SongData.SONG_DATA_COUNT; } }
     public int currentLine { get { return (m_Selection / lineOffset); } }
     public int selection { get { return m_Selection; } }
-    public int selectedChannel { get { return (int)Math.Floor((double)m_Selection / (double)SongData.SONG_DATA_COUNT) % data.channels; } }
+    public int selectedChannel { get { return GetChannelSelection(m_Selection); } }
     public int selectedAttribute { get { return m_Selection % SongData.SONG_DATA_COUNT; } }
     public bool multipleSelection { get { return m_DragSelectStart != m_DragSelectEnd; } }
     public int dragSelectStart { get { return m_DragSelectStart; } }
@@ -195,6 +195,11 @@ public class PatternView : MonoBehaviour {
         }
 
         GUI.EndScrollView ( );
+    }
+
+    public int GetChannelSelection(int i)
+    {
+        return (int)Math.Floor((double)i / (double)SongData.SONG_DATA_COUNT) % data.channels;
     }
 
     public bool IsInSelection(int i) {
