@@ -31,22 +31,35 @@ public class VirtualKeyboard : MonoBehaviour {
         }
     }
 
+    public int currentOctave
+    {
+        get { return m_CurrentOctave; }
+        set
+        {
+            Mute();
+            m_CurrentOctave = value;
+        }
+    }
+
     public History history;
     public PSGWrapper psg;
     public SongPlayback playback;
     public PatternView patternView;
     public Instruments instruments;
-    public int currentOctave = 3;
     public int currentInstrument;
     public int patternAdd = 1;
     public NoteKey[] noteBinds;
     public bool recording;
 
-    private Instruments.InstrumentInstance m_Instrument;
+    private int m_CurrentOctave = 3;
+
+    private Instruments.InstrumentInstance[] m_Instruments;
 
     void Awake() {
         psg.AddIrqCallback ( 50, OnIrqCallback );
         psg.AddIrqCallback(Instruments.InstrumentInstance.SAMPLE_RATE, OnSampleCallback);
+
+        m_Instruments = new Instruments.InstrumentInstance[playback.data.channels];
     }
 
     void Update()
@@ -64,7 +77,7 @@ public class VirtualKeyboard : MonoBehaviour {
             for (int i = 0; i < noteBinds.Length; i++)
             {
                 byte noteData;
-                if (noteBinds[i].GetNoteDown(currentOctave, out noteData))
+                if (noteBinds[i].GetNoteDown(m_CurrentOctave, out noteData))
                 {
                     if (recording)
                     {
@@ -77,18 +90,30 @@ public class VirtualKeyboard : MonoBehaviour {
 
                     if (noteBinds[i].note != Note.None && noteBinds[i].note != Note.NoteOff)
                     {
-                        m_Instrument = instruments.presets[currentInstrument];
-                        m_Instrument.note = noteBinds[i].note;
-                        m_Instrument.octave = currentOctave + noteBinds[i].octaveOffset;
-                        m_Instrument.relativeVolume = 0xF;
+                        for (int j = 0; j < m_Instruments.Length; j++)
+                        {
+                            if (m_Instruments[j].note == Note.None || m_Instruments[j].note == Note.NoteOff)
+                            {
+                                m_Instruments[j] = instruments.presets[currentInstrument];
+                                m_Instruments[j].note = noteBinds[i].note;
+                                m_Instruments[j].octave = m_CurrentOctave + noteBinds[i].octaveOffset;
+                                m_Instruments[j].relativeVolume = 0xF;
+                                break;
+                            }
+                        }
                     }
                 }
             }
         }
 
         for ( int i = 0 ; i < noteBinds.Length ; i++ ) {
-            if ( noteBinds [ i ].GetNoteUp ( ) && m_Instrument.note == noteBinds [ i ].note ) {
-                m_Instrument.note = Note.NoteOff;
+            if ( noteBinds [ i ].GetNoteUp ( ) ) {
+                for (int j = 0; j < m_Instruments.Length; j++)
+                {
+                    if (m_Instruments[j].note == noteBinds[i].note && m_Instruments[j].octave == m_CurrentOctave + noteBinds[i].octaveOffset) {
+                        m_Instruments[j].note = Note.NoteOff;
+                    }
+                }
             }
         }
     }
@@ -97,7 +122,10 @@ public class VirtualKeyboard : MonoBehaviour {
         if ( playback.isPlaying )
             return;
 
-        m_Instrument.UpdatePSG ( psg, patternView.selectedChannel );
+        for (int i = 0; i < m_Instruments.Length; i++)
+        {
+            m_Instruments[i].UpdatePSG(psg, i);
+        }
     }
 
     private void OnSampleCallback()
@@ -105,7 +133,18 @@ public class VirtualKeyboard : MonoBehaviour {
         if ( playback.isPlaying )
             return;
 
-        m_Instrument.UpdatePSGSample(psg, patternView.selectedChannel);
+        for (int i = 0; i < m_Instruments.Length; i++)
+        {
+            m_Instruments[i].UpdatePSGSample(psg, i);
+        }
+    }
+
+    public void Mute()
+    {
+        for (int i = 0; i < m_Instruments.Length; i++)
+        {
+            m_Instruments[i].note = Note.NoteOff;
+        }
     }
 
     public static Note GetNote(int noteData)

@@ -32,7 +32,7 @@ public class TrackerControls : MonoBehaviour {
         GUILayout.BeginHorizontal ( );
         if ( GUILayout.Button ( "-" ) )
             keyboard.currentOctave--;
-        GUILayout.Box ( "Octave: " + keyboard.currentOctave );
+        GUILayout.Box ( "Octave: " + keyboard.currentOctave);
         if ( GUILayout.Button ( "+" ) )
             keyboard.currentOctave++;
 

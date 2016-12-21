@@ -13,6 +13,7 @@ public class SongPlayback : MonoBehaviour {
     public SongData data;
     public PatternView view;
     public Instruments instruments;
+    public VirtualKeyboard keyboard;
     public int playbackSpeed;
     public bool follow = true;
     public bool[] mute;
@@ -230,6 +231,7 @@ public class SongPlayback : MonoBehaviour {
 
     public void Play(int loops = -1)
     {
+        keyboard.Mute();
         m_PatternLoop = data.FindLoopPoint ( );
         m_StartSample = psg.currentSample;
         m_CurrentPattern = data.currentPattern;
