@@ -57,6 +57,10 @@ public class SongData : MonoBehaviour {
             }
         }
 
+        public void SetID(int _newId) {
+            m_ID = _newId;
+        }
+
         private void ResetRange(int start, int end) {
             for ( int i = start ; i < end ; i++ ) {
                 for ( int j = 0 ; j < m_DataEntries ; j++ ) {
@@ -75,7 +79,17 @@ public class SongData : MonoBehaviour {
     public int numPatterns { get { return m_LookupTable.Count; } }
     public int patternLength { get { return m_PatternLength; } }
     public List<int[]> lookupTable { get { return m_LookupTable; } set { m_LookupTable = value; } }
-    public List<ColumnEntry> songData { get { return m_SongData; } set { m_SongData = value; } }
+    public List<ColumnEntry> songData {
+        get {
+            return m_SongData;
+        }
+        set {
+            m_SongData = value;
+            for ( int i = 0 ; i < m_SongData.Count ; i++ ) {
+                m_SongData [ i ].SetID ( i );
+            }
+        }
+    }
     public ColumnEntry currentColumn { get { return GetCurrentLine ( currentPattern, patternView.selectedChannel ); } }
 
 
