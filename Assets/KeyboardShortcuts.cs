@@ -35,6 +35,15 @@ public class KeyboardShortcuts : MonoBehaviour {
 
             if (Input.GetKeyDown(KeyCode.Z))
                 history.Undo();
+
+            if (Input.GetKeyDown(KeyCode.F1))
+                Transpose(-1);
+            if (Input.GetKeyDown(KeyCode.F2))
+                Transpose(1);
+            if (Input.GetKeyDown(KeyCode.F3))
+                Transpose(-12);
+            if (Input.GetKeyDown(KeyCode.F4))
+                Transpose(12);
         }
 
         if (patternView.keyboard.recording)
@@ -48,6 +57,45 @@ public class KeyboardShortcuts : MonoBehaviour {
             if (Input.GetKeyDown(KeyCode.Insert))
                 Insert();
         }
+    }
+
+    void Transpose(int direction)
+    {
+        if (patternView.multipleSelection)
+        {
+            for (int i = 0; i < patternView.length; i++)
+            {
+                if (i % SongData.SONG_DATA_COUNT == 0 && patternView.IsInSelection(i))
+                {
+                    songData[i] = TransposeNote(direction, songData[i]);
+                }
+            }
+        }
+        else if(patternView.selection % SongData.SONG_DATA_COUNT == 0)
+        {
+            songData[patternView.selection] = TransposeNote(direction, songData[patternView.selection]);
+        }
+    }
+
+    int TransposeNote(int direction, int data)
+    {
+        int note = (int)VirtualKeyboard.GetNote(data) - 1;
+        int octave = VirtualKeyboard.GetOctave(data);
+
+        int offset = note + direction;
+        if (offset > 11)
+        {
+            octave++;
+        }
+        if (offset < 0)
+        {
+            octave--;
+            offset = offset + 12;
+        }
+
+        offset = System.Math.Abs(offset) % 12 + 1;
+
+        return VirtualKeyboard.EncodeNoteInfo(offset, octave);
     }
 
     void CopySelection()

@@ -15,9 +15,7 @@ public class VirtualKeyboard : MonoBehaviour {
         {
             if (Input.GetKeyDown(key))
             {
-                int result = (octave + octaveOffset) << 4;
-                result |= (int)note;
-                noteData = (byte)result;
+                noteData = EncodeNoteInfo((int)note, octave + octaveOffset);
                 return true;
             }
 
@@ -145,6 +143,13 @@ public class VirtualKeyboard : MonoBehaviour {
         {
             m_Instruments[i].note = Note.NoteOff;
         }
+    }
+
+    public static byte EncodeNoteInfo(int note, int octave)
+    {
+        int result = octave << 4;
+        result |= note;
+        return (byte)result;
     }
 
     public static Note GetNote(int noteData)
