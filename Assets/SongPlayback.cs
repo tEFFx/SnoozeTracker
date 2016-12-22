@@ -245,6 +245,9 @@ public class SongPlayback : MonoBehaviour {
     {
         keyboard.Mute();
         m_PatternLoop = data.FindLoopPoint ( );
+
+        m_Loops = m_PatternLoop == 0 && loops != -1 ? 0 : loops;
+
         m_StartSample = psg.currentSample;
         m_CurrentPattern = data.currentPattern;
         m_CurrentLine = 0;
@@ -253,7 +256,6 @@ public class SongPlayback : MonoBehaviour {
         m_LastLineTick = Time.time;
         m_IsPlaying = true;
         m_IsStopping = false;
-        m_Loops = loops;
     }
 
     public void Stop()

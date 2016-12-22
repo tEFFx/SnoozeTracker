@@ -303,8 +303,10 @@ public class FileManagement : MonoBehaviour {
         bw.Seek ( 0x18, SeekOrigin.Begin );
         bw.Write ( ( uint ) waitAmount );
 
-        bw.Write ( ( uint ) ( loopOffset - 0x1C ) );
-        bw.Write ( ( uint ) ( loopWaitAmount ) );
+        if ( playback.patternLoop != 0 ) {
+            bw.Write ( ( uint ) ( loopOffset - 0x1C ) );
+            bw.Write ( ( uint ) ( loopWaitAmount ) );
+        }
 
         if ( isCompressed ) {
             Stream fs = sfd.OpenFile ( );
