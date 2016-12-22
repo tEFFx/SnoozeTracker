@@ -122,7 +122,11 @@ public class VirtualKeyboard : MonoBehaviour {
 
         for (int i = 0; i < m_Instruments.Length; i++)
         {
-            m_Instruments[i].UpdatePSG(psg, i);
+            int chn = patternView.selectedChannel == 3 ? 3 : i;
+            m_Instruments [i].UpdatePSG(psg, chn);
+
+            if ( chn == 3 )
+                break;
         }
     }
 
@@ -133,7 +137,11 @@ public class VirtualKeyboard : MonoBehaviour {
 
         for (int i = 0; i < m_Instruments.Length; i++)
         {
-            m_Instruments[i].UpdatePSGSample(psg, i);
+            int chn = patternView.selectedChannel == 3 ? 3 : i;
+            m_Instruments [ i ].UpdatePSGSample ( psg, chn );
+
+            if ( chn == 3 )
+                break;
         }
     }
 

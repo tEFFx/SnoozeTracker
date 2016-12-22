@@ -13,7 +13,7 @@ public class Instruments : MonoBehaviour {
             relativeVolume = 0xF;
             note = VirtualKeyboard.Note.None;
             m_SampleFreq = m_SampleTimer = 0;
-            waveTableSampleRate = vibratoDepth = vibratoSpeed = octave = portamentoSpeed = m_LastSample = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
+            noteDelay = waveTableSampleRate = vibratoDepth = vibratoSpeed = octave = portamentoSpeed = m_LastSample = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
             samplePlayback = m_AutoPortamento = m_UpdatedFrequency = m_PWMDir = m_PWMFlipFlop = false;
             volumeTable = new int [ ] { 0xF, 0xE, 0xD, 0xC };
             arpeggio = new int [ ] { 0x0 };
@@ -96,6 +96,7 @@ public class Instruments : MonoBehaviour {
         public Wave customWaveform;
         public bool loopSample;
         public int waveTableSampleRate;
+        public int noteDelay;
 
         //not serialized
         private int m_IrqTimer, m_PortamentoTimer, m_VolumeOffset, m_PWMTimer, m_PWM, m_LastSample;
@@ -117,7 +118,7 @@ public class Instruments : MonoBehaviour {
 
         public void UpdatePSG(PSGWrapper psg, int chn)
         {
-            if (note == VirtualKeyboard.Note.None || note == VirtualKeyboard.Note.NoteOff)
+            if ( note == VirtualKeyboard.Note.None || note == VirtualKeyboard.Note.NoteOff)
             {
                 psg.SetAttenuation(chn, 0);
                 return;
@@ -156,7 +157,10 @@ public class Instruments : MonoBehaviour {
 
         public void UpdatePSGSample(PSGWrapper psg, int chn)
         {
-            if (!samplePlayback || chn == 3 || GetCurrentVol() == 0)
+            if ( !samplePlayback )
+                return;
+
+            if (GetCurrentVol() == 0)
                 return;
 
             if (note == VirtualKeyboard.Note.None || note == VirtualKeyboard.Note.NoteOff)

@@ -79,6 +79,9 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     int TransposeNote(int direction, int data)
     {
+        if ( data < 0 )
+            return data;
+
         int note = (int)VirtualKeyboard.GetNote(data) - 1;
         int octave = VirtualKeyboard.GetOctave(data);
 

@@ -76,7 +76,10 @@ public class SongPlayback : MonoBehaviour {
 
         for (int i = 0; i < data.channels; i++)
         {
-            m_Instruments[i].UpdatePSGSample(psg, i);
+            if ( m_Instruments [ i ].noteDelay > 0 )
+                m_PrevInstruments [ i ].UpdatePSGSample ( psg, i );
+            else
+                m_Instruments [ i ].UpdatePSGSample ( psg, i );
         }
     }
 
@@ -182,6 +185,10 @@ public class SongPlayback : MonoBehaviour {
                             playbackSpeed = fxVal;
                             break;
 
+                        case 0x10:
+                            m_Instruments [ i ].noteDelay = fxVal;
+                            break;
+
                         case 0x20:
                             int mode, fb;
                             SplitByte ( fxVal, out mode, out fb );
@@ -220,7 +227,12 @@ public class SongPlayback : MonoBehaviour {
         }
 
         for ( int i = 0 ; i < data.channels ; i++ ) {
-            m_Instruments [ i ].UpdatePSG ( psg, i );
+            if ( m_Instruments [ i ].noteDelay > 0 ) {
+                m_Instruments [ i ].noteDelay--;
+                m_PrevInstruments [ i ].UpdatePSG ( psg, i );
+            } else {
+                m_Instruments [ i ].UpdatePSG ( psg, i );
+            }
         }
     }
 
