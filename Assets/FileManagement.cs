@@ -12,6 +12,8 @@ using Ionic.Zlib;
 public class FileManagement : MonoBehaviour {
     public enum VGMCommands { StereoSet = 0x4F, PSGWrite = 0x50, WaitSamples = 0x61, Wait735 = 0x62, Wait882 = 0x63, EOF = 0x66 }
 
+    public bool fileOpen { get { return m_OpenFile != ""; } }
+
     public string fileFilter;
     public SongData data;
     public Instruments instruments;
@@ -21,6 +23,7 @@ public class FileManagement : MonoBehaviour {
     private Thread m_Thread;
     private bool m_OperationInProgress;
     private float m_Progress;
+    private string m_OpenFile = "";
 
     [System.Serializable]
     internal class SongFile {
@@ -39,13 +42,13 @@ public class FileManagement : MonoBehaviour {
         }
     }
     
-    public void SaveFile() {
+    public void SaveFile(bool saveAs = true) {
         playback.Stop ( );
 
         SaveFileDialog sfd = new SaveFileDialog ( );
         sfd.Filter = fileFilter;
 
-        if(sfd.ShowDialog() == DialogResult.OK ) {
+        if(!saveAs || sfd.ShowDialog() == DialogResult.OK ) {
             SongFile song = new SongFile ( );
             song.patternLength = data.patternLength;
             song.lookupTable = data.lookupTable;
@@ -56,9 +59,12 @@ public class FileManagement : MonoBehaviour {
             song.artistName = SongData.artistName;
 
             IFormatter formatter = new BinaryFormatter ();
-            Stream fs = sfd.OpenFile ( );
+            Stream fs = !saveAs ? new FileStream(m_OpenFile, FileMode.Create) : sfd.OpenFile ( );
             formatter.Serialize ( fs, song );
             fs.Close ( );
+
+            if(saveAs)
+                m_OpenFile = sfd.FileName;
         }
     }
 
@@ -85,6 +91,8 @@ public class FileManagement : MonoBehaviour {
             fs.Close ( );
 
             insEditor.UpdateAttributes ( );
+
+            m_OpenFile = ofd.FileName;
         }
     }
 

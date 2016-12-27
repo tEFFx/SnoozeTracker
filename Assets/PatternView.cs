@@ -75,14 +75,14 @@ public class PatternView : MonoBehaviour {
         }
 
         if ( playback.isPlaying ) {
-            m_Scroll.y = currentLine * 24 - (Screen.height - padding.y) * 0.5f;
+            m_Scroll.y = currentLine * lineHeight - (Screen.height - padding.y) * 0.5f;
         }
     }
 
 	void OnGUI()
     {
         Vector2 pos = padding;
-        Vector2 size = new Vector2 ( 32, 24 );
+        Vector2 size = new Vector2 ( 32, lineHeight );
         float chnlWidth = 0;
         for ( int i = 0 ; i < lineWidths.Length ; i++ ) {
             chnlWidth += lineWidths [ i ] * size.x;
@@ -159,12 +159,15 @@ public class PatternView : MonoBehaviour {
                         break;
                 }
             }else if(data[i] == -2 ) {
-                text = "X";
+                text = "-";
+                GUI.enabled = false;
             }
 
             Rect buttonRect = new Rect ( pos, new Vector2 ( size.x * lineWidths [ wId ], size.y ) );
             GUI.Button(buttonRect, text);
             GUI.contentColor = Color.white;
+
+            GUI.enabled = true;
 
             pos.x += size.x * lineWidths [ wId ];
             if ( wId == 4 )
@@ -173,7 +176,7 @@ public class PatternView : MonoBehaviour {
             if ( !playback.isPlaying ) {
                 if ( Input.GetMouseButtonDown ( 0 ) ) {
                     Vector2 mPos = Event.current.mousePosition;
-                    if ( buttonRect.Contains ( mPos ) ) {
+                    if ( buttonRect.Contains ( mPos )) {
                         m_LastSelection = m_Selection;
                         m_Selection = i;
                         m_DragSelectStart = m_DragSelectEnd = i;

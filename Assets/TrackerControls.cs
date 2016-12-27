@@ -26,31 +26,20 @@ public class TrackerControls : MonoBehaviour {
                 m_HideTextFields = false;
         }
 
-        Rect rect = new Rect ( Vector2.zero, new Vector2 ( Screen.width, 32 ) );
+        Rect rect = new Rect ( Vector2.zero, new Vector2 ( Screen.width, 64 ) );
 
         GUILayout.BeginArea ( rect );
         GUILayout.BeginHorizontal ( );
-        if ( GUILayout.Button ( "-" ) )
-            keyboard.currentOctave--;
-        GUILayout.Box ( "Octave: " + keyboard.currentOctave);
-        if ( GUILayout.Button ( "+" ) )
-            keyboard.currentOctave++;
 
-        GUILayout.Space ( 16 );
-        if ( GUILayout.Button ( "--" ) )
-            ChangePatternSize ( -8 );
-        if ( GUILayout.Button ( "-" ) )
-            ChangePatternSize ( -1 );
-        GUILayout.Box ( "Pattern length: " + data.patternLength );
-        if ( GUILayout.Button ( "+" ) )
-            ChangePatternSize ( 1 );
-        if ( GUILayout.Button ( "++" ) )
-            ChangePatternSize ( 8 );
-
-        GUILayout.Space ( 16 );
+        if ( GUILayout.Button ( "Zap" ) )
+            data.ZapSong ( );
+        GUI.enabled = fileMan.fileOpen;
         if ( GUILayout.Button ( "Save" ) )
+            fileMan.SaveFile ( false );
+        GUI.enabled = true;
+        if ( GUILayout.Button ( "Save as" ) )
             fileMan.SaveFile ( );
-        if ( GUILayout.Button ( "Open" ) )
+        if ( GUILayout.Button ( "Load" ) )
             fileMan.OpenFile ( );
         if (GUILayout.Button("VGM"))
             fileMan.SaveVGM();
@@ -66,6 +55,29 @@ public class TrackerControls : MonoBehaviour {
 
         GUILayout.FlexibleSpace ( );
         GUILayout.EndHorizontal ( );
+
+        GUILayout.BeginHorizontal ( );
+
+        if ( GUILayout.Button ( "-" ) )
+            keyboard.currentOctave--;
+        GUILayout.Box ( "Octave: " + keyboard.currentOctave );
+        if ( GUILayout.Button ( "+" ) )
+            keyboard.currentOctave++;
+
+        GUILayout.Space ( 16 );
+        if ( GUILayout.Button ( "--" ) )
+            ChangePatternSize ( -8 );
+        if ( GUILayout.Button ( "-" ) )
+            ChangePatternSize ( -1 );
+        GUILayout.Box ( "Pattern length: " + data.patternLength );
+        if ( GUILayout.Button ( "+" ) )
+            ChangePatternSize ( 1 );
+        if ( GUILayout.Button ( "++" ) )
+            ChangePatternSize ( 8 );
+
+        GUILayout.FlexibleSpace ( );
+        GUILayout.EndHorizontal ( );
+
         GUILayout.EndArea ( );
     }
 

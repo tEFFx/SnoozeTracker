@@ -139,6 +139,10 @@ public class SongData : MonoBehaviour {
 
     }
 
+    public void ZapSong() {
+        Debug.LogWarning ( "Not implemented" );
+    }
+
     public int FindLoopPoint() {
         for ( int i = 0 ; i < m_SongData.Count ; i++ ) {
             ColumnEntry col = m_SongData [ i ];

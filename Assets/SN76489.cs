@@ -41,7 +41,7 @@ public class SN76489 {
 
     private int[] mFreq = new int[4];
     private int[] mCount = new int[4];
-    public int[] mAttn = new int[4];
+    private int[] mAttn = new int[4];
     private bool[] mFlipFlop = new bool[4];
     private int mNoiseSR = 0x8000;
     private int mStereoByte = 0xFF;
@@ -67,6 +67,15 @@ public class SN76489 {
         mHPAlpha = hpRc / ( hpRc + dt );
     }
 
+    public void Reset() {
+        mFreq = new int[4];
+        mCount = new int[4];
+        mAttn = new int[4];
+        mFlipFlop = new bool[4];
+        mNoiseSR = 0x8000;
+        mStereoByte = 0xFF;
+    }
+
     public void Write(int _data) {
         bool first = ( _data & 128 ) != 0;
         if (first) {
@@ -78,11 +87,22 @@ public class SN76489 {
             mAttn[mCurrentReg] = _data & 0x0f;
         } else if ( first && mCurrentReg == 3 ) {
             mFreq[3] = _data & 7;
+            mNoiseSR = 0x8000;
         } else if ( first ) {
             mFreq[mCurrentReg] = ( mFreq [ mCurrentReg ] & 0x3f0 ) | ( _data & 0x0f );
         } else {
             mFreq[mCurrentReg] = ( mFreq [ mCurrentReg ] & 0x0f ) | (( _data & 0x3f ) << 4);
         }
+    }
+
+    public int GetRegister(int register) {
+        int reg = ( register >> 1 ) & 3;
+        int type = register & 1;
+
+        if ( type == 0 )
+            return mFreq [ reg ];
+
+        return mAttn [ reg ];
     }
 
     public void SetStereo(int channel, bool left, bool right) {

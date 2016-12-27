@@ -24,6 +24,8 @@ public class Instruments : MonoBehaviour {
             waveTable = new int [ 0 ];
             loopSample = false;
 
+            sampleRelNote = 48; //C4
+
             foreach (SerializationEntry e in info) {
                 switch ( e.Name ) {
                     case "vol": volumeTable = ( int [ ] ) e.Value; break;
@@ -35,6 +37,7 @@ public class Instruments : MonoBehaviour {
                     case "wt": waveTable = ( int [ ] ) e.Value; break;
                     case "wl": loopSample = ( bool ) e.Value; break;
                     case "wsr": waveTableSampleRate = ( int ) e.Value; break;
+                    case "srn": sampleRelNote = ( int ) e.Value; break;
                     case "pmi": pulseWidthMin = ( int ) e.Value; break;
                     case "pma": pulseWidthMax = ( int ) e.Value; break;
                     case "ps": pulseWidthPanSpeed = ( int ) e.Value; break;
@@ -52,6 +55,7 @@ public class Instruments : MonoBehaviour {
             info.AddValue ( "wt", waveTable );
             info.AddValue ( "wl", loopSample );
             info.AddValue ( "wsr", waveTableSampleRate );
+            info.AddValue ( "srn", sampleRelNote );
             info.AddValue ( "pmi", pulseWidthMin );
             info.AddValue ( "pma", pulseWidthMax );
             info.AddValue ( "ps", pulseWidthPanSpeed );
@@ -97,6 +101,7 @@ public class Instruments : MonoBehaviour {
         public bool loopSample;
         public int waveTableSampleRate;
         public int noteDelay;
+        public int sampleRelNote;
 
         //not serialized
         private int m_IrqTimer, m_PortamentoTimer, m_VolumeOffset, m_PWMTimer, m_PWM, m_LastSample;
@@ -138,14 +143,18 @@ public class Instruments : MonoBehaviour {
                 }
                 else
                 {
-                    if (!NOISE_CHN3)
+                    if ( samplePlayback ) {
+                        psg.PSGDirectWrite ( 0xE2 );
+                    }
+                    else if (!NOISE_CHN3)
                     {
-                        int cmd = 0xE0 | (((int)note - 1) % 3) | ((NOISE_FB ? 1 : 0) << 2);
-                        psg.PSGDirectWrite(cmd);
+                        int cmd = 0xE0 | ((NOISE_FB ? 4 : 0) ) | (((int)note - 1) % 3);
+                        //Debug.Log ( System.Convert.ToString ( cmd, 2 ) );
+                        psg.PSGDirectWrite ( cmd );
                     }
                     else
                     {
-                        psg.PSGDirectWrite(0xE7);
+                        psg.PSGDirectWrite(NOISE_FB ? 0xE7 : 0xE3);
                         psg.SetNote(2, (int)note + GetNoteOffset(), octave, GetFreqOffset());
                     }
                 }
@@ -198,7 +207,7 @@ public class Instruments : MonoBehaviour {
 
                 case Wave.Sample:
                     if ( waveTable != null ) {
-                        float noteOffset = ( PSGWrapper.CalculateNoteFreq ( ( int ) note + GetNoteOffset ( ), octave ) + GetFreqOffset ( ) ) / PSGWrapper.CalculateNoteFreq ( 1, 4 );
+                        float noteOffset = ( PSGWrapper.CalculateNoteFreq ( ( int ) note + GetNoteOffset ( ), octave ) + GetFreqOffset ( ) ) / PSGWrapper.CalculateNoteFreq ( sampleRelNote + 1, 0 );
                         divider = SAMPLE_RATE / (waveTableSampleRate * noteOffset);
                         float pos = divider - m_SampleTimer;
                         int sampleIndex = ( int ) ( (m_SampleTimer / divider) % waveTable.Length );
@@ -294,6 +303,7 @@ public class Instruments : MonoBehaviour {
         created.arpeggio = new int [ ] { 0x0 };
         created.pulseWidthMin = 25;
         created.pulseWidthMax = 75;
+        created.sampleRelNote = 48;
         presets.Add ( created );
     }
     

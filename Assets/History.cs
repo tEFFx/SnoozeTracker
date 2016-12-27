@@ -31,6 +31,14 @@ public class History : MonoBehaviour {
 
     private FiniteStack<HistoryEvent> m_History = new FiniteStack<HistoryEvent>(64);
 
+    public void AddHistroyAtSelection() {
+        if ( view.multipleSelection ) {
+            AddHistoryEntry ( view.GetChannelSelection ( view.dragSelectStart ), view.GetChannelSelection ( view.dragSelectStart + view.dragSelectOffset ) );
+        } else {
+            AddHistoryEntry ( view.selectedChannel );
+        }
+    }
+
     public void AddHistoryEntry(params int[] columns)
     {
         SongData.ColumnEntry[] entries = new SongData.ColumnEntry[columns.Length];

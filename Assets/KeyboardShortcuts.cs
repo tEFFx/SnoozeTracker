@@ -61,6 +61,8 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void Transpose(int direction)
     {
+        history.AddHistroyAtSelection ( );
+
         if (patternView.multipleSelection)
         {
             for (int i = 0; i < patternView.length; i++)
@@ -73,7 +75,7 @@ public class KeyboardShortcuts : MonoBehaviour {
         }
         else if(patternView.selection % SongData.SONG_DATA_COUNT == 0)
         {
-            songData[patternView.selection] = TransposeNote(direction, songData[patternView.selection]);
+            songData [patternView.selection] = TransposeNote(direction, songData[patternView.selection]);
         }
     }
 
@@ -129,6 +131,9 @@ public class KeyboardShortcuts : MonoBehaviour {
     {
         if(m_CopyData.Count > 1)
         {
+            history.AddHistoryEntry ( patternView.GetChannelSelection ( patternView.selection ), patternView.GetChannelSelection ( patternView.selection + m_CopyOffset) );
+
+
             int cpy = 0;
             int startLine = -1;
             int line = -1;
@@ -151,6 +156,7 @@ public class KeyboardShortcuts : MonoBehaviour {
         }
         else if(m_CopyData.Count > 0)
         {
+            history.AddHistroyAtSelection ( );
             songData.currentColumn.data[patternView.currentLine, patternView.selectedAttribute] = m_CopyData[0];
             patternView.MoveLine(1);
         }
@@ -158,10 +164,9 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void DeleteSelection()
     {
+        history.AddHistroyAtSelection ( );
         if (patternView.multipleSelection)
         {
-            history.AddHistoryEntry(patternView.GetChannelSelection(patternView.dragSelectStart), patternView.GetChannelSelection(patternView.dragSelectStart + patternView.dragSelectOffset));
-
             for (int i = 0; i < patternView.length; i++)
             {
                 if (patternView.IsInSelection(i))
@@ -172,8 +177,6 @@ public class KeyboardShortcuts : MonoBehaviour {
         }
         else
         {
-            history.AddHistoryEntry(patternView.selectedChannel);
-
             songData.currentColumn.data[patternView.currentLine, patternView.selectedAttribute] = -1;
             if (patternView.selectedAttribute == 0)
                 songData.currentColumn.data[patternView.currentLine, 1] = -1;
@@ -183,7 +186,7 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void Erase()
     {
-        history.AddHistoryEntry(patternView.selectedChannel);
+        history.AddHistroyAtSelection ( );
 
         for (int i = patternView.currentLine; i < songData.patternLength - 1; i++)
         {
@@ -196,7 +199,7 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void Insert()
     {
-        history.AddHistoryEntry(patternView.selectedChannel);
+        history.AddHistroyAtSelection ( );
 
         for (int i = songData.patternLength - 1; i >= patternView.currentLine; i--)
         {

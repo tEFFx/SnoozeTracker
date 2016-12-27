@@ -192,6 +192,7 @@ public class SongPlayback : MonoBehaviour {
                         case 0x20:
                             int mode, fb;
                             SplitByte ( fxVal, out mode, out fb );
+
                             Instruments.InstrumentInstance.NOISE_FB = fb > 0;
                             Instruments.InstrumentInstance.NOISE_CHN3 = mode > 0;
                             break;

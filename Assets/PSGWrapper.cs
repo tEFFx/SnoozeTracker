@@ -117,10 +117,11 @@ public class PSGWrapper : MonoBehaviour {
 
     public void ResetChip()
     {
+        m_PSGChip.Reset ( );
+
         for (int i = 0; i < 4; i++)
         {
             SetAttenuation(i, 0);
-            m_PSGChip.SetStereo ( i, true, true );
         }
     }
 
@@ -141,6 +142,9 @@ public class PSGWrapper : MonoBehaviour {
 
     public void SetFrequency(int channel, int frequency)
     {
+        if ( chip.GetRegister ( channel * 2 ) == frequency )
+            return;
+
         byte reg = (byte)((channel * 2) << 4);
         byte data = (byte)(0x80 | reg | (frequency & 0xF));
         m_PSGChip.Write(data);
@@ -156,7 +160,10 @@ public class PSGWrapper : MonoBehaviour {
 
     public void SetAttenuation(int channel, int attenuation)
     {
-        attenuation = 0xF - (attenuation & 0xF);
+        attenuation = 0xF - ( attenuation & 0xF );
+        if ( chip.GetRegister ( channel * 2 + 1 ) == attenuation )
+            return;
+
         byte reg = (byte)((channel * 2 + 1) << 4);
         byte data = (byte)(0x80 | reg | (attenuation & 0x0F));
         m_PSGChip.Write(data);
@@ -171,6 +178,10 @@ public class PSGWrapper : MonoBehaviour {
 
     public void PSGDirectWrite(int data)
     {
+        int reg = ( data >> 4 ) & 7;
+        if ( ( data & 128 ) != 0 && chip.GetRegister ( reg ) == ( data & 0x15 ) )
+            return;
+
         m_PSGChip.Write(data);
         RegisterWritten( FileManagement.VGMCommands.PSGWrite, data );
     }
