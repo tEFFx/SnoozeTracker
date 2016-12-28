@@ -85,6 +85,10 @@ public class KeyboardShortcuts : MonoBehaviour {
             return data;
 
         int note = (int)VirtualKeyboard.GetNote(data) - 1;
+
+        if ( note + 1 == ( int ) VirtualKeyboard.Note.NoteOff )
+            return data;
+
         int octave = VirtualKeyboard.GetOctave(data);
 
         int offset = note + direction;

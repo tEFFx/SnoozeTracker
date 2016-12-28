@@ -19,6 +19,7 @@ public class FileManagement : MonoBehaviour {
     public Instruments instruments;
     public InstrumentEditor insEditor;
     public SongPlayback playback;
+    public VirtualKeyboard keyboard;
 
     private Thread m_Thread;
     private bool m_OperationInProgress;
@@ -87,9 +88,11 @@ public class FileManagement : MonoBehaviour {
             SongData.songName = open.songName ?? "";
             SongData.artistName = open.artistName ?? "";
 
+            keyboard.currentInstrument = 0;
             instruments.presets = open.instruments;
             fs.Close ( );
 
+            
             insEditor.UpdateAttributes ( );
 
             m_OpenFile = ofd.FileName;

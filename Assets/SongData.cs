@@ -187,7 +187,7 @@ public class SongData : MonoBehaviour {
 
     public void GetIndexOffset(int i, out int column, out int row, out int dataIndex)
     {
-        int channel = (int)Math.Floor((double)i / (double)SONG_DATA_COUNT) % channels;
+        int channel = (i / SONG_DATA_COUNT) % channels;
         row = i / (channels * SONG_DATA_COUNT);
         column = m_LookupTable[currentPattern][channel];
         dataIndex = i % SONG_DATA_COUNT;

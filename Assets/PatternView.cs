@@ -103,6 +103,8 @@ public class PatternView : MonoBehaviour {
         Vector2 scroll = GUI.BeginScrollView (scrollRect, m_Scroll, viewRect );
         if ( !playback.isPlaying )
             m_Scroll = scroll;
+
+        Rect clipRect = new Rect ( m_Scroll.x, ( !playback.isPlaying ? m_Scroll.y : 0 ), Screen.width, (!playback.isPlaying ? scrollRect.height : viewRect.height));
         pos.y = (playback.isPlaying ? -size.y * 2 - (currentLine * size.y - scrollRect.height / 2) : -size.y );
         for ( int i = 0; i < length; i++)
         {
@@ -164,6 +166,10 @@ public class PatternView : MonoBehaviour {
             }
 
             Rect buttonRect = new Rect ( pos, new Vector2 ( size.x * lineWidths [ wId ], size.y ) );
+            if ( !buttonRect.Overlaps ( clipRect ) ) {
+                continue;
+            }
+
             GUI.Button(buttonRect, text);
             GUI.contentColor = Color.white;
 
@@ -206,6 +212,9 @@ public class PatternView : MonoBehaviour {
     }
 
     public bool IsInSelection(int i) {
+        if ( m_DragSelectStart == m_DragSelectEnd )
+            return false;
+
         bool res = false;
 
         int startCol = m_DragSelectStart % lineOffset;

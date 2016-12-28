@@ -4,6 +4,8 @@ using System.Collections;
 public class VirtualKeyboard : MonoBehaviour {
     public enum Note { None = 0, C, Cs, D, Ds, E, F, Fs, G, Gs, A, As, B, NoteOff }
 
+    public static readonly string[] NOTE_NAMES = { "--", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "OFF" };
+
     [System.Serializable]
     public class NoteKey
     {
@@ -173,16 +175,12 @@ public class VirtualKeyboard : MonoBehaviour {
 	public static string FormatNote(int noteData)
     {
         int note = noteData & 0x0F;
-        int octave = (noteData >> 4) & 0x0F;
-        string result = ((Note)note).ToString() + octave.ToString();
+        string result = NOTE_NAMES[note];
 
-        if ((Note)note == Note.None)
-            result = "--";
-        else if ((Note)note == Note.NoteOff)
-            result = "OFF";
-        else
-            result = result.Replace('s', '#');
+        if ( note == 0 || note == 13 )
+            return result;
 
-        return result;
+        int octave = ( noteData >> 4 ) & 0x0F;
+        return result + octave.ToString ( );
     }
 }

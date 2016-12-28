@@ -165,9 +165,11 @@ public class InstrumentEditor : MonoBehaviour {
                             }
 
                             if ( instrument.waveTable != null && instrument.waveTable.Length > 0 ) {
+                                bool loopSamp = instrument.loopSample;
+
                                 GUILayout.BeginHorizontal ( );
                                 GUILayout.Box ( instrument.waveTable.Length + " samples (" + instrument.waveTableSampleRate + "Hz)" );
-                                GUILayout.Button ( "Zap" );
+                                loopSamp = GUILayout.Toggle ( loopSamp, "Loop" );
                                 GUILayout.EndHorizontal ( );
 
                                 GUILayout.BeginHorizontal ( );
@@ -187,9 +189,10 @@ public class InstrumentEditor : MonoBehaviour {
                                 if ( GUILayout.Button ( "++" ) )
                                     relNote += 12;
 
-                                if(instrument.sampleRelNote != relNote ) {
+                                if(instrument.sampleRelNote != relNote || loopSamp ) {
                                     Instruments.InstrumentInstance ins = instrument;
                                     ins.sampleRelNote = relNote;
+                                    ins.loopSample = loopSamp;
 
                                     instruments.presets[keyboard.currentInstrument] = ins;
                                 }
