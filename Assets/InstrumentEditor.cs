@@ -75,6 +75,7 @@ public class InstrumentEditor : MonoBehaviour {
         GUILayout.EndVertical ( );
         GUILayout.Space ( 16 );
         GUILayout.BeginVertical ( GUILayout.Width ( volWidth ) );
+
         GUILayout.BeginHorizontal ( );
         if ( GUILayout.Button ( "Volume" ) )
             m_CurrentScreen = EditorScreen.Volume;

@@ -13,7 +13,7 @@ public class Instruments : MonoBehaviour {
             relativeVolume = 0xF;
             note = VirtualKeyboard.Note.None;
             m_SampleFreq = m_SampleTimer = 0;
-            noteDelay = waveTableSampleRate = vibratoDepth = vibratoSpeed = octave = portamentoSpeed = m_LastSample = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
+            noteOffset = noteDelay = waveTableSampleRate = vibratoDepth = vibratoSpeed = octave = portamentoSpeed = m_LastSample = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
             samplePlayback = m_AutoPortamento = m_UpdatedFrequency = m_PWMDir = m_PWMFlipFlop = false;
             volumeTable = new int [ ] { 0xF, 0xE, 0xD, 0xC };
             arpeggio = new int [ ] { 0x0 };
@@ -101,6 +101,7 @@ public class Instruments : MonoBehaviour {
         public bool loopSample;
         public int waveTableSampleRate;
         public int noteDelay;
+        public int noteOffset;
         public int sampleRelNote;
 
         //not serialized
@@ -241,7 +242,7 @@ public class Instruments : MonoBehaviour {
             if (arpeggio.Length == 0)
                 return 0;
 
-            return arpeggio[m_IrqTimer % arpeggio.Length];
+            return arpeggio[m_IrqTimer % arpeggio.Length] + noteOffset;
         }
 
         private int GetFreqOffset()

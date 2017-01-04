@@ -79,6 +79,7 @@ public class SongData : MonoBehaviour {
     public int numPatterns { get { return m_LookupTable.Count; } }
     public int patternLength { get { return m_PatternLength; } }
     public List<int[]> lookupTable { get { return m_LookupTable; } set { m_LookupTable = value; } }
+    public List<int[]> transposeTable { get { return m_TransposeTable; } set { m_TransposeTable = value; } }
     public List<ColumnEntry> songData {
         get {
             return m_SongData;
@@ -125,6 +126,7 @@ public class SongData : MonoBehaviour {
     private int m_CurrentLines;
     private int m_PatternLength;
     private List<int[]> m_LookupTable = new List<int[]>();
+    private List<int[]> m_TransposeTable = new List<int[]>();
     private List<ColumnEntry> m_SongData = new List<ColumnEntry>();
 
     // Use this for initialization
@@ -185,6 +187,11 @@ public class SongData : MonoBehaviour {
         m_LookupTable[row][col] = val;
     }
 
+    public int GetTransposeOffset(int i) {
+        int chn = ( i / SONG_DATA_COUNT ) % channels;
+        return m_TransposeTable [ currentPattern ] [ chn ];
+    }
+
     public void GetIndexOffset(int i, out int column, out int row, out int dataIndex)
     {
         int channel = (i / SONG_DATA_COUNT) % channels;
@@ -199,6 +206,7 @@ public class SongData : MonoBehaviour {
         if ( m_LookupTable.Count > 0 )
             currentPattern++;
         m_LookupTable.Insert ( currentPattern, table );
+        m_TransposeTable.Insert ( currentPattern, new int [ channels ] );
 
         for (int j = 0; j < channels; j++)
         {
@@ -217,6 +225,10 @@ public class SongData : MonoBehaviour {
         m_LookupTable [ targetIndex ] = m_LookupTable [ currentPattern ];
         m_LookupTable [ currentPattern ] = temp;
 
+        temp = m_TransposeTable [ targetIndex ];
+        m_TransposeTable [ targetIndex ] = m_TransposeTable [ currentPattern ];
+        m_TransposeTable [ currentPattern ] = temp;
+
         currentPattern += dir;
     }
 
@@ -224,6 +236,7 @@ public class SongData : MonoBehaviour {
         int [ ] table = new int [ channels ];
         Array.Copy ( m_LookupTable [ currentPattern ], table, m_LookupTable [ currentPattern ].Length );
         m_LookupTable.Add ( table );
+        m_TransposeTable.Insert ( currentPattern, new int [ channels ] );
     }
 
     public void DeletePatternLine() {
@@ -234,9 +247,9 @@ public class SongData : MonoBehaviour {
             currentPattern--;
     }
 
-    public void AllocatePage(int index = -1)
+    public void AllocatePage(int index)
     {
-        if (index < 0 || m_SongData.Count >= index)
+        while(index >= m_SongData.Count)
         {
             m_SongData.Add(new ColumnEntry(m_SongData.Count));
         }

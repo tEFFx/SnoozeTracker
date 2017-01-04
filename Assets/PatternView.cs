@@ -28,6 +28,7 @@ public class PatternView : MonoBehaviour {
     public Color neutralColor;
     public Color lineHighlightColor;
     public Color effectColor;
+    public Gradient transposeGradient;
     public Gradient volumeGradient;
     public Gradient instrumentGradient;
 
@@ -136,8 +137,12 @@ public class PatternView : MonoBehaviour {
             if ( data [ i ] >= 0 ) {
                 switch ( wId ) {
                     case 0:
-                        GUI.contentColor = Color.white;
                         text = VirtualKeyboard.FormatNote ( data [ i ] );
+
+                        int off = data.GetTransposeOffset ( i );
+                        off = Mathf.Clamp ( ( off + 12 ) / 2, 0, 12 );
+
+                        GUI.contentColor = transposeGradient.Evaluate ( off / 12f );
                         break;
                     case 1:
                         if ( data [ i ] != -1 )

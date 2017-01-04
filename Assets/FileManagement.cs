@@ -32,6 +32,7 @@ public class FileManagement : MonoBehaviour {
         public string artistName = "";
         public int patternLength;
         public List<int[]> lookupTable;
+        public List<int[]> transposeTable;
         public List<SongData.ColumnEntry> songData;
         public List<Instruments.InstrumentInstance> instruments;
     }
@@ -53,6 +54,7 @@ public class FileManagement : MonoBehaviour {
             SongFile song = new SongFile ( );
             song.patternLength = data.patternLength;
             song.lookupTable = data.lookupTable;
+            song.transposeTable = data.transposeTable;
             song.songData = data.songData;
             song.instruments = instruments.presets;
 
@@ -83,6 +85,15 @@ public class FileManagement : MonoBehaviour {
             SongFile open = (SongFile)formatter.Deserialize ( fs );
             data.SetPatternLength ( open.patternLength );
             data.lookupTable = open.lookupTable;
+            if ( open.transposeTable != null && open.transposeTable.Count == open.lookupTable.Count ) {
+                data.transposeTable = open.transposeTable;
+            } else {
+                Debug.Log ( "Transpose table too shourt!!" );
+                data.transposeTable = new List<int [ ]> ( );
+                for ( int i = 0 ; i < data.lookupTable.Count ; i++ ) {
+                    data.transposeTable.Add ( new int [ data.channels ] );
+                }
+            }
             data.songData = open.songData;
 
             SongData.songName = open.songName ?? "";
