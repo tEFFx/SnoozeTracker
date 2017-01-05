@@ -146,10 +146,10 @@ public class SN76489 {
                 }
 
                 if ( CheckBit ( mStereoByte, i + 4 ) )
-                    left += GetVolume ( i ) * 0.25;
+                    left += GetChannelOutput ( i ) * 0.25;
 
                 if ( CheckBit ( mStereoByte, i ) )
-                    right += GetVolume ( i ) * 0.25;
+                    right += GetChannelOutput ( i ) * 0.25;
             }
 
             mCycleCount -= 1.0f;
@@ -165,11 +165,15 @@ public class SN76489 {
         right = HighPass ( right, ref mRHPOut, ref mRHPIn );
     }
 
+    public int GetAttenuation(int _chn) {
+        return mAttn[_chn];
+    }
+
     private bool CheckBit(int _byte, int _bit) {
         return ( _byte & ( 1 << _bit ) ) != 0;
     }
 
-    private double GetVolume(int _chn)
+    private double GetChannelOutput(int _chn)
     {
         return mFlipFlop[_chn] ? VOLUME_TABLE[mAttn[_chn]] : -VOLUME_TABLE [ mAttn [ _chn ] ];
     }

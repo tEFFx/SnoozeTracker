@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class SongPlayback : MonoBehaviour {
     public bool isPlaying { get { return m_IsPlaying; } }
@@ -8,6 +9,7 @@ public class SongPlayback : MonoBehaviour {
     public int currentPattern { get { return m_PlayingPattern; } }
     public int internalPattern { get { return m_CurrentPattern; } }
     public float songProgress { get { return ( float ) m_CurrentPattern / ( float ) data.numPatterns; } }
+    public int[] chnAttn { get { return m_ChnAttenuation; } }
 
     public PSGWrapper psg;
     public SongData data;
@@ -34,6 +36,7 @@ public class SongPlayback : MonoBehaviour {
     private int m_PlaybackRate = 50;
     private int m_PatternLoop = 0;
     private int m_Loops = -1;
+    private int[] m_ChnAttenuation = new int[4];
 
     void Start()
     {
@@ -232,9 +235,14 @@ public class SongPlayback : MonoBehaviour {
             if ( m_Instruments [ i ].noteDelay > 0 ) {
                 m_Instruments [ i ].noteDelay--;
                 m_PrevInstruments [ i ].UpdatePSG ( psg, i );
+                m_ChnAttenuation[i] = m_PrevInstruments[i].GetCurrentVol();
             } else {
                 m_Instruments [ i ].UpdatePSG ( psg, i );
+                m_ChnAttenuation[i] = m_Instruments[i].GetCurrentVol();
             }
+
+            if (mute[i])
+                m_ChnAttenuation[i] = 0;
         }
     }
 
@@ -265,5 +273,7 @@ public class SongPlayback : MonoBehaviour {
         m_IsPlaying = false;
         m_Instruments = new Instruments.InstrumentInstance [ data.channels ];
         psg.ResetChip();
+
+        m_ChnAttenuation = new int[4];
     }
 }

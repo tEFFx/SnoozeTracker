@@ -63,11 +63,14 @@ public class PSGWrapper : MonoBehaviour {
     private SN76489 m_PSGChip;
     private List<IrqCallback> m_Callbacks = new List<IrqCallback>();
     private List<RegisterWrite> m_RegisterWrites = new List<RegisterWrite>();
+
     private int m_WriteWait;
+    private int m_SampleRate;
 
     void Awake()
     {
-        m_PSGChip = new SN76489(AudioSettings.outputSampleRate, (int)SN76489.Clock.PAL);
+        m_SampleRate = AudioSettings.outputSampleRate;
+        m_PSGChip = new SN76489(m_SampleRate, (int)SN76489.Clock.PAL);
         Debug.Log ( AudioSettings.outputSampleRate );   
         ResetChip();
     }

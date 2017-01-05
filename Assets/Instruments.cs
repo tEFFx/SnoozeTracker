@@ -258,7 +258,7 @@ public class Instruments : MonoBehaviour {
             return m_PortamentoTimer * portamentoSpeed + vibrato;
         }
 
-        private int GetCurrentVol()
+        public int GetCurrentVol()
         {
             if (volumeTable == null)
                 return 0;

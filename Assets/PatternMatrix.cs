@@ -50,13 +50,16 @@ public class PatternMatrix : MonoBehaviour {
             GUI.color = data.currentPattern == i ? selectedColor : neutralColor;
             for (int j = 0; j < data.channels; j++)
             {
-                int tableVal = Input.GetKey ( KeyCode.LeftControl ) ? data.transposeTable [ i ] [ j ] : data.lookupTable [ i ] [ j ];
+                bool ctrlDown = Input.GetKey(KeyCode.LeftControl);
+                int tableVal = ctrlDown ? data.transposeTable [ i ] [ j ] : data.lookupTable [ i ] [ j ];
                 string label = tableVal >= 0 ? tableVal.ToString ( "X2" ) : "X";
+                if (ctrlDown)
+                    label = tableVal.ToString();
                 if (GUILayout.Button(label, GUILayout.Width(buttonSize.x), GUILayout.Height(buttonSize.y)) && !playback.isPlaying)
                 {
                     if( data.currentPattern == i)
                     {
-                        if ( Input.GetKey ( KeyCode.LeftControl ) ) {
+                        if (ctrlDown) {
                             if ( Input.GetMouseButtonUp ( 0 ) )
                                 data.transposeTable [ i ] [ j ]++;
                             else

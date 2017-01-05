@@ -43,6 +43,15 @@ public class PatternView : MonoBehaviour {
     private int m_DragSelectEnd;
     private Vector2 m_Scroll = new Vector2();
 
+    private Texture2D m_VolBox;
+
+    void Start()
+    {
+        m_VolBox = new Texture2D(1, 1);
+        m_VolBox.SetPixel(0, 0, Color.green);
+        m_VolBox.Apply();
+    }
+
     void Update()
     {
         if (keyboard.recording) {
@@ -94,8 +103,16 @@ public class PatternView : MonoBehaviour {
             string buttonText = "PSG" + i;
             if ( playback.mute [ i ] )
                 buttonText += "(muted)";
-            if ( GUI.Button ( new Rect ( pos, new Vector2 ( chnlWidth, size.y ) ), buttonText) )
-                playback.mute [ i ] = !playback.mute [ i ];
+            Rect buttonRect = new Rect(pos, new Vector2(chnlWidth, size.y));
+            Rect attnRect = buttonRect;
+
+            attnRect.width = attnRect.width * ((playback.chnAttn[i] / 16f));
+            attnRect.x += (buttonRect.width - attnRect.width) * 0.5f * 0.95f;
+
+            GUI.DrawTexture(attnRect, m_VolBox);
+
+            if (GUI.Button(buttonRect, buttonText))
+                playback.mute[i] = !playback.mute[i];
             pos.x += chnlWidth + channelSpacing;
         }
 
