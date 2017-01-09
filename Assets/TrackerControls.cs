@@ -5,6 +5,7 @@ public class TrackerControls : MonoBehaviour {
     public VirtualKeyboard keyboard;
     public SongData data;
     public FileManagement fileMan;
+    public GUISkin skin;
 
     private bool m_HideTextFields;
 
@@ -19,6 +20,8 @@ public class TrackerControls : MonoBehaviour {
 	}
 
     void OnGUI() {
+        GUI.skin = skin;
+
         if ( Event.current.keyCode == KeyCode.Tab ) {
             if ( Event.current.type == EventType.KeyDown )
                 m_HideTextFields = true;

@@ -91,7 +91,15 @@ public class FileManagement : MonoBehaviour {
                 Debug.Log ( "Transpose table too shourt!!" );
                 data.transposeTable = new List<int [ ]> ( );
                 for ( int i = 0 ; i < data.lookupTable.Count ; i++ ) {
-                    data.transposeTable.Add ( new int [ data.channels ] );
+
+                    int [ ] transposeEntry;
+
+                    if ( open.transposeTable != null && i < open.transposeTable.Count )
+                        transposeEntry = open.transposeTable [ i ];
+                    else
+                        transposeEntry = new int [ data.channels ];
+
+                    data.transposeTable.Add ( transposeEntry );
                 }
             }
             data.songData = open.songData;

@@ -6,22 +6,25 @@ public class History : MonoBehaviour {
 
     public class HistoryEvent
     {
-        public HistoryEvent(params SongData.ColumnEntry[] columns)
+        public HistoryEvent(int patternId, params SongData.ColumnEntry[] columns)
         {
-            m_Columns = new SongData.ColumnEntry[columns.Length];
+            pattern = patternId;
+
+            this.columns = new SongData.ColumnEntry [ columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
-                m_Columns[i] = new SongData.ColumnEntry(columns[i]);
+                this.columns[ i ] = new SongData.ColumnEntry ( columns [ i ] );
             }
         }
 
-        public SongData.ColumnEntry[] m_Columns;
+        public int pattern;
+        public SongData.ColumnEntry[] columns;
 
         public void Restore(List<SongData.ColumnEntry> data)
         {
-            for (int i = 0; i < m_Columns.Length; i++)
+            for (int i = 0; i < columns.Length; i++)
             {
-                data[m_Columns[i].id] = new SongData.ColumnEntry(m_Columns[i]);
+                data[columns[i].id] = new SongData.ColumnEntry(columns[i]);
             }
         }
     }
@@ -48,7 +51,7 @@ public class History : MonoBehaviour {
             entries[i] = data.songData[data.lookupTable[data.currentPattern][columns[i]]];
         }
 
-        m_History.Push(new HistoryEvent(entries));
+        m_History.Push(new HistoryEvent(data.currentPattern, entries));
     }
 
     public void Undo()
@@ -63,5 +66,6 @@ public class History : MonoBehaviour {
 
         HistoryEvent next = apply.Pop();
         next.Restore(data.songData);
+        data.currentPattern = next.pattern;
     }
 }

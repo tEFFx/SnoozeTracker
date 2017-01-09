@@ -139,6 +139,7 @@ public class PSGWrapper : MonoBehaviour {
         if (channel < 3)
         {
             int freq = CalculatePSGFreq(note, octave, fineTune);
+            freq = Mathf.Clamp ( freq, 0x00, 0x3FF );
             SetFrequency(channel, freq);
         }
     }
@@ -182,7 +183,7 @@ public class PSGWrapper : MonoBehaviour {
     public void PSGDirectWrite(int data)
     {
         int reg = ( data >> 4 ) & 7;
-        if ( ( data & 128 ) != 0 && chip.GetRegister ( reg ) == ( data & 0x15 ) )
+        if ( ( data & 128 ) != 0 && chip.GetRegister ( reg ) == ( data & 0xF ) )
             return;
 
         m_PSGChip.Write(data);

@@ -141,8 +141,34 @@ public class SongData : MonoBehaviour {
 
     }
 
+    public void OptimizeSong() {
+        Dictionary<int, int> sortedIndicies = new Dictionary<int, int> ( );
+        List<ColumnEntry> sortedData = new List<ColumnEntry> ( );
+        foreach(int[] row in m_LookupTable ) {
+            for ( int i = 0 ; i < 4 ; i++ ) {
+                int oldIndex = row [ i ];
+                int newIndex = sortedData.Count;
+
+                if (oldIndex >= 0 && !sortedIndicies.ContainsKey(oldIndex)) {
+                    Debug.Log ( "Set " + oldIndex + " to " + newIndex );
+                    sortedData.Add ( m_SongData [ row [ i ] ] );
+                    sortedIndicies.Add ( oldIndex, newIndex );
+                }
+            }
+        }
+
+        foreach ( int [ ] row in m_LookupTable ) {
+            for ( int i = 0 ; i < 4 ; i++ ) {
+                if ( sortedIndicies.ContainsKey ( row [ i ] ) )
+                    row [ i ] = sortedIndicies [ row [ i ] ];
+            }
+        }
+
+        m_SongData = sortedData;
+    }
+
     public void ZapSong() {
-        Debug.LogWarning ( "Not implemented" );
+        UnityEngine.SceneManagement.SceneManager.LoadScene ( 0 );
     }
 
     public int FindLoopPoint() {

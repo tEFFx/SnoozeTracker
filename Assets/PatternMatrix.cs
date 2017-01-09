@@ -10,18 +10,22 @@ public class PatternMatrix : MonoBehaviour {
     public Vector2 buttonSize;
     public Color selectedColor;
     public Color neutralColor;
+    public GUISkin skin;
 
     private bool m_Inputting;
     private Vector2 m_Scroll;
 
     void Update() {
         if ( playback.isPlaying ) {
-            m_Scroll.y = Mathf.Max(0, data.currentPattern * (buttonSize.y + 8) - size.y);
+            m_Scroll.y = Mathf.Max(0, data.currentPattern * (buttonSize.y + 8) - size.y + buttonSize.y * 2);
         }
     }
 
 	void OnGUI()
     {
+        if(skin != null)
+            GUI.skin = skin;
+
         Rect rect = new Rect(new Vector2(padding.x, padding.y), size);
 
         GUILayout.BeginArea(rect);
@@ -65,7 +69,10 @@ public class PatternMatrix : MonoBehaviour {
                             else
                                 data.transposeTable [ i ] [ j ]--;
                         } else {
-                            int inc = Input.GetKey ( KeyCode.LeftShift ) ? 16 : 1;
+                            int inc = 1;
+
+                            if(Input.GetKey ( KeyCode.LeftShift ))
+                                inc = data.lookupTable[i][j] >= 16 ? 16 : data.lookupTable [ i ] [ j ] + 1;
 
                             if ( Input.GetMouseButtonUp ( 0 ) )
                                 data.IncrementLookup ( i, j, inc );
@@ -84,6 +91,10 @@ public class PatternMatrix : MonoBehaviour {
 
         GUILayout.EndHorizontal();
         GUILayout.EndScrollView ( );
+        GUI.color = Color.white;
+        if(GUILayout.Button ( "Optimize", GUILayout.Height( buttonSize.y )) ) {
+            data.OptimizeSong ( );
+        }
         GUILayout.EndArea();
     }
 }

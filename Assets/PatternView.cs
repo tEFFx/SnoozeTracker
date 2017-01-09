@@ -31,6 +31,7 @@ public class PatternView : MonoBehaviour {
     public Gradient transposeGradient;
     public Gradient volumeGradient;
     public Gradient instrumentGradient;
+    public GUISkin skin;
 
     private int m_Selection;
     private int m_LastSelection;
@@ -91,6 +92,8 @@ public class PatternView : MonoBehaviour {
 
 	void OnGUI()
     {
+        GUI.skin = skin;
+
         Vector2 pos = padding;
         Vector2 size = new Vector2 ( 32, lineHeight );
         float chnlWidth = 0;

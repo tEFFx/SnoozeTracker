@@ -40,6 +40,7 @@ public class InstrumentEditor : MonoBehaviour {
     public Vector2 padding;
     public Vector2 size;
     public float volWidth;
+    public GUISkin skin;
 
     private string m_VolumeEnvelope;
     private string m_Arpeggio;
@@ -51,6 +52,8 @@ public class InstrumentEditor : MonoBehaviour {
     }
 
     void OnGUI() {
+
+        GUI.skin = skin;
 
         if ( Event.current.keyCode == KeyCode.Tab ) {
             if ( Event.current.type == EventType.KeyDown )
@@ -66,7 +69,7 @@ public class InstrumentEditor : MonoBehaviour {
 
         GUILayout.BeginVertical (GUILayout.Width(size.x - volWidth - 32));
         GUILayout.BeginHorizontal ( );
-        GUILayout.Box ( "Ins " + keyboard.currentInstrument );
+        GUILayout.Box ( "Ins " + keyboard.currentInstrument.ToString("X2") );
         if ( GUILayout.Button ( "<" ) )
             IncInstrument ( -1 );
         if ( GUILayout.Button ( ">" ) )
