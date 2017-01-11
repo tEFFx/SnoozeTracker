@@ -6,6 +6,7 @@ public class KeyboardShortcuts : MonoBehaviour {
     public PatternView patternView;
     public SongData songData;
     public History history;
+    public VirtualKeyboard keyboard;
 
     private List<int> m_CopyData = new List<int>();
     private int m_CopyOffset;
@@ -56,6 +57,14 @@ public class KeyboardShortcuts : MonoBehaviour {
 
             if (Input.GetKeyDown(KeyCode.Insert))
                 Insert();
+        }
+
+        for (int i = (int)KeyCode.F1; i <= (int)KeyCode.F8; i++)
+        {
+            if (Input.GetKeyDown((KeyCode)i))
+            {
+                keyboard.currentOctave = i - (int)KeyCode.F1 + 1;
+            }
         }
     }
 
