@@ -262,13 +262,16 @@ public class SongData : MonoBehaviour {
         int [ ] table = new int [ channels ];
         Array.Copy ( m_LookupTable [ currentPattern ], table, m_LookupTable [ currentPattern ].Length );
         m_LookupTable.Add ( table );
-        m_TransposeTable.Insert ( currentPattern, new int [ channels ] );
+        int[] lookup = new int[channels];
+        Array.Copy(m_TransposeTable[currentPattern], lookup, m_TransposeTable[currentPattern].Length);
+        m_TransposeTable.Add ( lookup );
     }
 
     public void DeletePatternLine() {
         if ( m_LookupTable.Count <= 1 )
             return;
         m_LookupTable.RemoveAt ( currentPattern );
+        m_TransposeTable.RemoveAt(currentPattern);
         if ( currentPattern >= m_LookupTable.Count )
             currentPattern--;
     }
