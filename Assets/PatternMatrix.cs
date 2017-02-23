@@ -72,7 +72,7 @@ public class PatternMatrix : MonoBehaviour {
                             int inc = 1;
 
                             if(Input.GetKey ( KeyCode.LeftShift ))
-                                inc = data.lookupTable[i][j] >= 16 ? 16 : data.lookupTable [ i ] [ j ] + 1;
+                                inc = 16;
 
                             if ( Input.GetMouseButtonUp ( 0 ) )
                                 data.IncrementLookup ( i, j, inc );
