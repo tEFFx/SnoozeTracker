@@ -13,15 +13,13 @@ public class VirtualKeyboard : MonoBehaviour {
         public KeyCode key;
         public int octaveOffset;
 
-        public bool GetNoteDown(int octave, out byte noteData)
+        public bool GetNoteDown(int octave)
         {
             if (Input.GetKeyDown(key))
             {
-                noteData = EncodeNoteInfo((int)note, octave + octaveOffset);
                 return true;
             }
 
-            noteData = 0;
             return false;
         }
 
@@ -76,31 +74,11 @@ public class VirtualKeyboard : MonoBehaviour {
         {
             for (int i = 0; i < noteBinds.Length; i++)
             {
-                byte noteData;
-                if (noteBinds[i].GetNoteDown(m_CurrentOctave, out noteData))
+                if (noteBinds[i].GetNoteDown(m_CurrentOctave))
                 {
-                    if (recording)
-                    {
-                        history.AddHistoryEntry(patternView.selectedChannel);
-
-                        patternView.data[sel] = noteData;
-                        patternView.data[sel + 1] = (byte)currentInstrument;
-                        patternView.MoveLine(patternAdd);
-                    }
-
                     if (noteBinds[i].note != Note.None && noteBinds[i].note != Note.NoteOff)
                     {
-                        for (int j = 0; j < m_Instruments.Length; j++)
-                        {
-                            if (m_Instruments[j].note == Note.None || m_Instruments[j].note == Note.NoteOff)
-                            {
-                                m_Instruments[j] = instruments.presets[currentInstrument];
-                                m_Instruments[j].note = noteBinds[i].note;
-                                m_Instruments[j].octave = m_CurrentOctave + noteBinds[i].octaveOffset;
-                                m_Instruments[j].relativeVolume = 0xF;
-                                break;
-                            }
-                        }
+                        SetNoteOn ( noteBinds [ i ].note, m_CurrentOctave + noteBinds [ i ].octaveOffset );
                     }
                 }
             }
@@ -108,12 +86,55 @@ public class VirtualKeyboard : MonoBehaviour {
 
         for ( int i = 0 ; i < noteBinds.Length ; i++ ) {
             if ( noteBinds [ i ].GetNoteUp ( ) ) {
-                for (int j = 0; j < m_Instruments.Length; j++)
-                {
-                    if (m_Instruments[j].note == noteBinds[i].note && m_Instruments[j].octave == m_CurrentOctave + noteBinds[i].octaveOffset) {
-                        m_Instruments[j].note = Note.NoteOff;
-                    }
-                }
+                SetNoteOff ( noteBinds [ i ].note, m_CurrentOctave + noteBinds [ i ].octaveOffset );
+            }
+        }
+    }
+
+    public void SetNoteOff(Note note, int octave) {
+        int sel = patternView.selection;
+        if ( sel % SongData.SONG_DATA_COUNT != 0 )
+            return;
+
+        if ( playback.isPlaying ) {
+            //patternView.data [ sel ] = EncodeNoteInfo ( (int)Note.NoteOff, 0 );
+            return;
+        }
+
+        for ( int i = 0 ; i < m_Instruments.Length ; i++ ) {
+            if ( m_Instruments [ i ].note == note && m_Instruments [ i ].octave == octave ) {
+                m_Instruments [ i ].note = Note.NoteOff;
+            }
+        }
+    }
+
+    public void SetNoteOn(Note note, int octave, int velocity = 0xF) {
+        int sel = patternView.selection;
+        if ( sel % SongData.SONG_DATA_COUNT != 0 )
+            return;
+
+        if ( recording ) {
+            byte noteData = EncodeNoteInfo ( ( int ) note, octave );
+            history.AddHistoryEntry ( patternView.selectedChannel );
+
+            patternView.data [ sel ] = noteData;
+            patternView.data [ sel + 1 ] = ( byte ) currentInstrument;
+            if(velocity != 0xF)
+                patternView.data [ sel + 2 ] = velocity;
+            if(!playback.isPlaying)
+                patternView.MoveLine ( patternAdd );
+        }
+
+        if ( playback.isPlaying )
+            return;
+
+        for ( int i = 0 ; i < m_Instruments.Length ; i++ ) {
+            if ( m_Instruments [ i ].note == Note.None || m_Instruments [ i ].note == Note.NoteOff ) {
+                m_Instruments [ i ] = instruments.presets [ currentInstrument ];
+                m_Instruments [ i ].note = note;
+                m_Instruments [ i ].octave = octave;
+                m_Instruments [ i ].relativeVolume = velocity;
+                break;
             }
         }
     }
