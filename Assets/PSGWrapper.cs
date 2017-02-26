@@ -217,7 +217,11 @@ public class PSGWrapper : MonoBehaviour {
 
     public static int CalculatePSGFreq(int note, int octave, int fineTune = 0)
     {
-        int div = (int)SN76489.Clock.PAL / 32 / (int)(CalculateNoteFreq(note, octave) + fineTune);
+        int freq = ( int ) ( CalculateNoteFreq ( note, octave ) + fineTune );
+        if ( freq == 0 )
+            return 0;
+
+        int div = (int)SN76489.Clock.PAL / 32 / freq;
         //Debug.Log(div.ToString("X2"));
         return div;
     }
