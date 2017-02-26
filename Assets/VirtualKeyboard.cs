@@ -76,7 +76,7 @@ public class VirtualKeyboard : MonoBehaviour {
             {
                 if (noteBinds[i].GetNoteDown(m_CurrentOctave))
                 {
-                    if (noteBinds[i].note != Note.None && noteBinds[i].note != Note.NoteOff)
+                    if (noteBinds[i].note != Note.None)
                     {
                         SetNoteOn ( noteBinds [ i ].note, m_CurrentOctave + noteBinds [ i ].octaveOffset );
                     }
@@ -118,7 +118,8 @@ public class VirtualKeyboard : MonoBehaviour {
             history.AddHistoryEntry ( patternView.selectedChannel );
 
             patternView.data [ sel ] = noteData;
-            patternView.data [ sel + 1 ] = ( byte ) currentInstrument;
+            if(note != Note.NoteOff)
+                patternView.data [ sel + 1 ] = ( byte ) currentInstrument;
             if(velocity != 0xF)
                 patternView.data [ sel + 2 ] = velocity;
             if(!playback.isPlaying)

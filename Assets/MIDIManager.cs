@@ -32,8 +32,10 @@ public class MIDIManager : MonoBehaviour {
     }
 
     void CloseDevice() {
-        if ( m_Device != null )
+        if ( m_Device != null && m_Device.IsOpen ) {
+            m_Device.StopReceiving ( );
             m_Device.Close ( );
+        }
     }
 
     void NoteStateChange(NoteOnMessage msg) {
