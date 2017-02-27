@@ -21,6 +21,8 @@ public static class WaveWriter
         writer.Write(Encoding.ASCII.GetBytes("data"));
         writer.Write((uint)((samples.Length * bitDepth) / 8));
 
+        NormalizeSamples ( samples, channels );
+
         for (int i = 0; i < samples.Length; i++)
         {
             switch (bitDepth)
@@ -40,6 +42,19 @@ public static class WaveWriter
         }
 
         writer.Close();
+    }
+
+    public static void NormalizeSamples(double[] samples, ushort channels) {
+        double [ ] dividers = new double [ channels ];
+        for ( int i = 0 ; i < samples.Length ; i++ ) {
+            int chn = i % channels;
+            dividers [ chn ] = System.Math.Max ( dividers [ chn ], samples [ i ] );
+        }
+
+        for ( int i = 0 ; i < samples.Length ; i++ ) {
+            int chn = i % channels;
+            samples [ i ] = ( samples [ i ] / dividers [ chn ] ) * 0.99f;
+        }
     }
 }
 

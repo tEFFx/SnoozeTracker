@@ -158,8 +158,9 @@ public class SN76489 {
 
         mCycleCount += mCyclesPerSample;
 
-        left /= samples;
-        right /= samples;
+        float sampleDiv = (1f / samples);
+        left *= sampleDiv;
+        right *= sampleDiv;
 
         left = HighPass ( left, ref mLHPOut, ref mLHPIn );
         right = HighPass ( right, ref mRHPOut, ref mRHPIn );
