@@ -5,7 +5,7 @@ using System.Text;
 
 public static class WaveWriter
 {
-    public static void Write(BinaryWriter writer, double[] samples, ushort channels, uint sampleRate, ushort bitDepth)
+    public static void Write(BinaryWriter writer, double[] samples, ushort channels, uint sampleRate, ushort bitDepth, bool normalize)
     {
         writer.Write(Encoding.ASCII.GetBytes("RIFF"));
         writer.Write((uint)((samples.Length * bitDepth) / 8 + 36));
@@ -21,7 +21,8 @@ public static class WaveWriter
         writer.Write(Encoding.ASCII.GetBytes("data"));
         writer.Write((uint)((samples.Length * bitDepth) / 8));
 
-        NormalizeSamples ( samples, channels );
+        if(normalize)
+            NormalizeSamples ( samples, channels );
 
         for (int i = 0; i < samples.Length; i++)
         {

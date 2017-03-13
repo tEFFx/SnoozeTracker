@@ -46,9 +46,14 @@ public class InstrumentEditor : MonoBehaviour {
     private string m_Arpeggio;
     private bool m_HideFields = false;
     private EditorScreen m_CurrentScreen;
+    private Texture2D m_ColorTexture;
 
     void Start() {
         UpdateAttributes ( );
+
+        m_ColorTexture = new Texture2D ( 1, 1 );
+        m_ColorTexture.SetPixel ( 0, 0, Color.green );
+        m_ColorTexture.Apply ( );
     }
 
     void OnGUI() {
@@ -225,12 +230,23 @@ public class InstrumentEditor : MonoBehaviour {
 
     void ArraySlider(int[] array, int min, int max) {
         GUILayout.BeginHorizontal ( );
+        Vector2 size = new Vector2 ( 1024, 100 );
 
         for ( int i = 0 ; i < array.Length ; i++ ) {
-            GUILayout.BeginVertical ( GUILayout.Width(8) );
-            array[i] = (int)GUILayout.VerticalSlider ( array [ i ], max, min, GUILayout.Height(64) );
-            GUILayout.Box ( array [ i ].ToString ( "X" ), GUILayout.Width(16));
-            GUILayout.EndVertical ( );
+            Rect layout = GUILayoutUtility.GetRect ( Mathf.Min(16, size.x / array.Length), size.y );
+            layout.width += 1;
+
+            if(Input.GetMouseButton(0)) {
+                Vector2 mPos = Event.current.mousePosition;
+                if ( layout.Contains ( mPos ) ) {
+                    int val = ( int ) ( ( ( layout.yMax - mPos.y ) / size.y ) * 16 );
+                    array [ i ] = val;
+                }
+            }
+
+            layout.height = size.y * ( array [ i ] / 16f );
+            layout.y += size.y * ( 1 - ( array [ i ] / 16f ) );
+            GUI.DrawTexture ( layout, m_ColorTexture );
         }
 
         GUILayout.EndHorizontal ( );

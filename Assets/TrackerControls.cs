@@ -48,6 +48,8 @@ public class TrackerControls : MonoBehaviour {
             fileMan.SaveVGM();
         if (GUILayout.Button("WAVE"))
             fileMan.SaveWAV();
+        if ( GUILayout.Button ( "MULTI WAVE" ) )
+            fileMan.SaveMultiWAV ( );
 
         GUI.enabled = !m_HideTextFields;
         GUILayout.Box ( "Artist: " );

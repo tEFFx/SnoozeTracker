@@ -128,11 +128,11 @@ public class FileManagement : MonoBehaviour {
 
         if (sfd.ShowDialog() == DialogResult.OK)
         {
-            StartCoroutine ( SaveWAVRoutine ( sfd.OpenFile ( ) ) );
+            StartCoroutine ( SaveWAVRoutine ( sfd.OpenFile ( ), true ) );
         }
     }
 
-    IEnumerator SaveWAVRoutine(Stream fileStream) {
+    IEnumerator SaveWAVRoutine(Stream fileStream, bool normalize) {
         playback.Stop ( );
         playback.psg.audioSource.enabled = false;
         playback.follow = false;
@@ -166,7 +166,7 @@ public class FileManagement : MonoBehaviour {
         m_Progress = 100;
         yield return null;
 
-        WaveWriter.Write ( bw, samples.ToArray ( ), 2, ( uint ) AudioSettings.outputSampleRate, 16 );
+        WaveWriter.Write ( bw, samples.ToArray ( ), 2, ( uint ) AudioSettings.outputSampleRate, 16, normalize );
 
         m_OperationInProgress = false;
 
@@ -179,6 +179,43 @@ public class FileManagement : MonoBehaviour {
         m_Progress = 100;
         yield return null;
     }
+
+    public void SaveMultiWAV() {
+        if ( m_OperationInProgress )
+            return;
+
+        StartCoroutine ( SaveMultiWAVRoutine ( ) );
+    }
+
+    IEnumerator SaveMultiWAVRoutine() {
+        m_OperationInProgress = true;
+        FolderBrowserDialog fbd = new FolderBrowserDialog ( );
+        fbd.ShowDialog ( );
+
+        if ( !Directory.Exists ( fbd.SelectedPath ) ) {
+            m_OperationInProgress = false;
+            yield break;
+        }
+
+        for ( int i = 0 ; i < data.channels ; i++ ) {
+            for ( int c = 0 ; c < data.channels ; c++ ) {
+                playback.mute [ c ] = c != i;
+            }
+
+            FileStream file = File.Create ( fbd.SelectedPath + "\\PSG_" + i + ".wav" );
+            yield return StartCoroutine(SaveWAVRoutine ( file, false ));
+            m_OperationInProgress = true;
+        }
+
+        for ( int c = 0 ; c < data.channels ; c++ ) {
+            playback.mute [ c ] = false;
+        }
+
+        FileStream masterFile = File.Create ( fbd.SelectedPath + "\\PSG_ALL.wav" );
+        yield return StartCoroutine(SaveWAVRoutine ( masterFile, true ));
+        m_OperationInProgress = false;
+    }
+
 
     public void SaveVGM()
     {

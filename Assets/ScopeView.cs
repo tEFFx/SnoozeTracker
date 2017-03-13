@@ -48,6 +48,7 @@ public class ScopeView : MonoBehaviour {
             if ( m_Channels > 1 )
                 s += m_SampleData [ i + 1 ];
             s /= ( float ) m_Channels;
+            s = Mathf.Min ( s, 0.9f );
 
             Vector3 boxPos = new Vector3(box.xMin, Screen.height - (box.yMin + m_LineHeight));
             Vector3 pos = Vector3.zero;
