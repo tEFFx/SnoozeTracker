@@ -22,7 +22,7 @@ public static class WaveWriter
         writer.Write((uint)((samples.Length * bitDepth) / 8));
 
         if(normalize)
-            NormalizeSamples ( samples, channels );
+            NormalizeSamples ( samples, 0.95f, channels );
 
         for (int i = 0; i < samples.Length; i++)
         {
@@ -45,7 +45,7 @@ public static class WaveWriter
         writer.Close();
     }
 
-    public static void NormalizeSamples(double[] samples, ushort channels) {
+    public static void NormalizeSamples(double[] samples, double attn, ushort channels) {
         double [ ] dividers = new double [ channels ];
         for ( int i = 0 ; i < samples.Length ; i++ ) {
             int chn = i % channels;
@@ -55,6 +55,7 @@ public static class WaveWriter
         for ( int i = 0 ; i < samples.Length ; i++ ) {
             int chn = i % channels;
             samples [ i ] = ( samples [ i ] / dividers [ chn ] ) * 0.99f;
+            samples [ i ] *= attn;
         }
     }
 }

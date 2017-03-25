@@ -28,7 +28,7 @@ public class SN76489 {
 
     public static readonly int CLOCK_DIVIDER = 16;
     public static readonly int NOISE_TAPPED = 0x9;
-    public static readonly int NOISE_SR_WIDTH = 16;
+    public static readonly int NOISE_SR_WIDTH = 15;
 
     public int clock { get { return mClock; } }
     public int stereoByte { get { return mStereoByte; } }

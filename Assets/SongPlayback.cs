@@ -10,6 +10,7 @@ public class SongPlayback : MonoBehaviour {
     public int internalPattern { get { return m_CurrentPattern; } }
     public float songProgress { get { return ( float ) m_CurrentPattern / ( float ) data.numPatterns; } }
     public int[] chnAttn { get { return m_ChnAttenuation; } }
+    public int loops { get { return m_PlayLoops; } set { m_PlayLoops = System.Math.Max ( -1, value ); } }
 
     public PSGWrapper psg;
     public SongData data;
@@ -35,6 +36,7 @@ public class SongPlayback : MonoBehaviour {
     private bool m_NoiseChn3;
     private int m_PlaybackRate = 50;
     private int m_PatternLoop = 0;
+    private int m_PlayLoops = -1;
     private int m_Loops = -1;
     private int[] m_ChnAttenuation = new int[4];
 
@@ -54,7 +56,7 @@ public class SongPlayback : MonoBehaviour {
             if (m_IsPlaying)
                 Stop();
             else
-                Play();
+                Play( true );
         }
 
         if(follow && m_IsPlaying && Time.time - m_LastLineTick > 1f / 50f) {
@@ -251,12 +253,18 @@ public class SongPlayback : MonoBehaviour {
         b2 = ( val >> 4 ) & 0xF;
     }
 
-    public void Play(int loops = -1)
+    public void Play(bool loop, bool ignoreInfinite = false)
     {
         keyboard.Mute();
         m_PatternLoop = data.FindLoopPoint ( );
 
-        m_Loops = m_PatternLoop == 0 && loops != -1 ? 0 : loops;
+        if ( loop ) {
+            m_Loops = m_PlayLoops;
+            if ( ignoreInfinite )
+                m_Loops = System.Math.Max ( m_PatternLoop == 0 ? 0 : 1, m_Loops );
+        }else {
+            m_Loops = 0;
+        }
 
         m_StartSample = psg.currentSample;
         m_CurrentPattern = data.currentPattern;

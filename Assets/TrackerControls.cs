@@ -6,6 +6,7 @@ public class TrackerControls : MonoBehaviour {
     public SongData data;
     public FileManagement fileMan;
     public GUISkin skin;
+    public SongPlayback playback;
 
     private bool m_HideTextFields;
 
@@ -79,6 +80,13 @@ public class TrackerControls : MonoBehaviour {
             ChangePatternSize ( 1 );
         if ( GUILayout.Button ( "++" ) )
             ChangePatternSize ( 8 );
+
+        GUILayout.Space ( 16 );
+        if ( GUILayout.Button ( "-" ) )
+            playback.loops--;
+        GUILayout.Box ( "Loops: " + (playback.loops == -1 ? "∞" : playback.loops.ToString()) );
+        if ( GUILayout.Button ( "+" ) )
+            playback.loops++;
 
         GUILayout.FlexibleSpace ( );
         GUILayout.EndHorizontal ( );

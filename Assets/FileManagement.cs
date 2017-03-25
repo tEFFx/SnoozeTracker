@@ -141,7 +141,7 @@ public class FileManagement : MonoBehaviour {
         m_OperationInProgress = true;
 
         BinaryWriter bw = new BinaryWriter ( fileStream );
-        playback.Play ( 1 );
+        playback.Play ( true, true );
 
         List<double> samples = new List<double> ( );
 
@@ -262,7 +262,7 @@ public class FileManagement : MonoBehaviour {
         bw.Seek ( 0x40, SeekOrigin.Begin );
 
         List<PSGWrapper.RegisterWrite> dataSamples = playback.psg.RecordRegisters ( );
-        playback.Play ( 0 );
+        playback.Play ( false );
         int c = 0;
 
         while ( playback.isPlaying ) {
