@@ -7,20 +7,26 @@ public class KeyboardShortcuts : MonoBehaviour {
     public SongData songData;
     public History history;
     public VirtualKeyboard keyboard;
+    public SongPlayback playback;
+    public float debounceCooldown;
+    public float debounceInterval;
 
     private List<int> m_CopyData = new List<int>();
     private int m_CopyOffset;
 
 	// Update is called once per frame
 	void Update () {
-        if (Input.GetKeyDown(KeyCode.DownArrow))
-            patternView.MoveLine(1);
-        if (Input.GetKeyDown(KeyCode.UpArrow))
-            patternView.MoveLine(-1);
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-            patternView.MoveColumn(-1);
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-            patternView.MoveColumn(1);
+        if (!playback.isPlaying)
+        {
+            if (Input.GetKeyDown(KeyCode.DownArrow))
+                DoShortcut(KeyCode.DownArrow, () => { patternView.MoveLine(1); });
+            if (Input.GetKeyDown(KeyCode.UpArrow))
+                DoShortcut(KeyCode.UpArrow, () => { patternView.MoveLine(-1); });
+            if (Input.GetKeyDown(KeyCode.LeftArrow))
+                DoShortcut(KeyCode.LeftArrow, () => { patternView.MoveColumn(-1); });
+            if (Input.GetKeyDown(KeyCode.RightArrow))
+                DoShortcut(KeyCode.RightArrow, () => { patternView.MoveColumn(1); });
+        }
 
         if (Input.GetKey(KeyCode.LeftControl))
         {
@@ -50,21 +56,45 @@ public class KeyboardShortcuts : MonoBehaviour {
         if (patternView.keyboard.recording)
         {
             if (Input.GetKeyDown(KeyCode.Delete))
-                DeleteSelection();
+                DoShortcut(KeyCode.Delete, DeleteSelection);
 
             if (Input.GetKeyDown(KeyCode.Backspace))
-                Erase();
+                DoShortcut(KeyCode.Backspace, Erase);
 
             if (Input.GetKeyDown(KeyCode.Insert))
-                Insert();
+                DoShortcut(KeyCode.Insert, Insert);
         }
 
-        for (int i = (int)KeyCode.F1; i <= (int)KeyCode.F8; i++)
+        if (!Input.GetKey(KeyCode.LeftControl))
         {
-            if (Input.GetKeyDown((KeyCode)i))
+            for (int i = (int)KeyCode.F1; i <= (int)KeyCode.F8; i++)
             {
-                keyboard.currentOctave = i - (int)KeyCode.F1 + 1;
+                if (Input.GetKeyDown((KeyCode)i))
+                {
+                    keyboard.currentOctave = i - (int)KeyCode.F1 + 1;
+                }
             }
+        }
+    }
+
+    void DoShortcut(KeyCode key, System.Action action)
+    {
+        StopAllCoroutines();
+        StartCoroutine(DebounceRoutine(key, action));
+    }
+
+    IEnumerator DebounceRoutine(KeyCode key, System.Action action)
+    {
+        if(!Input.GetKeyDown(key))
+            yield break;
+
+        action();
+        yield return new WaitForSeconds(debounceCooldown);
+
+        while (Input.GetKey(key))
+        {
+            action();
+            yield return new WaitForSeconds(debounceInterval);
         }
     }
 
