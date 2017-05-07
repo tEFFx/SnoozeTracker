@@ -17,6 +17,8 @@ public class InstrumentEditor : MonoBehaviour {
             m_VolumeEnvelope = value;
             StringToArray ( m_VolumeEnvelope, ref preset.volumeTable );
             instruments.presets [ keyboard.currentInstrument ] = preset;
+
+            FileManagement.fileModified = true;
         }
     }
 
@@ -29,6 +31,8 @@ public class InstrumentEditor : MonoBehaviour {
             m_Arpeggio = value;
             StringToArray ( m_Arpeggio, ref preset.arpeggio );
             instruments.presets [ keyboard.currentInstrument ] = preset;
+
+            FileManagement.fileModified = true;
         }
     }
 
@@ -162,6 +166,7 @@ public class InstrumentEditor : MonoBehaviour {
                                 ins.pulseWidthMax = pwmEnd;
                                 ins.pulseWidthPanSpeed = pwmSpeed;
                                 instruments.presets [ keyboard.currentInstrument ] = ins;
+                                FileManagement.fileModified = true;
                             }
                             break;
 
@@ -170,6 +175,7 @@ public class InstrumentEditor : MonoBehaviour {
                                 Instruments.InstrumentInstance ins = instrument;
                                 if(fileMan.LoadSample ( ref ins.waveTable, ref ins.waveTableSampleRate ) ) {
                                     instruments.presets [ keyboard.currentInstrument ] = ins;
+                                    FileManagement.fileModified = true;
                                 }
                             }
 
@@ -204,6 +210,7 @@ public class InstrumentEditor : MonoBehaviour {
                                     ins.loopSample = loopSamp;
 
                                     instruments.presets[keyboard.currentInstrument] = ins;
+                                    FileManagement.fileModified = true;
                                 }
                                 //GUILayout.Toggle()
                                 GUILayout.EndHorizontal ( );
@@ -241,6 +248,7 @@ public class InstrumentEditor : MonoBehaviour {
                 if ( layout.Contains ( mPos ) ) {
                     int val = ( int ) ( ( ( layout.yMax - mPos.y ) / size.y ) * 16 );
                     array [ i ] = val;
+                    FileManagement.fileModified = true;
                 }
             }
 
@@ -262,6 +270,7 @@ public class InstrumentEditor : MonoBehaviour {
         {
             ins.customWaveform = wave;
             instruments.presets[keyboard.currentInstrument] = ins;
+            FileManagement.fileModified = true;
         }
     }
 
@@ -291,6 +300,8 @@ public class InstrumentEditor : MonoBehaviour {
             ins.volumeTable [ ins.volumeTable.Length - 1 ] = ins.volumeTable [ ins.volumeTable.Length - 2 ];
 
         instruments.presets [ keyboard.currentInstrument ] = ins;
+
+        FileManagement.fileModified = true;
     }
 
     private string ArrayToString(int[] array) {

@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System.Windows.Forms;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
@@ -13,8 +12,10 @@ public class FileManagement : MonoBehaviour {
     public enum VGMCommands { StereoSet = 0x4F, PSGWrite = 0x50, WaitSamples = 0x61, Wait735 = 0x62, Wait882 = 0x63, EOF = 0x66 }
 
     public bool fileOpen { get { return m_OpenFile != ""; } }
+    public static bool fileModified;
 
-    public string fileFilter;
+    public string[] fileFilters;
+    public string filterDescription;
     public SongData data;
     public Instruments instruments;
     public InstrumentEditor insEditor;
@@ -25,6 +26,12 @@ public class FileManagement : MonoBehaviour {
     private bool m_OperationInProgress;
     private float m_Progress;
     private string m_OpenFile = "";
+
+    private TinyFileDialogs.OpenFileDialog m_TuneOpen;
+    private TinyFileDialogs.OpenFileDialog m_SampleOpen;
+    private TinyFileDialogs.SaveFileDialog m_TuneSave;
+    private TinyFileDialogs.SaveFileDialog m_WavSave;
+    private TinyFileDialogs.SaveFileDialog m_VgmSave;
 
     [System.Serializable]
     internal class SongFile {
@@ -37,6 +44,42 @@ public class FileManagement : MonoBehaviour {
         public List<Instruments.InstrumentInstance> instruments;
     }
 
+    void Awake() {
+        m_TuneOpen = new TinyFileDialogs.OpenFileDialog ( );
+        m_TuneOpen.title = "Open tune";
+        m_TuneOpen.filterPatterns = fileFilters;
+        m_TuneOpen.description = filterDescription;
+        m_TuneOpen.defaultPath = UnityEngine.Application.dataPath;
+
+        m_SampleOpen = new TinyFileDialogs.OpenFileDialog ( );
+        m_SampleOpen.title = "Load sample";
+        m_SampleOpen.filterPatterns = new string [ ] { "*.wav" };
+        m_SampleOpen.description = "Wave-file (8-bit sample depth)";
+        m_SampleOpen.defaultPath = UnityEngine.Application.dataPath;
+
+        m_TuneSave = new TinyFileDialogs.SaveFileDialog ( );
+        m_TuneSave.title = "Save tune";
+        m_TuneSave.filterPatterns = fileFilters;
+        m_TuneOpen.description = filterDescription;
+        m_TuneOpen.defaultPath = UnityEngine.Application.dataPath;
+
+        m_WavSave = new TinyFileDialogs.SaveFileDialog ( );
+        m_WavSave.title = "Save WAVE";
+        m_WavSave.filterPatterns = new string [ ] { "*.wav" };
+        m_WavSave.description = "WAVE-file(s)";
+        m_WavSave.defaultPath = UnityEngine.Application.dataPath;
+
+        m_VgmSave = new TinyFileDialogs.SaveFileDialog ( );
+        m_VgmSave.title = "Save VGM";
+        m_VgmSave.filterPatterns = new string [ ] { "*.vgz", "*.vgm" };
+        m_VgmSave.description = "VGM-file(s)";
+        m_VgmSave.defaultPath = UnityEngine.Application.dataPath;
+    }
+
+    void Start() {
+        fileModified = false;
+    }
+
     void OnGUI() {
         if ( m_OperationInProgress ) {
             Rect boxRect = new Rect ( UnityEngine.Screen.width - 256, UnityEngine.Screen.height - 32, 256, 32 );
@@ -47,10 +90,7 @@ public class FileManagement : MonoBehaviour {
     public void SaveFile(bool saveAs = true) {
         playback.Stop ( );
 
-        SaveFileDialog sfd = new SaveFileDialog ( );
-        sfd.Filter = fileFilter;
-
-        if(!saveAs || sfd.ShowDialog() == DialogResult.OK ) {
+        if(!saveAs || m_TuneSave.ShowDialog() ) {
             SongFile song = new SongFile ( );
             song.patternLength = data.patternLength;
             song.lookupTable = data.lookupTable;
@@ -62,25 +102,27 @@ public class FileManagement : MonoBehaviour {
             song.artistName = SongData.artistName;
 
             IFormatter formatter = new BinaryFormatter ();
-            Stream fs = !saveAs ? new FileStream(m_OpenFile, FileMode.Create) : sfd.OpenFile ( );
+            Stream fs = !saveAs ? new FileStream(m_OpenFile, FileMode.Create) : m_TuneSave.OpenFile ( );
             formatter.Serialize ( fs, song );
             fs.Close ( );
 
             if(saveAs)
-                m_OpenFile = sfd.FileName;
+                m_OpenFile = m_TuneSave.filePath;
+
+            fileModified = false;
         }
     }
 
     public void OpenFile() {
+        if ( fileModified && !TinyFileDialogs.MessageBox ( "Opening tune", "Are you sure? You will lose all unsaved progress.", TinyFileDialogs.DialogType.YESNO, TinyFileDialogs.IconType.WARNING, false ) )
+            return;
+
         playback.Stop ( );
         data.currentPattern = 0;
 
-        OpenFileDialog ofd = new OpenFileDialog ( );
-        ofd.Filter = fileFilter;
-
-        if(ofd.ShowDialog() == DialogResult.OK ) {
+        if(m_TuneOpen.ShowDialog()) {
             IFormatter formatter = new BinaryFormatter ( );
-            Stream fs = ofd.OpenFile ( );
+            Stream fs = m_TuneOpen.OpenFile ( );
 
             SongFile open = (SongFile)formatter.Deserialize ( fs );
             data.SetPatternLength ( open.patternLength );
@@ -114,7 +156,8 @@ public class FileManagement : MonoBehaviour {
             
             insEditor.UpdateAttributes ( );
 
-            m_OpenFile = ofd.FileName;
+            m_OpenFile = m_TuneOpen.filePath;
+            fileModified = false;
         }
     }
 
@@ -123,12 +166,9 @@ public class FileManagement : MonoBehaviour {
         if ( m_OperationInProgress )
             return;
 
-        SaveFileDialog sfd = new SaveFileDialog();
-        sfd.Filter = "WAVE-file (*.wav)|*.wav";
-
-        if (sfd.ShowDialog() == DialogResult.OK)
+        if (m_WavSave.ShowDialog())
         {
-            StartCoroutine ( SaveWAVRoutine ( sfd.OpenFile ( ), true ) );
+            StartCoroutine ( SaveWAVRoutine ( m_WavSave.OpenFile ( ), true ) );
         }
     }
 
@@ -189,10 +229,8 @@ public class FileManagement : MonoBehaviour {
 
     IEnumerator SaveMultiWAVRoutine() {
         m_OperationInProgress = true;
-        FolderBrowserDialog fbd = new FolderBrowserDialog ( );
-        fbd.ShowDialog ( );
-
-        if ( !Directory.Exists ( fbd.SelectedPath ) ) {
+        string selectedPath = TinyFileDialogs.SelectFolderDialog ( "Save multiple WAVES", UnityEngine.Application.dataPath );
+        if ( selectedPath != null && !Directory.Exists ( selectedPath ) ) {
             m_OperationInProgress = false;
             yield break;
         }
@@ -202,7 +240,7 @@ public class FileManagement : MonoBehaviour {
                 playback.mute [ c ] = c != i;
             }
 
-            FileStream file = File.Create ( fbd.SelectedPath + "\\PSG_" + i + ".wav" );
+            FileStream file = File.Create ( selectedPath + "\\PSG_" + i + ".wav" );
             yield return StartCoroutine(SaveWAVRoutine ( file, false ));
             m_OperationInProgress = true;
         }
@@ -211,7 +249,7 @@ public class FileManagement : MonoBehaviour {
             playback.mute [ c ] = false;
         }
 
-        FileStream masterFile = File.Create ( fbd.SelectedPath + "\\PSG_ALL.wav" );
+        FileStream masterFile = File.Create ( selectedPath + "\\PSG_ALL.wav" );
         yield return StartCoroutine(SaveWAVRoutine ( masterFile, true ));
         m_OperationInProgress = false;
     }
@@ -222,23 +260,20 @@ public class FileManagement : MonoBehaviour {
         if ( m_OperationInProgress )
             return;
 
-        SaveFileDialog sfd = new SaveFileDialog();
-        sfd.Filter = "VGZ-file (*.vgz)|*.vgz|VGM-file (*.vgm)|*.vgm";
-
-        if (sfd.ShowDialog() == DialogResult.OK)
+        if ( m_VgmSave.ShowDialog())
         {
-            StartCoroutine ( SaveVGMRoutine ( sfd ) );
+            StartCoroutine ( SaveVGMRoutine ( m_VgmSave ) );
         }
     }
 
-    IEnumerator SaveVGMRoutine(SaveFileDialog sfd) {
+    IEnumerator SaveVGMRoutine(TinyFileDialogs.SaveFileDialog sfd) {
         playback.Stop ( );
         playback.psg.audioSource.enabled = false;
         playback.follow = false;
         data.currentPattern = 0;
         m_OperationInProgress = true;
 
-        bool isCompressed = sfd.FileName.Contains ( ".vgz" );
+        bool isCompressed = sfd.filePath.Contains ( ".vgz" );
         Stream fileStream = isCompressed ? new MemoryStream ( ) : sfd.OpenFile ( );
 
         BinaryWriter bw = new BinaryWriter ( fileStream );
@@ -396,11 +431,8 @@ public class FileManagement : MonoBehaviour {
     }
 
     public bool LoadSample(ref int[] samples, ref int sampleRate) {
-        OpenFileDialog ofd = new OpenFileDialog ( );
-        ofd.Filter = "Wave-file (*.wav)|*.wav";
-
-        if ( ofd.ShowDialog ( ) == DialogResult.OK ) {
-            BinaryReader br = new BinaryReader ( ofd.OpenFile ( ) );
+        if ( m_SampleOpen.ShowDialog ( ) ) {
+            BinaryReader br = new BinaryReader ( m_SampleOpen.OpenFile ( ) );
 
             WaveReader wav = new WaveReader ( br );
 

@@ -1,7 +1,7 @@
 # SnoozeTracker
 Chiptune tracker made with Unity.
 
-Requires System.Windows.Forms.dll from Unity in Plugins folder.
+Requires tiny file dialogs in Plugins folder for appropriate architecture/OS (https://sourceforge.net/projects/tinyfiledialogs/)
 
 Requires Ionic.ZLib in Plugins folder. (http://dotnetzip.codeplex.com/)
 

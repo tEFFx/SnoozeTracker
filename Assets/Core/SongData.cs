@@ -116,6 +116,8 @@ public class SongData : MonoBehaviour {
 
             m_SongData [column].data[row, dataIndex] = value;
             m_SongData[column].modified = true;
+
+            FileManagement.fileModified = true;
         }
     }
 
@@ -168,6 +170,9 @@ public class SongData : MonoBehaviour {
     }
 
     public void ZapSong() {
+        if ( !TinyFileDialogs.MessageBox ( "Nuking song!", "This will erase the entire song. All unsaved progress will be lost!", TinyFileDialogs.DialogType.OKCANCEL, TinyFileDialogs.IconType.WARNING, false ) )
+            return;
+
         UnityEngine.SceneManagement.SceneManager.LoadScene ( 0 );
     }
 
