@@ -8,6 +8,7 @@ public class KeyboardShortcuts : MonoBehaviour {
     public History history;
     public VirtualKeyboard keyboard;
     public SongPlayback playback;
+    public TrackerControls controls;
     public float debounceCooldown;
     public float debounceInterval;
 
@@ -71,7 +72,7 @@ public class KeyboardShortcuts : MonoBehaviour {
             {
                 if (Input.GetKeyDown((KeyCode)i))
                 {
-                    keyboard.currentOctave = i - (int)KeyCode.F1 + 1;
+                    controls.octave.value = i - (int)KeyCode.F1 + 1;
                 }
             }
         }

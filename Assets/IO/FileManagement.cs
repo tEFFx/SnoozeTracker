@@ -6,6 +6,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System;
 using Ionic.Zlib;
 
 public class FileManagement : MonoBehaviour {
@@ -21,6 +22,8 @@ public class FileManagement : MonoBehaviour {
     public InstrumentEditor insEditor;
     public SongPlayback playback;
     public VirtualKeyboard keyboard;
+
+    public Action onFileOpen;
 
     private Thread m_Thread;
     private bool m_OperationInProgress;
@@ -90,6 +93,9 @@ public class FileManagement : MonoBehaviour {
     public void SaveFile(bool saveAs = true) {
         playback.Stop ( );
 
+        if(!saveAs && (m_OpenFile == "" || !File.Exists ( m_OpenFile ) ) )
+            saveAs = true;
+
         if(!saveAs || m_TuneSave.ShowDialog() ) {
             SongFile song = new SongFile ( );
             song.patternLength = data.patternLength;
@@ -158,6 +164,9 @@ public class FileManagement : MonoBehaviour {
 
             m_OpenFile = m_TuneOpen.filePath;
             fileModified = false;
+
+            if ( onFileOpen != null )
+                onFileOpen ( );
         }
     }
 
