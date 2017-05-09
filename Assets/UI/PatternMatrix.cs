@@ -30,7 +30,7 @@ public class PatternMatrix : MonoBehaviour {
             } else {
                 int remove = currCount - data.numPatterns;
                 for ( int i = 0 ; i < remove; i++ ) {
-                    Destroy ( m_PatternRows [ i ].gameObject );
+                    DestroyImmediate ( m_PatternRows [ i ].gameObject );
                 }
                 m_PatternRows.RemoveRange ( 0, remove );
             }
@@ -38,12 +38,12 @@ public class PatternMatrix : MonoBehaviour {
             UpdateMatrix ( );
         }
 
-        if(m_CurrentPattern != data.currentPattern ) {
+        if(m_CurrentPattern != data.currentPattern || selection == null ) {
             SetSelectedRow ( m_PatternRows [ data.currentPattern ] );
             m_CurrentPattern = data.currentPattern;
         }
 
-        if ( playback.isPlaying ) {
+        if ( playback.isPlaying && selection != null ) {
             scrollRect.content.localPosition = -selection.transform.localPosition - Vector3.up * 150; //offset 8 rows * 20 - half row (10)
         }
     }
