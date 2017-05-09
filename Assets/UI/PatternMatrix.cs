@@ -42,10 +42,6 @@ public class PatternMatrix : MonoBehaviour {
             SetSelectedRow ( m_PatternRows [ data.currentPattern ] );
             m_CurrentPattern = data.currentPattern;
         }
-
-        if ( playback.isPlaying && selection != null ) {
-            scrollRect.content.localPosition = -selection.transform.localPosition - Vector3.up * 150; //offset 8 rows * 20 - half row (10)
-        }
     }
 
     public void UpdateMatrix() {
@@ -61,6 +57,10 @@ public class PatternMatrix : MonoBehaviour {
         if(select != null ) {
             select.SetSelected ( true );
             selection = select;
+        }
+
+        if ( playback.isPlaying && selection != null ) {
+            scrollRect.content.localPosition = -selection.transform.localPosition - Vector3.up * 150; //offset 8 rows * 20 - half row (10)
         }
     }
 }
