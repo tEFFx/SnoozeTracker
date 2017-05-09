@@ -122,6 +122,7 @@ public class SongData : MonoBehaviour {
     }
 
     public PatternView patternView;
+    public PatternMatrix patternMatrix;
     public int channels;
     public int currentPattern;
 
@@ -144,6 +145,9 @@ public class SongData : MonoBehaviour {
     }
 
     public void OptimizeSong() {
+        if ( !TinyFileDialogs.MessageBox ( "Optimizing song", "This will erase any unused patterns! Are you sure?", TinyFileDialogs.DialogType.YESNO, TinyFileDialogs.IconType.WARNING, false ) )
+            return;
+
         Dictionary<int, int> sortedIndicies = new Dictionary<int, int> ( );
         List<ColumnEntry> sortedData = new List<ColumnEntry> ( );
         foreach(int[] row in m_LookupTable ) {
@@ -261,6 +265,7 @@ public class SongData : MonoBehaviour {
         m_TransposeTable [ currentPattern ] = temp;
 
         currentPattern += dir;
+        patternMatrix.UpdateMatrix ( );
     }
 
     public void CopyPatternLine() {

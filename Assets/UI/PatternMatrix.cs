@@ -1,100 +1,66 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class PatternMatrix : MonoBehaviour {
-    public SongData data;
-    public PatternView view;
-    public SongPlayback playback;
-    public Vector2 padding;
-    public Vector2 size;
-    public Vector2 buttonSize;
-    public Color selectedColor;
-    public Color neutralColor;
-    public GUISkin skin;
+    [HideInInspector]
+    public PatternRow selection;
 
-    private bool m_Inputting;
-    private Vector2 m_Scroll;
+    public GameObject rowPrefab;
+    public SongData data;
+    public SongPlayback playback;
+    public ScrollRect scrollRect;
+
+    private List<PatternRow> m_PatternRows = new List<PatternRow>();
+    private int m_CurrentPattern = -1;
 
     void Update() {
+        int currCount = m_PatternRows.Count;
+        if(currCount != data.numPatterns ) {
+            if(currCount < data.numPatterns ) {
+                for ( int i = 0 ; i < data.numPatterns - currCount ; i++ ) {
+                    GameObject createdRow = ( GameObject ) Instantiate ( rowPrefab, transform );
+                    PatternRow row = createdRow.GetComponent<PatternRow> ( );
+                    row.data = data;
+                    row.matrix = this;
+                    row.UpdateButtons ( );
+                    m_PatternRows.Add ( row );
+                }
+            } else {
+                int remove = currCount - data.numPatterns;
+                for ( int i = 0 ; i < remove; i++ ) {
+                    Destroy ( m_PatternRows [ i ].gameObject );
+                }
+                m_PatternRows.RemoveRange ( 0, remove );
+            }
+
+            UpdateMatrix ( );
+        }
+
+        if(m_CurrentPattern != data.currentPattern ) {
+            SetSelectedRow ( m_PatternRows [ data.currentPattern ] );
+            m_CurrentPattern = data.currentPattern;
+        }
+
         if ( playback.isPlaying ) {
-            m_Scroll.y = Mathf.Max(0, data.currentPattern * (buttonSize.y + 8) - size.y + buttonSize.y * 2);
+            scrollRect.content.localPosition = -selection.transform.localPosition - Vector3.up * 150; //offset 8 rows * 20 - half row (10)
         }
     }
 
-	void OnGUI()
-    {
-        if(skin != null)
-            GUI.skin = skin;
-
-        Rect rect = new Rect(new Vector2(padding.x, padding.y), size);
-
-        GUILayout.BeginArea(rect);
-        GUILayout.BeginHorizontal ( );
-        GUILayout.BeginVertical ( GUILayout.Width(24) );
-        if ( GUILayout.Button ( "▲" ) )
-            data.MovePattern ( -1 );
-        if ( GUILayout.Button ( "▼" ) )
-            data.MovePattern ( 1 );
-        if ( GUILayout.Button ( "+" ) )
-            data.AddPatternLine ( );
-        if ( GUILayout.Button ( "-" ) )
-            data.DeletePatternLine ( );
-        if ( GUILayout.Button ( "=" ) )
-            data.CopyPatternLine ( );
-        GUILayout.EndVertical ( );
-
-        Vector2 scroll = GUILayout.BeginScrollView ( m_Scroll, false, true );
-        if ( !playback.isPlaying )
-            m_Scroll = scroll;
-
-        for (int i = 0; i < data.lookupTable.Count; i++)
-        {
-            GUILayout.BeginHorizontal();
-            GUI.color = Color.blue;
-            GUI.color = data.currentPattern == i ? selectedColor : neutralColor;
-            for (int j = 0; j < data.channels; j++)
-            {
-                bool ctrlDown = Input.GetKey(KeyCode.LeftControl);
-                int tableVal = ctrlDown ? data.transposeTable [ i ] [ j ] : data.lookupTable [ i ] [ j ];
-                string label = tableVal >= 0 ? tableVal.ToString ( "X2" ) : "X";
-                if (ctrlDown)
-                    label = tableVal.ToString();
-                if (GUILayout.Button(label, GUILayout.Width(buttonSize.x), GUILayout.Height(buttonSize.y)) && !playback.isPlaying)
-                {
-                    if( data.currentPattern == i)
-                    {
-                        if (ctrlDown) {
-                            if ( Input.GetMouseButtonUp ( 0 ) )
-                                data.transposeTable [ i ] [ j ]++;
-                            else
-                                data.transposeTable [ i ] [ j ]--;
-                        } else {
-                            int inc = 1;
-
-                            if(Input.GetKey ( KeyCode.LeftShift ))
-                                inc = 16;
-
-                            if ( Input.GetMouseButtonUp ( 0 ) )
-                                data.IncrementLookup ( i, j, inc );
-                            else
-                                data.IncrementLookup ( i, j, -inc );
-                        }
-                    }
-                    else
-                    {
-                        data.currentPattern = i;
-                    }
-                }
-            }
-            GUILayout.EndHorizontal();
+    public void UpdateMatrix() {
+        for ( int i = 0 ; i < m_PatternRows.Count ; i++ ) {
+            m_PatternRows [ i ].UpdateButtons ( );
         }
+    }
+	
+	public void SetSelectedRow(PatternRow select) {
+        if ( selection != null )
+            selection.SetSelected ( false );
 
-        GUILayout.EndHorizontal();
-        GUILayout.EndScrollView ( );
-        GUI.color = Color.white;
-        if(GUILayout.Button ( "Optimize", GUILayout.Height( buttonSize.y )) ) {
-            data.OptimizeSong ( );
+        if(select != null ) {
+            select.SetSelected ( true );
+            selection = select;
         }
-        GUILayout.EndArea();
     }
 }
