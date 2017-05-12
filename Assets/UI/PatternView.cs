@@ -1,296 +1,184 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class PatternView : MonoBehaviour {
-    public int lineOffset { get { return data.channels * SongData.SONG_DATA_COUNT; } }
-    public int length { get { return data.channels * data.patternLength * SongData.SONG_DATA_COUNT; } }
-    public int currentLine { get { return (m_Selection / lineOffset); } }
-    public int selection { get { return m_Selection; } }
-    public int selectedChannel { get { return GetChannelSelection(m_Selection); } }
-    public int selectedAttribute { get { return m_Selection % SongData.SONG_DATA_COUNT; } }
-    public bool multipleSelection { get { return m_DragSelectStart != m_DragSelectEnd; } }
-    public int dragSelectStart { get { return m_DragSelectStart; } }
-    public int dragSelectOffset { get { return m_DragSelectEnd - m_DragSelectStart; } }
+    public int selectedLine {
+        get { return m_CurrentLine; }
+        set {
+            SetSelection ( value );
+        }
+    }
+    public int selectedChannel { get { return m_CurrentChannel; } }
+    public int selectedDataColumn { get { return m_CurrentColumn; } }
 
+    public Transform[] channels;
+    public Transform lineNumbers;
+    public GameObject lineNumberPrefab;
+    public GameObject patternRowPrefab;
     public SongData data;
-    public SongPlayback playback;
-    public VirtualKeyboard keyboard;
     public Instruments instruments;
-    public float[] lineWidths;
+    public Image selection;
     public float lineHeight;
-    public float channelSpacing;
-    public Vector2 padding;
-    public Color recordColor;
-    public Color lineColor;
-    public Color multipleSelectColor;
-    public Color neutralColor;
-    public Color lineHighlightColor;
-    public Color effectColor;
-    public Gradient transposeGradient;
-    public Gradient volumeGradient;
-    public Gradient instrumentGradient;
-    public GUISkin skin;
+    public Color selectionRecording;
+    public Color selectionNormal;
 
-    private int m_Selection;
-    private int m_LastSelection;
-    private int m_InputSelection;
-    private string m_Input = "";
-    private char m_LastChar;
 
-    private bool m_Dragging;
-    private int m_DragSelectStart;
-    private int m_DragSelectEnd;
-    private Vector2 m_Scroll = new Vector2();
+    [HideInInspector]
+    public bool recording;
 
-    private Texture2D m_VolBox;
+    private int m_CurrentLength;
+    private int m_CurrentLine;
+    private int m_CurrentChannel;
+    private int m_CurrentColumn;
 
-    void Start()
-    {
-        m_VolBox = new Texture2D(1, 1);
-        m_VolBox.SetPixel(0, 0, Color.green);
-        m_VolBox.Apply();
-    }
+    private List<Text> m_LineNumbers = new List<Text>();
+    private List<PatternRow>[] m_PatternRows;
 
-    void Update()
-    {
-        if (keyboard.recording) {
-            int maxLen = lineWidths[selectedAttribute % lineOffset] < 1 ? 1 : 2;
-            if (m_Input.Length >= maxLen || m_Selection != m_InputSelection)
-                m_Input = "";
-
-            if (selectedAttribute != 0 && Input.inputString.Length > 0 && m_LastChar != Input.inputString[0])
-            {
-                m_InputSelection = m_Selection;
-                m_LastChar = Input.inputString[0];
-                m_Input += m_LastChar;
-
-                int res;
-                if (int.TryParse(m_Input, System.Globalization.NumberStyles.HexNumber, null, out res))
-                {
-                    data[selection] = (byte)res;
-                }
-
-                if (m_Input.Length >= maxLen)
-                    MoveLine(1);
-
-            }
-            else if (Input.inputString.Length == 0 && m_LastChar != 0)
-            {
-                m_LastChar = (char)0;
-            }
-
-            if (Input.GetKeyDown(KeyCode.Return))
-                m_Input = "";
-        }
-
-        if ( playback.isPlaying ) {
-            m_Scroll.y = currentLine * lineHeight - (Screen.height - padding.y) * 0.5f;
+    void Awake() {
+        m_PatternRows = new List<PatternRow> [ channels.Length ];
+        for ( int i = 0 ; i < channels.Length ; i++ ) {
+            m_PatternRows [ i ] = new List<PatternRow> ( );
         }
     }
 
-	void OnGUI()
-    {
-        GUI.skin = skin;
+	// Use this for initialization
+	void Start () {
+        UpdatePatternView ( );
+        SetSelection ( 0, 0 );
+	}
+	
+	// Update is called once per frame
+	void Update () {
+        UpdatePatternView ( );
 
-        Vector2 pos = padding;
-        Vector2 size = new Vector2 ( 32, lineHeight );
-        float chnlWidth = 0;
-        for ( int i = 0 ; i < lineWidths.Length ; i++ ) {
-            chnlWidth += lineWidths [ i ] * size.x;
+        if ( Input.GetKeyDown ( KeyCode.Space ) ) {
+            selection.color = recording ? selectionRecording : selectionNormal;
+            recording = !recording;
         }
-
-        pos.x += size.x;
-        for ( int i = 0 ; i < data.channels; i++ ) {
-            string buttonText = "PSG" + i;
-            if ( playback.mute [ i ] )
-                buttonText += "(muted)";
-            Rect buttonRect = new Rect(pos, new Vector2(chnlWidth, size.y));
-            Rect attnRect = buttonRect;
-
-            attnRect.width = attnRect.width * ((playback.chnAttn[i] / 16f));
-            attnRect.x += (buttonRect.width - attnRect.width) * 0.5f * 0.95f;
-
-            GUI.DrawTexture(attnRect, m_VolBox);
-
-            if (GUI.Button(buttonRect, buttonText))
-                playback.mute[i] = !playback.mute[i];
-            pos.x += chnlWidth + channelSpacing;
-        }
-
-        Rect scrollRect = new Rect ( padding.x, pos.y + size.y, Screen.width, Screen.height - padding.y );
-        Rect viewRect = new Rect ( 0, 0, data.channels * chnlWidth + size.x,  (playback.isPlaying ? scrollRect.height : ( data.patternLength * size.y + size.y ) ) );
-        Vector2 scroll = GUI.BeginScrollView (scrollRect, m_Scroll, viewRect );
-        if ( !playback.isPlaying )
-            m_Scroll = scroll;
-
-        Rect clipRect = new Rect ( m_Scroll.x, ( !playback.isPlaying ? m_Scroll.y : 0 ), Screen.width, (!playback.isPlaying ? scrollRect.height : viewRect.height));
-        pos.y = (playback.isPlaying ? -size.y * 2 - (currentLine * size.y - scrollRect.height / 2) : -size.y );
-        for ( int i = 0; i < length; i++)
-        {
-            int lineNr = i / lineOffset;
-
-            if (i % lineOffset == 0)
-            {
-                pos.y += size.y;
-                pos.x = padding.x;
-                GUI.backgroundColor = Color.white;
-                GUI.Box(new Rect(pos, size), lineNr.ToString("X2"));
-                pos.x += size.x;
-            }
-
-
-            Color sel = keyboard.recording ? recordColor : lineColor;
-            Color line = sel;
-            line.a = 0.5f;
-
-            Color bg = lineNr % 8 == 0 ? lineHighlightColor : neutralColor;
-            bg = IsInSelection ( i ) && m_DragSelectStart != m_DragSelectEnd ? multipleSelectColor : bg;
-            bg = lineNr == currentLine ? line : bg;
-            bg = i == m_Selection ? sel : bg;
-            GUI.backgroundColor = bg;
-
-            int wId = i % SongData.SONG_DATA_COUNT;
-            string text = "-";
-
-            if ( data [ i ] >= 0 ) {
-                switch ( wId ) {
-                    case 0:
-                        text = VirtualKeyboard.FormatNote ( data [ i ] );
-
-                        int off = data.GetTransposeOffset ( i );
-                        off = Mathf.Clamp ( ( off + 12 ) / 2, 0, 12 );
-
-                        GUI.contentColor = transposeGradient.Evaluate ( off / 12f );
-                        break;
-                    case 1:
-                        if ( data [ i ] != -1 )
-                            GUI.contentColor = instrumentGradient.Evaluate ( data [ i ] < instruments.presets.Count ? 1 : 0 );
-                        text = data [ i ].ToString ( "X2" );
-                        break;
-                    case 2:
-                        if ( data [ i ] != -1 )
-                            GUI.contentColor = volumeGradient.Evaluate ( data [ i ] / 15.0f );
-                        text = data [ i ].ToString ( "X" );
-                        break;
-                    case 3:
-                        if ( data [ i ] != -1 )
-                            GUI.contentColor = effectColor;
-                        text = data [ i ].ToString ( "X2" );
-                        break;
-                    case 4:
-                        if ( data [ i ] != -1 )
-                            GUI.contentColor = effectColor;
-                        text = data [ i ].ToString ( "X2" );
-                        break;
-                }
-            }else if(data[i] == -2 ) {
-                text = "-";
-                GUI.enabled = false;
-            }
-
-            Rect buttonRect = new Rect ( pos, new Vector2 ( size.x * lineWidths [ wId ], size.y ) );
-            if ( !buttonRect.Overlaps ( clipRect ) ) {
-                continue;
-            }
-
-            GUI.Button(buttonRect, text);
-            GUI.contentColor = Color.white;
-
-            GUI.enabled = true;
-
-            pos.x += size.x * lineWidths [ wId ];
-            if ( wId == 4 )
-                pos.x += channelSpacing;
-
-            if ( !playback.isPlaying ) {
-                if ( Input.GetMouseButtonDown ( 0 ) ) {
-                    Vector2 mPos = Event.current.mousePosition;
-                    if ( buttonRect.Contains ( mPos )) {
-                        m_LastSelection = m_Selection;
-                        m_Selection = i;
-                        m_DragSelectStart = m_DragSelectEnd = i;
-                        m_Dragging = true;
-                    }
-                }
-
-                if ( m_Dragging ) {
-                    Vector2 mPos = Event.current.mousePosition;
-                    if ( buttonRect.Contains ( mPos ) ) {
-                        m_DragSelectEnd = i;
-                    }
-                }
-
-                if ( Input.GetMouseButtonUp ( 0 ) ) {
-                    m_Dragging = false;
-                }
-            }
-        }
-
-        GUI.EndScrollView ( );
     }
 
-    public int GetChannelSelection(int i)
-    {
-        return (int)Math.Floor((double)i / (double)SongData.SONG_DATA_COUNT) % data.channels;
-    }
+    private void UpdatePatternView() {
+        if ( m_CurrentLength == data.patternLength )
+            return;
 
-    public bool IsInSelection(int i) {
-        if ( m_DragSelectStart == m_DragSelectEnd )
-            return false;
+        if ( m_CurrentLength < data.patternLength ) {
+            for ( int i = 0 ; i < data.patternLength - m_CurrentLength; i++ ) {
+                GameObject lineNum = Instantiate ( lineNumberPrefab, lineNumbers );
+                m_LineNumbers.Add ( lineNum.GetComponentInChildren<Text> ( ) );
 
-        bool res = false;
-
-        int startCol = m_DragSelectStart % lineOffset;
-        int endCol = m_DragSelectEnd % lineOffset;
-        int iCol = i % lineOffset;
-
-        if ( startCol < endCol ) {
-            res = iCol >= startCol && iCol <= endCol;
+                for ( int p = 0 ; p < channels.Length ; p++ ) {
+                    GameObject rowObj = Instantiate ( patternRowPrefab, channels [ p ] );
+                    PatternRow row = rowObj.GetComponent<PatternRow> ( );
+                    row.view = this;
+                    row.col = p;
+                    row.UpdateData ( );
+                    m_PatternRows[p].Add ( row );
+                }
+            }
         } else {
-            res = iCol >= endCol && iCol <= startCol;
+            int removeCount = m_CurrentLength - data.patternLength;
+            for ( int i = 0 ; i < removeCount ; i++ ) {
+                Destroy ( m_LineNumbers [ i ] );
+            }
+
+            m_LineNumbers.RemoveRange ( 0, removeCount );
+
+            removeCount *= channels.Length;
+            for ( int i = 0 ; i < channels.Length ; i++ ) {
+                for ( int p = 0 ; p < removeCount ; p++ ) {
+                    Destroy ( m_PatternRows [ i ] [ p ] );
+                }
+
+                m_PatternRows[i].RemoveRange ( 0, removeCount );
+            }
+
+            UpdatePatternData ( );
         }
 
-        int startRow = m_DragSelectStart / lineOffset;
-        int endRow = m_DragSelectEnd / lineOffset;
-        int iRow = i / lineOffset;
+        UpdateLineNumbers ( );
+        m_CurrentLength = data.patternLength;
+    }
 
-        if ( startRow < endRow ) {
-            res &= iRow >= startRow && iRow <= endRow;
-        } else {
-            res &= iRow >= endRow && iRow <= startRow;
+    public void UpdatePatternData() {
+        Debug.Log ( "Updating data" );
+        for ( int i = 0 ; i < data.patternLength ; i++ ) {
+            m_PatternRows [ 0 ] [ i ].UpdateData ( );
+            m_PatternRows [ 1 ] [ i ].UpdateData ( );
+            m_PatternRows [ 2 ] [ i ].UpdateData ( );
+            m_PatternRows [ 3 ] [ i ].UpdateData ( );
+        }
+    }
+    
+    public void UpdateSelection() {
+        UpdateSingleRow ( m_CurrentChannel, m_CurrentLine );
+    }
+
+    public void UpdateSingleRow(int channel, int line) {
+        m_PatternRows [ channel ] [ line ].UpdateData ( );
+    }
+
+    public void SetDataAtSelection(int data, int colOffset = 0) {
+        this.data.SetData ( m_CurrentChannel, m_CurrentLine, m_CurrentColumn + colOffset, data );
+        UpdateSelection ( );
+    }
+
+    private void UpdateLineNumbers() {
+        for ( int i = 0 ; i < m_LineNumbers.Count ; i++ ) {
+            m_LineNumbers [ i ].text = i.ToString ( "X2" );
+        }
+    }
+
+    public void MoveVertical(int increment) {
+        int line = m_CurrentLine + increment;
+
+        if ( line > data.patternLength )
+            line = 0;
+        else if(line < 0)
+            line = data.patternLength - 1;
+
+        SetSelection ( line );
+    }
+
+    public void MoveHorizontal(int increment) {
+        int column = m_CurrentColumn + increment;
+        int channel = m_CurrentChannel;
+
+        if ( column >= PatternRow.numDataEntries ) {
+            column = 0;
+            channel++;
+        } else if ( column < 0 ) {
+            column = PatternRow.numDataEntries - 1;
+            channel--;
         }
 
-        return res;
-            // && i % lineOffset >= m_DragSelectEnd % lineOffset && i % lineOffset <= m_DragSelectStart % lineOffset );
-        //&& i % lineOffset >= m_DragSelectStart % lineOffset && i % lineOffset <= m_DragSelectEnd % lineOffset )
+        if ( channel >= channels.Length ) {
+            channel = 0;
+        } else if ( channel < 0 ) {
+            channel = channels.Length - 1;
+        }
+
+        SetSelection ( m_CurrentLine, channel, column );
     }
 
-    public void SetDragSelection(int _pos, int _offset)
-    {
-        m_DragSelectStart = _pos;
-        m_DragSelectEnd = _pos + _offset;
-    }
+    public void SetSelection(int line, int channel = -1, int column = -1) {
+        if ( line >= data.patternLength )
+            line = 0;
 
-    public void MoveLine(int lines = 1)
-    {
-        m_LastSelection = m_Selection;
-        m_Selection += lines * lineOffset;
+        m_PatternRows [ m_CurrentChannel ] [ m_CurrentLine ].Deselect ( );
 
-        if (m_Selection >= length)
-            m_Selection = m_Selection - length;
-        if (m_Selection < 0)
-            m_Selection = m_Selection + length;
+        Vector2 selPos = selection.rectTransform.anchoredPosition;
+        selPos.y = -lineHeight * line;
+        selection.rectTransform.anchoredPosition = selPos;
+        m_CurrentLine = line;
 
-        //Debug.Log(m_Selection);
-    }
+        if(channel >= 0 ) {
+            m_CurrentChannel = channel;
+            if ( column >= 0 )
+                m_CurrentColumn = column;
+        }
 
-    public void MoveColumn(int cols = 1)
-    {
-        if(cols < 0)
-            m_Selection += (m_Selection % lineOffset == 0) ? lineOffset - 1 : -1;
-        else
-            m_Selection += (m_Selection % lineOffset == lineOffset - 1) ? -lineOffset + 1 : 1;
+        m_PatternRows [ m_CurrentChannel ] [ m_CurrentLine ].Select ( m_CurrentColumn );
     }
 }

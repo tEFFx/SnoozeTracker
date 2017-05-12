@@ -4,76 +4,89 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class PatternRow : MonoBehaviour {
+    public static int numDataEntries;
+
     public int row { get { return transform.GetSiblingIndex ( ); } }
+    public int channel { get { return transform.parent.GetSiblingIndex ( ); } }
+    public int col;
+    public PatternView view;
+    public Color selectColor;
+    public Color normalColor;
+    public Color effectColor;
+    public Color validInstrument;
+    public Color invalidInstrument;
+    public Gradient transposeGradient;
+    public Gradient volumeGradient;
 
-    public PatternMatrix matrix;
-    public SongData data;
-    public Color selectionColor;
-    public Color neutralColor;
+    [System.NonSerialized]
+    public Button[] dataEntries;
 
-    private MatrixButton[] m_Buttons;
+    private int m_SelectedEntry;
     private bool m_Selected;
 
-	void Awake () {
-        m_Buttons = GetComponentsInChildren<MatrixButton> ( );
-
-        for ( int i = 0 ; i < m_Buttons.Length ; i++ ) {
-            int buttonIndex = i;
-            m_Buttons [ i ].onClick = (int mouseButton) => { Debug.Log ( "HELLO" ); ButtonClick ( mouseButton, buttonIndex ); };
-        }
-	}
-
-    void Update() {
-        if ( Input.GetKeyDown ( KeyCode.LeftControl ) || Input.GetKeyUp ( KeyCode.LeftControl ) )
-            UpdateButtons ( );            
+    void Awake() {
+        dataEntries = GetComponentsInChildren<Button> ( );
+        numDataEntries = dataEntries.Length;
     }
 
-    public void SetSelected(bool selected) {
-        for ( int i = 0 ; i < m_Buttons.Length ; i++ ) {
-            m_Buttons [ i ].image.color = selected ? selectionColor : neutralColor;
+    void Start() {
+        for ( int i = 0 ; i < dataEntries.Length ; i++ ) {
+            int index = i;
+            dataEntries [ i ].onClick.AddListener ( () => { view.SetSelection ( row, col, index ); } );
         }
-
-        m_Selected = selected;
     }
 
-    private void ButtonClick(int button, int index) {
-        Debug.Log ( "Click on row " + row + ", col " + index );
-        if( m_Selected ) {
-            if ( Input.GetKey ( KeyCode.LeftControl ) ) {
-                if ( button == 0 )
-                    data.transposeTable [ row ] [ index ]++;
-                else if(button == 1)
-                    data.transposeTable [ row ] [ index ]--;
-            } else {
-                int inc = 1;
+    public void Select(int button) {
+        m_Selected = true;
+        m_SelectedEntry = button;
+        dataEntries [ button ].image.color = selectColor;
+    }
 
-                if ( Input.GetKey ( KeyCode.LeftShift ) )
-                    inc = 16;
+    public void Deselect() {
+        m_Selected = false;
+        dataEntries [ m_SelectedEntry ].image.color = normalColor;
+    }
 
-                if ( button == 0 )
-                    data.IncrementLookup ( row, index, inc );
-                else if(button == 1)
-                    data.IncrementLookup ( row, index, -inc );
+    public void UpdateData() {
+        var colEntry = view.data.GetPatternColumn ( view.data.currentPattern, col );
+        for ( int i = 0 ; i < dataEntries.Length ; i++ ) {
+            Text label = dataEntries [ i ].GetComponentInChildren<Text> ( );
+            if (colEntry == null ) {
+                label.text = "-";
+                label.color = Color.white;
+                continue;
+            }
+            int val = colEntry.data [ row, i ];
+            if ( val < 0 ) {
+                label.text = "-";
+                label.color = Color.white;
+                continue;
             }
 
-            UpdateButton ( index );
-        } else {
-            data.currentPattern = row;
-        }
-    }
+            string text = System.String.Empty;
+            Color color = Color.white;
+            switch ( i ) {
+                case 0:
+                    //implement transpose gradient here
+                    text = VirtualKeyboard.FormatNote ( val );
+                    break;
+                case 1:
+                    color = val < view.instruments.presets.Count ? validInstrument : invalidInstrument;
+                    text = val.ToString ( "X2" );
+                    break;
+                case 2:
+                    color = volumeGradient.Evaluate ( val / 15f );
+                    text = val.ToString ( "X" );
+                    break;
+                case 3:
+                case 4:
+                    color = effectColor;
+                    text = val.ToString ( "X2" );
+                    break;
+            }
 
-    public void UpdateButton(int index) {
-        bool ctrlDown = Input.GetKey ( KeyCode.LeftControl );
-        int tableVal = ctrlDown ? data.transposeTable [ row ] [ index ] : data.lookupTable [ row ] [ index ];
-        string label = tableVal >= 0 ? tableVal.ToString ( "X2" ) : "X";
-        if ( ctrlDown )
-            label = tableVal.ToString ( );
-        m_Buttons [ index ].GetComponentInChildren<Text> ( ).text = label;
-    }
-
-    public void UpdateButtons() {
-        for ( int i = 0 ; i < m_Buttons.Length ; i++ ) {
-            UpdateButton ( i );
+            label.color = color;
+            label.text = text;
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections;
 
 public class PatternMatrixLegacy : MonoBehaviour {
     public SongData data;
-    public PatternView view;
+    public PatternViewLegacy view;
     public SongPlayback playback;
     public Vector2 padding;
     public Vector2 size;

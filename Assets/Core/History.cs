@@ -30,7 +30,7 @@ public class History : MonoBehaviour {
     }
 
     public SongData data;
-    public PatternView view;
+    public PatternViewLegacy view;
 
     private FiniteStack<HistoryEvent> m_History = new FiniteStack<HistoryEvent>(64);
 

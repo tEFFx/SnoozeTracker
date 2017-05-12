@@ -47,7 +47,6 @@ public class VirtualKeyboard : MonoBehaviour {
     public int currentInstrument;
     public int patternAdd = 1;
     public NoteKey[] noteBinds;
-    public bool recording;
 
     private int m_CurrentOctave = 3;
 
@@ -62,12 +61,7 @@ public class VirtualKeyboard : MonoBehaviour {
 
     void Update()
     {
-        if ( Input.GetKeyDown ( KeyCode.Space ) ) {
-            recording = !recording;
-        }
-
-        int sel = patternView.selection;
-        if (sel % SongData.SONG_DATA_COUNT != 0)
+        if (patternView.selectedDataColumn != 0)
             return;
 
         if (!Input.GetKey(KeyCode.LeftControl))
@@ -92,8 +86,7 @@ public class VirtualKeyboard : MonoBehaviour {
     }
 
     public void SetNoteOff(Note note, int octave) {
-        int sel = patternView.selection;
-        if ( sel % SongData.SONG_DATA_COUNT != 0 )
+        if ( patternView.selectedDataColumn != 0 )
             return;
 
         if ( playback.isPlaying ) {
@@ -109,21 +102,20 @@ public class VirtualKeyboard : MonoBehaviour {
     }
 
     public void SetNoteOn(Note note, int octave, int velocity = 0xF) {
-        int sel = patternView.selection;
-        if ( sel % SongData.SONG_DATA_COUNT != 0 )
+        if ( patternView.selectedDataColumn != 0 )
             return;
 
-        if ( recording ) {
+        if ( patternView.recording ) {
             byte noteData = EncodeNoteInfo ( ( int ) note, octave );
             history.AddHistoryEntry ( patternView.selectedChannel );
 
-            patternView.data [ sel ] = noteData;
+            patternView.SetDataAtSelection ( noteData );
             if(note != Note.NoteOff)
-                patternView.data [ sel + 1 ] = ( byte ) currentInstrument;
-            if(velocity != 0xF)
-                patternView.data [ sel + 2 ] = velocity;
+                patternView.SetDataAtSelection( ( byte ) currentInstrument, 1);
+            if ( velocity != 0xF )
+                patternView.SetDataAtSelection ( (byte)velocity, 2 );
             if(!playback.isPlaying)
-                patternView.MoveLine ( patternAdd );
+                patternView.MoveVertical ( patternAdd );
         }
 
         if ( playback.isPlaying )

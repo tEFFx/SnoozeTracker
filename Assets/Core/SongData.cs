@@ -91,37 +91,34 @@ public class SongData : MonoBehaviour {
             }
         }
     }
-    public ColumnEntry currentColumn { get { return GetCurrentLine ( currentPattern, patternView.selectedChannel ); } }
+    public ColumnEntry currentColumn { get { return GetPatternColumn ( currentPattern, patternView.selectedChannel ); } }
 
 
-    public int this[int i]
-    {
-        get
-        {
+    public int this [ int i ] {
+        get {
             int column, row, dataIndex;
-            GetIndexOffset(i, out column, out row, out dataIndex);
+            GetIndexOffset ( i, out column, out row, out dataIndex );
             if ( column < 0 )
                 return -2;
 
             //Debug.Log("i=" +i + " col=" + column + " row=" + row);
-            return m_SongData[column].data[row, dataIndex];
+            return m_SongData [ column ].data [ row, dataIndex ];
         }
 
-        set
-        {
+        set {
             int column, row, dataIndex;
-            GetIndexOffset(i, out column, out row, out dataIndex);
+            GetIndexOffset ( i, out column, out row, out dataIndex );
             if ( column < 0 )
                 return;
 
-            m_SongData [column].data[row, dataIndex] = value;
-            m_SongData[column].modified = true;
+            m_SongData [ column ].data [ row, dataIndex ] = value;
+            m_SongData [ column ].modified = true;
 
             FileManagement.fileModified = true;
         }
     }
 
-    public PatternView patternView;
+    public PatternViewLegacy patternView;
     public PatternMatrix patternMatrix;
     public int channels;
     public int currentPattern;
@@ -203,12 +200,20 @@ public class SongData : MonoBehaviour {
         m_PatternLength = len;
     }
 
-    public ColumnEntry GetCurrentLine(int pattern, int col)
+    public ColumnEntry GetPatternColumn(int pattern, int col)
     {
         if ( m_LookupTable [ pattern ] [ col ] < 0 )
             return null;
 
         return m_SongData[m_LookupTable[pattern][col]];
+    }
+
+    public void SetData(int channel, int row, int column, int data) {
+        SetData ( currentPattern, channel, row, column, data );
+    }
+
+    public void SetData(int pattern, int channel, int row, int column, int data) {
+        m_SongData [ m_LookupTable [ pattern ] [ channel ] ].data [ row, column ] = data;
     }
 
     public void IncrementLookup(int row, int col, int inc = 1)

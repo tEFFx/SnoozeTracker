@@ -62,8 +62,8 @@ public class SongPlayback : MonoBehaviour {
         if(follow && m_IsPlaying && Time.time - m_LastLineTick > 1f / 50f) {
             while ( m_MoveLine > 0 ) {
                 m_MoveLine--;
-                view.MoveLine ( 1 );
-                if ( view.currentLine == 0 ) {
+                view.selectedLine++;
+                if ( view.selectedLine == 0 ) {
                     data.currentPattern++;
                     if ( data.currentPattern >= data.numPatterns )
                         data.currentPattern = m_PatternLoop;
@@ -111,7 +111,7 @@ public class SongPlayback : MonoBehaviour {
                 }
 
                 m_PlayingPattern = m_CurrentPattern;
-                SongData.ColumnEntry col = data.GetCurrentLine(m_CurrentPattern, i);
+                SongData.ColumnEntry col = data.GetPatternColumn(m_CurrentPattern, i);
 
                 if ( col == null ) {
                     //m_Instruments [ i ].note = VirtualKeyboard.Note.NoteOff;
@@ -270,7 +270,7 @@ public class SongPlayback : MonoBehaviour {
         m_CurrentPattern = data.currentPattern;
         m_CurrentLine = 0;
         m_Counter = 10000;
-        view.MoveLine ( -view.currentLine );
+        view.SetSelection(0);
         m_LastLineTick = Time.time;
         m_IsPlaying = true;
         m_IsStopping = false;

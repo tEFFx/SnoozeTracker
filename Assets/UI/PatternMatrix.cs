@@ -5,14 +5,15 @@ using UnityEngine.UI;
 
 public class PatternMatrix : MonoBehaviour {
     [HideInInspector]
-    public PatternRow selection;
+    public MatrixRow selection;
 
     public GameObject rowPrefab;
     public SongData data;
     public SongPlayback playback;
     public ScrollRect scrollRect;
+    public PatternView patternView;
 
-    private List<PatternRow> m_PatternRows = new List<PatternRow>();
+    private List<MatrixRow> m_PatternRows = new List<MatrixRow>();
     private int m_CurrentPattern = -1;
 
     void Update() {
@@ -21,7 +22,7 @@ public class PatternMatrix : MonoBehaviour {
             if(currCount < data.numPatterns ) {
                 for ( int i = 0 ; i < data.numPatterns - currCount ; i++ ) {
                     GameObject createdRow = ( GameObject ) Instantiate ( rowPrefab, transform );
-                    PatternRow row = createdRow.GetComponent<PatternRow> ( );
+                    MatrixRow row = createdRow.GetComponent<MatrixRow> ( );
                     row.data = data;
                     row.matrix = this;
                     row.UpdateButtons ( );
@@ -50,7 +51,7 @@ public class PatternMatrix : MonoBehaviour {
         }
     }
 	
-	public void SetSelectedRow(PatternRow select) {
+	public void SetSelectedRow(MatrixRow select) {
         if ( selection != null )
             selection.SetSelected ( false );
 
@@ -62,5 +63,7 @@ public class PatternMatrix : MonoBehaviour {
         if ( playback.isPlaying && selection != null ) {
             scrollRect.content.localPosition = -selection.transform.localPosition - Vector3.up * 150; //offset 8 rows * 20 - half row (10)
         }
+
+        patternView.UpdatePatternData ( );
     }
 }
