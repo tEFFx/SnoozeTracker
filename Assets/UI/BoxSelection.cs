@@ -10,6 +10,10 @@ public struct BoxSelectionRange {
     public int endCol;
     public int startChn;
     public int endChn;
+
+    public int lineDelta { get { return endLine - startLine; } }
+    public int colDelta { get { return endCol - startCol; } }
+    public int chnDelta { get { return endChn - startChn; } }
 }
 
 public class BoxSelection : MonoBehaviour {
@@ -46,7 +50,7 @@ public class BoxSelection : MonoBehaviour {
         UpdateSelectionBox();
     }
 
-    public void DoOperation(SelectionDataUpdateDelegate op) {
+    public void DoOperation(SelectionDataUpdateDelegate op, bool update = true) {
         for (int line = m_Selection.startLine; line <= m_Selection.endLine; line++) {
             for (int chn = m_Selection.startChn; chn <= m_Selection.endChn; chn++) {
                 int startCol = chn == m_Selection.startChn ? m_Selection.startCol : 0;
@@ -55,7 +59,8 @@ public class BoxSelection : MonoBehaviour {
                     op(line, chn, col);
                 }
 
-                view.UpdateSingleRow(chn, line);
+                if(update)
+                    view.UpdateSingleRow(chn, line);
             }
         }
     }

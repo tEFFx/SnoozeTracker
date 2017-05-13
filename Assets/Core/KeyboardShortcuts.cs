@@ -12,8 +12,9 @@ public class KeyboardShortcuts : MonoBehaviour {
     public float debounceCooldown;
     public float debounceInterval;
 
-    private List<int> m_CopyData = new List<int>();
-    private int m_CopyOffset;
+    private BoxSelectionRange m_LastCopy;
+    private int[,,] m_CopyData;
+    private int m_CopyCol;
 
 	// Update is called once per frame
 	void Update () {
@@ -30,14 +31,14 @@ public class KeyboardShortcuts : MonoBehaviour {
         }
 
         if (Input.GetKey(KeyCode.LeftControl)) {
-            //if (Input.GetKeyDown(KeyCode.C))
-            //    CopySelection();
-            //if (Input.GetKeyDown(KeyCode.V))
-            //    PasteSelection();
-            //if (Input.GetKeyDown(KeyCode.X)) {
-            //    CopySelection();
-            //    DeleteSelection();
-            //}
+            if (Input.GetKeyDown(KeyCode.C))
+                CopySelection();
+            if (Input.GetKeyDown(KeyCode.V))
+                PasteSelection();
+            if (Input.GetKeyDown(KeyCode.X)) {
+                CopySelection();
+                DeleteSelection();
+            }
 
             //if (Input.GetKeyDown(KeyCode.Z))
             //    history.Undo();
@@ -144,61 +145,51 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void CopySelection()
     {
-        m_CopyData.Clear();
+        m_LastCopy = patternView.boxSelection.selection;
+        m_CopyCol = m_LastCopy.startCol;
+        m_CopyData = new int[m_LastCopy.lineDelta + 1, m_LastCopy.chnDelta + 1, m_LastCopy.colDelta + 1];
 
-        //if (patternView.multipleSelection)
-        //{
-        //    for (int i = 0; i < patternView.length; i++)
-        //    {
-        //        if (patternView.IsInSelection(i))
-        //        {
-        //            m_CopyData.Add(songData[i]);
-        //        }
-        //    }
+        if (patternView.boxSelection.hasSelection) {
+            patternView.boxSelection.DoOperation((int line, int chn, int col) => {
+                int data = songData.GetData(chn, line, col);
 
-        //    m_CopyOffset = patternView.dragSelectOffset;
-        //}
-        //else
-        //{
-        //    m_CopyData.Add(songData.currentColumn.data[patternView.currentLine, patternView.selectedAttribute]);
-        //}
-
-        //Debug.Log("Copied " + m_CopyData.Count + " entries");
+                line -= m_LastCopy.startLine;
+                chn -= m_LastCopy.startChn;
+                col -= m_LastCopy.startCol;
+                try {
+                    m_CopyData[line, chn, col] = data;
+                } catch (System.IndexOutOfRangeException) {
+                    Debug.Log("Index out of range at " + line + ", " + chn + ", " + col);
+                }
+            }, false);
+        } else {
+            m_CopyData[0, 0, 0] = patternView.GetDataAtSelection();
+        }
     }
 
     void PasteSelection()
     {
-        //if(m_CopyData.Count > 1)
-        //{
-        //    history.AddHistoryEntry ( patternView.GetChannelSelection ( patternView.selection ), patternView.GetChannelSelection ( patternView.selection + m_CopyOffset) );
+        int lines = m_CopyData.GetLength(0);
+        int chns = m_CopyData.GetLength(1);
+        int cols = m_CopyData.GetLength(2);
 
+        int currLine = patternView.selectedLine;
+        int currChn = patternView.selectedChannel;
+        int currCol = patternView.selectedDataColumn;
 
-        //    int cpy = 0;
-        //    int startLine = -1;
-        //    int line = -1;
-        //    patternView.SetDragSelection(patternView.selection, m_CopyOffset);
-        //    for (int i = 0; i < patternView.length; i++)
-        //    {
-        //        if (patternView.IsInSelection(i))
-        //        {
-        //            line = i / patternView.lineOffset;
-        //            if (startLine < 0)
-        //                startLine = line;
+        //offset currCol to same col as copy
+        int colDelta = (currCol % SongData.SONG_DATA_COUNT) - (m_LastCopy.startCol & SongData.SONG_DATA_COUNT);
+        currCol -= colDelta;
 
-        //            songData[i] = m_CopyData[cpy];
-        //            cpy++;
-        //        }
-        //    }
+        for (int line = 0; line < lines; line++) {
+            for (int chn = 0; chn < chns; chn++) {
+                for (int col = 0; col < cols; col++) {
+                    songData.SetData(currChn + chn, currLine + line, currCol + col, m_CopyData[line, chn, col]);
+                }
 
-        //    patternView.MoveVertical(line - startLine + 1);
-        //    patternView.SetDragSelection(patternView.selection, 0);
-        //}
-        //else if(m_CopyData.Count > 0)
-        //{
-        //    history.AddHistroyAtSelection ( );
-        //    songData.currentColumn.data[patternView.currentLine, patternView.selectedAttribute] = m_CopyData[0];
-        //    patternView.MoveVertical(1);
-        //}
+                patternView.UpdateSingleRow(currChn + chn, currLine + line);
+            }
+        }
     }
 
     void DeleteSelection()
