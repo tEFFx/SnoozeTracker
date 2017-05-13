@@ -91,8 +91,7 @@ public class SongData : MonoBehaviour {
             }
         }
     }
-    public ColumnEntry currentColumn { get { return GetPatternColumn ( currentPattern, patternView.selectedChannel ); } }
-
+    public ColumnEntry currentColumn { get { return GetPatternColumn ( currentPattern, patternView.position.channel ); } }
 
     public int this [ int i ] {
         get {

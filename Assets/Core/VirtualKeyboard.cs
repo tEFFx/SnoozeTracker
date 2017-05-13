@@ -61,10 +61,13 @@ public class VirtualKeyboard : MonoBehaviour {
 
     void Update()
     {
-        if (patternView.selectedDataColumn != 0)
+        if (patternView.position.dataColumn != 0)
             return;
-
+#if UNITY_EDITOR
+        if(!Input.GetKey(KeyCode.LeftShift))
+#else
         if (!Input.GetKey(KeyCode.LeftControl))
+#endif
         {
             for (int i = 0; i < noteBinds.Length; i++)
             {
@@ -86,7 +89,7 @@ public class VirtualKeyboard : MonoBehaviour {
     }
 
     public void SetNoteOff(Note note, int octave) {
-        if ( patternView.selectedDataColumn != 0 )
+        if ( patternView.position.dataColumn != 0 )
             return;
 
         if ( playback.isPlaying ) {
@@ -102,12 +105,12 @@ public class VirtualKeyboard : MonoBehaviour {
     }
 
     public void SetNoteOn(Note note, int octave, int velocity = 0xF) {
-        if ( patternView.selectedDataColumn != 0 )
+        if ( patternView.position.dataColumn != 0 )
             return;
 
         if ( patternView.recording ) {
             byte noteData = EncodeNoteInfo ( ( int ) note, octave );
-            history.AddHistoryEntry ( patternView.selectedChannel );
+            history.AddHistroyAtSelection();
 
             patternView.SetDataAtSelection ( noteData );
             if(note != Note.NoteOff)
@@ -138,7 +141,7 @@ public class VirtualKeyboard : MonoBehaviour {
 
         for (int i = 0; i < m_Instruments.Length; i++)
         {
-            int chn = patternView.selectedChannel == 3 ? 3 : i;
+            int chn = patternView.position.channel == 3 ? 3 : i;
             m_Instruments [i].UpdatePSG(psg, chn);
 
             if ( chn == 3 )
@@ -153,7 +156,7 @@ public class VirtualKeyboard : MonoBehaviour {
 
         for (int i = 0; i < m_Instruments.Length; i++)
         {
-            int chn = patternView.selectedChannel == 3 ? 3 : i;
+            int chn = patternView.position.channel == 3 ? 3 : i;
             m_Instruments [ i ].UpdatePSGSample ( psg, chn );
 
             if ( chn == 3 )

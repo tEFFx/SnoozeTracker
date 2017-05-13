@@ -4,14 +4,19 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class PatternView : MonoBehaviour {
+    public struct MatrixPosition {
+        public int line;
+        public int channel;
+        public int dataColumn;
+    }
+
     public int selectedLine {
-        get { return m_CurrentLine; }
+        get { return m_CurrentPosition.line; }
         set {
             SetSelection ( value );
         }
     }
-    public int selectedChannel { get { return m_CurrentChannel; } }
-    public int selectedDataColumn { get { return m_CurrentColumn; } }
+    public MatrixPosition position { get { return m_CurrentPosition; } }
 
     public Transform[] channels;
     public Transform lineNumbers;
@@ -31,10 +36,8 @@ public class PatternView : MonoBehaviour {
     [HideInInspector]
     public bool recording;
 
+    private MatrixPosition m_CurrentPosition;
     private int m_CurrentLength;
-    private int m_CurrentLine;
-    private int m_CurrentChannel;
-    private int m_CurrentColumn;
     private string m_Input;
     private int m_InputPos;
 
@@ -64,11 +67,11 @@ public class PatternView : MonoBehaviour {
         }
 
         if (recording) {
-            int maxLen = selectedDataColumn == 2 ? 1 : 2;
+            int maxLen = m_CurrentPosition.dataColumn == 2 ? 1 : 2;
 
-            if (selectedDataColumn != 0 && Input.inputString.Length > 0) {
-                if(selectedLine + selectedDataColumn != m_InputPos) {
-                    m_InputPos = selectedLine + selectedDataColumn;
+            if (m_CurrentPosition.dataColumn != 0 && Input.inputString.Length > 0) {
+                if(selectedLine + m_CurrentPosition.dataColumn != m_InputPos) {
+                    m_InputPos = selectedLine + m_CurrentPosition.dataColumn;
                     m_Input = System.String.Empty;
                 }
                 m_Input += Input.inputString[0];
@@ -132,7 +135,6 @@ public class PatternView : MonoBehaviour {
     }
 
     public void UpdatePatternData() {
-        Debug.Log ( "Updating data" );
         for ( int i = 0 ; i < data.patternLength ; i++ ) {
             m_PatternRows [ 0 ] [ i ].UpdateData ( );
             m_PatternRows [ 1 ] [ i ].UpdateData ( );
@@ -148,7 +150,7 @@ public class PatternView : MonoBehaviour {
     }
     
     public void UpdateSelection() {
-        UpdateSingleRow ( m_CurrentChannel, m_CurrentLine );
+        UpdateSingleRow (m_CurrentPosition.channel, m_CurrentPosition.line);
     }
 
     public void UpdateSingleRow(int channel, int line) {
@@ -156,12 +158,12 @@ public class PatternView : MonoBehaviour {
     }
 
     public void SetDataAtSelection(int data, int colOffset = 0) {
-        this.data.SetData ( m_CurrentChannel, m_CurrentLine, m_CurrentColumn + colOffset, data );
+        this.data.SetData (m_CurrentPosition.channel, m_CurrentPosition.line, m_CurrentPosition.dataColumn + colOffset, data );
         UpdateSelection ( );
     }
 
     public int GetDataAtSelection(int colOffset = 0) {
-        return data.GetData(m_CurrentChannel, m_CurrentLine, m_CurrentColumn + colOffset);
+        return data.GetData(m_CurrentPosition.channel, m_CurrentPosition.line, m_CurrentPosition.dataColumn + colOffset);
     }
 
     private void UpdateLineNumbers() {
@@ -171,7 +173,7 @@ public class PatternView : MonoBehaviour {
     }
 
     public void MoveVertical(int increment) {
-        int line = m_CurrentLine + increment;
+        int line = m_CurrentPosition.line + increment;
 
         if ( line > data.patternLength )
             line = 0;
@@ -182,8 +184,8 @@ public class PatternView : MonoBehaviour {
     }
 
     public void MoveHorizontal(int increment) {
-        int column = m_CurrentColumn + increment;
-        int channel = m_CurrentChannel;
+        int column = m_CurrentPosition.dataColumn + increment;
+        int channel = m_CurrentPosition.channel;
 
         if ( column >= PatternRow.numDataEntries ) {
             column = 0;
@@ -199,20 +201,24 @@ public class PatternView : MonoBehaviour {
             channel = channels.Length - 1;
         }
 
-        SetSelection ( m_CurrentLine, channel, column );
+        SetSelection (m_CurrentPosition.line, channel, column );
+    }
+
+    public void SetSelection(MatrixPosition position) {
+        SetSelection(position.line, position.channel, position.dataColumn);
     }
 
     public void SetSelection(int line, int channel = -1, int column = -1) {
         if ( line >= data.patternLength )
             line = 0;
 
-        m_PatternRows [ m_CurrentChannel ] [ m_CurrentLine ].Deselect ( );
-        m_CurrentLine = line;
+        m_PatternRows[m_CurrentPosition.channel][m_CurrentPosition.line].Deselect();
+        m_CurrentPosition.line = line;
 
         if (channel >= 0) {
-            m_CurrentChannel = channel;
+            m_CurrentPosition.channel = channel;
             if (column >= 0)
-                m_CurrentColumn = column;
+                m_CurrentPosition.dataColumn = column;
         }
 
         Vector2 selPos = selection.rectTransform.anchoredPosition;
@@ -227,8 +233,8 @@ public class PatternView : MonoBehaviour {
             }
 
             float offset = -parentRect.rect.height * 0.5f;
-            scrollPos.y = -m_PatternRows[m_CurrentChannel][m_CurrentLine].transform.localPosition.y + offset;
-            scroll.verticalScrollbar.value = 1 - ((float)m_CurrentLine / data.patternLength);
+            scrollPos.y = -m_PatternRows[m_CurrentPosition.channel][m_CurrentPosition.line].transform.localPosition.y + offset;
+            scroll.verticalScrollbar.value = 1 - ((float)m_CurrentPosition.line / data.patternLength);
             selPos.y = offset + 10;
         } else {
             selPos.y = -lineHeight * line;
@@ -240,6 +246,6 @@ public class PatternView : MonoBehaviour {
 
         scroll.content.localPosition = scrollPos;
         selection.rectTransform.anchoredPosition = selPos;
-        m_PatternRows[ m_CurrentChannel ] [ m_CurrentLine ].Select ( m_CurrentColumn );
+        m_PatternRows[m_CurrentPosition.channel ] [m_CurrentPosition.line ].Select (m_CurrentPosition.dataColumn);
     }
 }

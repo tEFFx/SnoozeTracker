@@ -6,10 +6,10 @@ public class History : MonoBehaviour {
 
     public class HistoryEvent
     {
-        public HistoryEvent(int patternId, params SongData.ColumnEntry[] columns)
+        public HistoryEvent(int patternId, SongData.ColumnEntry[] columns, PatternView.MatrixPosition pos)
         {
             pattern = patternId;
-
+            position = pos;
             this.columns = new SongData.ColumnEntry [ columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
@@ -17,6 +17,7 @@ public class History : MonoBehaviour {
             }
         }
 
+        public PatternView.MatrixPosition position;
         public int pattern;
         public SongData.ColumnEntry[] columns;
 
@@ -30,28 +31,29 @@ public class History : MonoBehaviour {
     }
 
     public SongData data;
-    public PatternViewLegacy view;
+    public PatternView view;
 
     private FiniteStack<HistoryEvent> m_History = new FiniteStack<HistoryEvent>(64);
 
     public void AddHistroyAtSelection() {
-        if ( view.multipleSelection ) {
-            AddHistoryEntry ( view.GetChannelSelection ( view.dragSelectStart ), view.GetChannelSelection ( view.dragSelectStart + view.dragSelectOffset ) );
+        if ( view.boxSelection.hasSelection ) {
+            AddHistoryEntry ( view.boxSelection.selection.startChn, view.boxSelection.selection.chnDelta + 1 );
         } else {
-            AddHistoryEntry ( view.selectedChannel );
+            AddHistoryEntry ( view.position.channel );
         }
     }
 
-    public void AddHistoryEntry(params int[] columns)
+    public void AddHistoryEntry(int channel, int count = 1)
     {
-        SongData.ColumnEntry[] entries = new SongData.ColumnEntry[columns.Length];
+        SongData.ColumnEntry[] entries = new SongData.ColumnEntry[count];
 
-        for (int i = 0; i < columns.Length; i++)
+        for (int i = 0; i < count; i++)
         {
-            entries[i] = data.songData[data.lookupTable[data.currentPattern][columns[i]]];
+            entries[i] = data.songData[data.lookupTable[data.currentPattern][channel + i]];
         }
 
-        m_History.Push(new HistoryEvent(data.currentPattern, entries));
+        HistoryEvent evt = new HistoryEvent(data.currentPattern, entries, view.position);
+        m_History.Push(evt);
     }
 
     public void Undo()
@@ -67,5 +69,8 @@ public class History : MonoBehaviour {
         HistoryEvent next = apply.Pop();
         next.Restore(data.songData);
         data.currentPattern = next.pattern;
+        view.UpdatePatternData();
+        Debug.Log("Next line is " + next.position.line);
+        view.SetSelection(next.position);
     }
 }

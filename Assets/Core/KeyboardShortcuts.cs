@@ -30,7 +30,12 @@ public class KeyboardShortcuts : MonoBehaviour {
                 DoShortcut(KeyCode.RightArrow, () => { patternView.MoveHorizontal(1); });
         }
 
-        if (Input.GetKey(KeyCode.LeftControl)) {
+#if UNITY_EDITOR
+        if (Input.GetKey(KeyCode.LeftShift))
+#else
+        if (Input.GetKey(KeyCode.LeftControl))
+#endif
+        { 
             if (Input.GetKeyDown(KeyCode.C))
                 CopySelection();
             if (Input.GetKeyDown(KeyCode.V))
@@ -40,8 +45,8 @@ public class KeyboardShortcuts : MonoBehaviour {
                 DeleteSelection();
             }
 
-            //if (Input.GetKeyDown(KeyCode.Z))
-            //    history.Undo();
+            if (Input.GetKeyDown(KeyCode.Z))
+                history.Undo();
 
             if (Input.GetKeyDown(KeyCode.F1))
                 Transpose(-1);
@@ -99,7 +104,7 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void Transpose(int direction)
     {
-        //history.AddHistroyAtSelection ( );
+        history.AddHistroyAtSelection ( );
 
         if (patternView.boxSelection.hasSelection) {
             patternView.boxSelection.DoOperation((int line, int chn, int col) => {
@@ -109,7 +114,7 @@ public class KeyboardShortcuts : MonoBehaviour {
                 int newNote = TransposeNote(direction, songData.GetData(chn, line, col));
                 songData.SetData(chn, line, col, newNote);
             });
-        } else if(patternView.selectedChannel == 0) {
+        } else if(patternView.position.channel == 0) {
             int newNote = TransposeNote(direction, patternView.GetDataAtSelection());
             patternView.SetDataAtSelection(newNote);
         }
@@ -169,13 +174,15 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void PasteSelection()
     {
+        history.AddHistroyAtSelection();
+
         int lines = m_CopyData.GetLength(0);
         int chns = m_CopyData.GetLength(1);
         int cols = m_CopyData.GetLength(2);
 
         int currLine = patternView.selectedLine;
-        int currChn = patternView.selectedChannel;
-        int currCol = patternView.selectedDataColumn;
+        int currChn = patternView.position.channel;
+        int currCol = patternView.position.dataColumn;
 
         //offset currCol to same col as copy
         int colDelta = (currCol % SongData.SONG_DATA_COUNT) - (m_LastCopy.startCol & SongData.SONG_DATA_COUNT);
@@ -194,13 +201,15 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void DeleteSelection()
     {
+        history.AddHistroyAtSelection();
+
         if (patternView.boxSelection.hasSelection) {
             patternView.boxSelection.DoOperation((int line, int chn, int col) => {
                 songData.SetData(chn, line, col, -1);
             });
         } else {
             patternView.SetDataAtSelection(-1);
-            if (patternView.selectedDataColumn == 0)
+            if (patternView.position.dataColumn == 0)
                 patternView.SetDataAtSelection(-1, 1);
             patternView.MoveVertical(1);
         }
@@ -208,7 +217,7 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void Erase()
     {
-        //history.AddHistroyAtSelection ( );
+        history.AddHistroyAtSelection ( );
 
         if ( patternView.selectedLine == 0 )
             return;
@@ -220,7 +229,7 @@ public class KeyboardShortcuts : MonoBehaviour {
                 songData.currentColumn.data[i, j] = songData.currentColumn.data[i + 1, j];
             }
 
-            patternView.UpdateSingleRow ( patternView.selectedChannel, i );
+            patternView.UpdateSingleRow ( patternView.position.channel, i );
         }
 
         patternView.MoveVertical ( -1 );
@@ -228,7 +237,7 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void Insert()
     {
-        //history.AddHistroyAtSelection ( );
+        history.AddHistroyAtSelection ( );
 
         for (int i = songData.patternLength - 1; i >= patternView.selectedLine ; i--)
         {
@@ -240,7 +249,7 @@ public class KeyboardShortcuts : MonoBehaviour {
                     songData.currentColumn.data[i, j] = songData.currentColumn.data[i - 1, j];
             }
 
-            patternView.UpdateSingleRow ( patternView.selectedChannel, i );
+            patternView.UpdateSingleRow ( patternView.position.channel, i );
         }
 
         patternView.MoveVertical ( 1 );
