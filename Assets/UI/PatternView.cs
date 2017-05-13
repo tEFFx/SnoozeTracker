@@ -25,6 +25,7 @@ public class PatternView : MonoBehaviour {
     public float lineHeight;
     public Color selectionRecording;
     public Color selectionNormal;
+    public BoxSelection boxSelection;
 
 
     [HideInInspector]
@@ -101,7 +102,7 @@ public class PatternView : MonoBehaviour {
                     GameObject rowObj = Instantiate ( patternRowPrefab, channels [ p ] );
                     PatternRow row = rowObj.GetComponent<PatternRow> ( );
                     row.view = this;
-                    row.col = p;
+                    row.channel = p;
                     row.UpdateData ( );
                     m_PatternRows[p].Add ( row );
                 }
@@ -157,6 +158,10 @@ public class PatternView : MonoBehaviour {
     public void SetDataAtSelection(int data, int colOffset = 0) {
         this.data.SetData ( m_CurrentChannel, m_CurrentLine, m_CurrentColumn + colOffset, data );
         UpdateSelection ( );
+    }
+
+    public int GetDataAtSelection(int colOffset = 0) {
+        return data.GetData(m_CurrentChannel, m_CurrentLine, m_CurrentColumn + colOffset);
     }
 
     private void UpdateLineNumbers() {

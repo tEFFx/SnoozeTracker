@@ -29,30 +29,28 @@ public class KeyboardShortcuts : MonoBehaviour {
                 DoShortcut(KeyCode.RightArrow, () => { patternView.MoveHorizontal(1); });
         }
 
-        //if (Input.GetKey(KeyCode.LeftControl))
-        //{
-        //    if (Input.GetKeyDown(KeyCode.C))
-        //        CopySelection();
-        //    if (Input.GetKeyDown(KeyCode.V))
-        //        PasteSelection();
-        //    if(Input.GetKeyDown(KeyCode.X))
-        //    {
-        //        CopySelection();
-        //        DeleteSelection();
-        //    }
+        if (Input.GetKey(KeyCode.LeftControl)) {
+            //if (Input.GetKeyDown(KeyCode.C))
+            //    CopySelection();
+            //if (Input.GetKeyDown(KeyCode.V))
+            //    PasteSelection();
+            //if (Input.GetKeyDown(KeyCode.X)) {
+            //    CopySelection();
+            //    DeleteSelection();
+            //}
 
-        //    if (Input.GetKeyDown(KeyCode.Z))
-        //        history.Undo();
+            //if (Input.GetKeyDown(KeyCode.Z))
+            //    history.Undo();
 
-        //    if (Input.GetKeyDown(KeyCode.F1))
-        //        Transpose(-1);
-        //    if (Input.GetKeyDown(KeyCode.F2))
-        //        Transpose(1);
-        //    if (Input.GetKeyDown(KeyCode.F3))
-        //        Transpose(-12);
-        //    if (Input.GetKeyDown(KeyCode.F4))
-        //        Transpose(12);
-        //}
+            if (Input.GetKeyDown(KeyCode.F1))
+                Transpose(-1);
+            if (Input.GetKeyDown(KeyCode.F2))
+                Transpose(1);
+            if (Input.GetKeyDown(KeyCode.F3))
+                Transpose(-12);
+            if (Input.GetKeyDown(KeyCode.F4))
+                Transpose(12);
+        }
 
         if ( patternView.recording ) {
             if ( Input.GetKeyDown ( KeyCode.Delete ) )
@@ -102,20 +100,18 @@ public class KeyboardShortcuts : MonoBehaviour {
     {
         //history.AddHistroyAtSelection ( );
 
-        //if (patternView.multipleSelection)
-        //{
-        //    for (int i = 0; i < patternView.length; i++)
-        //    {
-        //        if (i % SongData.SONG_DATA_COUNT == 0 && patternView.IsInSelection(i))
-        //        {
-        //            songData[i] = TransposeNote(direction, songData[i]);
-        //        }
-        //    }
-        //}
-        //else if(patternView.selection % SongData.SONG_DATA_COUNT == 0)
-        //{
-        //    songData [patternView.selection] = TransposeNote(direction, songData[patternView.selection]);
-        //}
+        if (patternView.boxSelection.hasSelection) {
+            patternView.boxSelection.DoOperation((int line, int chn, int col) => {
+                if (col != 0)
+                    return;
+
+                int newNote = TransposeNote(direction, songData.GetData(chn, line, col));
+                songData.SetData(chn, line, col, newNote);
+            });
+        } else if(patternView.selectedChannel == 0) {
+            int newNote = TransposeNote(direction, patternView.GetDataAtSelection());
+            patternView.SetDataAtSelection(newNote);
+        }
     }
 
     int TransposeNote(int direction, int data)
@@ -207,11 +203,16 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void DeleteSelection()
     {
-        //history.AddHistroyAtSelection ( );
-        patternView.SetDataAtSelection ( -1 );
-        if ( patternView.selectedDataColumn == 0 )
-            patternView.SetDataAtSelection ( -1, 1 );
-        patternView.MoveVertical ( 1 );
+        if (patternView.boxSelection.hasSelection) {
+            patternView.boxSelection.DoOperation((int line, int chn, int col) => {
+                songData.SetData(chn, line, col, -1);
+            });
+        } else {
+            patternView.SetDataAtSelection(-1);
+            if (patternView.selectedDataColumn == 0)
+                patternView.SetDataAtSelection(-1, 1);
+            patternView.MoveVertical(1);
+        }
     }
 
     void Erase()

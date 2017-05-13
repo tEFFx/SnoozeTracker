@@ -216,6 +216,14 @@ public class SongData : MonoBehaviour {
         m_SongData [ m_LookupTable [ pattern ] [ channel ] ].data [ row, column ] = data;
     }
 
+    public int GetData(int channel, int row, int column) {
+        return GetData(currentPattern, channel, row, column);
+    }
+
+    public int GetData(int pattern, int channel, int row, int column) {
+        return m_SongData[m_LookupTable[pattern][channel]].data[row, column];
+    }
+
     public void IncrementLookup(int row, int col, int inc = 1)
     {
         int val = m_LookupTable[row][col] + inc;

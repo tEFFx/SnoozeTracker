@@ -7,8 +7,7 @@ public class PatternRow : MonoBehaviour {
     public static int numDataEntries;
 
     public int row { get { return transform.GetSiblingIndex ( ); } }
-    public int channel { get { return transform.parent.GetSiblingIndex ( ); } }
-    public int col;
+    public int channel;
     public PatternView view;
     public Color selectColor;
     public Color normalColor;
@@ -32,7 +31,8 @@ public class PatternRow : MonoBehaviour {
     void Start() {
         for ( int i = 0 ; i < dataEntries.Length ; i++ ) {
             int index = i;
-            dataEntries [ i ].onClick.AddListener ( () => { view.SetSelection ( row, col, index ); } );
+            dataEntries [ i ].onClick.AddListener ( () => { view.SetSelection ( row, channel, index ); } );
+            dataEntries[i].GetComponent<BoxSelectable>().row = this;
         }
     }
 
@@ -48,7 +48,7 @@ public class PatternRow : MonoBehaviour {
     }
 
     public void UpdateData() {
-        var colEntry = view.data.GetPatternColumn ( view.data.currentPattern, col );
+        var colEntry = view.data.GetPatternColumn ( view.data.currentPattern, channel );
         for ( int i = 0 ; i < dataEntries.Length ; i++ ) {
             Text label = dataEntries [ i ].GetComponentInChildren<Text> ( );
             if (colEntry == null ) {
