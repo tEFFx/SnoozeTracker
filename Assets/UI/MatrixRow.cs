@@ -57,6 +57,7 @@ public class MatrixRow : MonoBehaviour {
             }
 
             UpdateButton ( index );
+            data.patternView.UpdatePatternChannel(index);
         } else {
             data.currentPattern = row;
         }

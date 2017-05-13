@@ -22,6 +22,7 @@ public class FileManagement : MonoBehaviour {
     public InstrumentEditor insEditor;
     public SongPlayback playback;
     public VirtualKeyboard keyboard;
+    public PatternView patternView;
 
     public Action onFileOpen;
 
@@ -167,6 +168,8 @@ public class FileManagement : MonoBehaviour {
 
             if ( onFileOpen != null )
                 onFileOpen ( );
+
+            patternView.UpdatePatternData();
         }
     }
 

@@ -18,7 +18,9 @@ public class PatternView : MonoBehaviour {
     public GameObject lineNumberPrefab;
     public GameObject patternRowPrefab;
     public SongData data;
+    public SongPlayback playback;
     public Instruments instruments;
+    public ScrollRect scroll;
     public Image selection;
     public float lineHeight;
     public Color selectionRecording;
@@ -32,6 +34,8 @@ public class PatternView : MonoBehaviour {
     private int m_CurrentLine;
     private int m_CurrentChannel;
     private int m_CurrentColumn;
+    private string m_Input;
+    private int m_InputPos;
 
     private List<Text> m_LineNumbers = new List<Text>();
     private List<PatternRow>[] m_PatternRows;
@@ -56,6 +60,31 @@ public class PatternView : MonoBehaviour {
         if ( Input.GetKeyDown ( KeyCode.Space ) ) {
             selection.color = recording ? selectionRecording : selectionNormal;
             recording = !recording;
+        }
+
+        if (recording) {
+            int maxLen = selectedDataColumn == 2 ? 1 : 2;
+
+            if (selectedDataColumn != 0 && Input.inputString.Length > 0) {
+                if(selectedLine + selectedDataColumn != m_InputPos) {
+                    m_InputPos = selectedLine + selectedDataColumn;
+                    m_Input = System.String.Empty;
+                }
+                m_Input += Input.inputString[0];
+
+                int res;
+                if(int.TryParse(m_Input, System.Globalization.NumberStyles.HexNumber, null, out res)) {
+                    SetDataAtSelection(res);
+                } else {
+                    m_Input = m_Input.Substring(0, m_Input.Length - 1);
+                }
+
+                if (m_Input.Length >= maxLen) {
+                    MoveVertical(1);
+                    m_Input = System.String.Empty;
+                }
+
+            }
         }
     }
 
@@ -108,6 +137,12 @@ public class PatternView : MonoBehaviour {
             m_PatternRows [ 1 ] [ i ].UpdateData ( );
             m_PatternRows [ 2 ] [ i ].UpdateData ( );
             m_PatternRows [ 3 ] [ i ].UpdateData ( );
+        }
+    }
+
+    public void UpdatePatternChannel(int channel) {
+        for (int i = 0; i < data.patternLength; i++) {
+            m_PatternRows[channel][i].UpdateData();
         }
     }
     
@@ -167,18 +202,39 @@ public class PatternView : MonoBehaviour {
             line = 0;
 
         m_PatternRows [ m_CurrentChannel ] [ m_CurrentLine ].Deselect ( );
-
-        Vector2 selPos = selection.rectTransform.anchoredPosition;
-        selPos.y = -lineHeight * line;
-        selection.rectTransform.anchoredPosition = selPos;
         m_CurrentLine = line;
 
-        if(channel >= 0 ) {
+        if (channel >= 0) {
             m_CurrentChannel = channel;
-            if ( column >= 0 )
+            if (column >= 0)
                 m_CurrentColumn = column;
         }
 
-        m_PatternRows [ m_CurrentChannel ] [ m_CurrentLine ].Select ( m_CurrentColumn );
+        Vector2 selPos = selection.rectTransform.anchoredPosition;
+        Vector3 scrollPos = scroll.content.localPosition;
+
+        RectTransform parentRect = transform.parent.GetComponent<RectTransform>();
+
+        if (playback.isPlaying) {
+            if (scroll.enabled) {
+                scroll.enabled = false;
+                selection.transform.SetParent(transform.parent);
+            }
+
+            float offset = -parentRect.rect.height * 0.5f;
+            scrollPos.y = -m_PatternRows[m_CurrentChannel][m_CurrentLine].transform.localPosition.y + offset;
+            scroll.verticalScrollbar.value = 1 - ((float)m_CurrentLine / data.patternLength);
+            selPos.y = offset + 10;
+        } else {
+            selPos.y = -lineHeight * line;
+            if (!scroll.enabled) {
+                scroll.enabled = true;
+                selection.transform.SetParent(transform);
+            }
+        }
+
+        scroll.content.localPosition = scrollPos;
+        selection.rectTransform.anchoredPosition = selPos;
+        m_PatternRows[ m_CurrentChannel ] [ m_CurrentLine ].Select ( m_CurrentColumn );
     }
 }

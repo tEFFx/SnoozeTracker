@@ -64,6 +64,6 @@ public class PatternMatrix : MonoBehaviour {
             scrollRect.content.localPosition = -selection.transform.localPosition - Vector3.up * 150; //offset 8 rows * 20 - half row (10)
         }
 
-        patternView.UpdatePatternData ( );
+        patternView.UpdatePatternData();
     }
 }

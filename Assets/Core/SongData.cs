@@ -118,7 +118,7 @@ public class SongData : MonoBehaviour {
         }
     }
 
-    public PatternViewLegacy patternView;
+    public PatternView patternView;
     public PatternMatrix patternMatrix;
     public int channels;
     public int currentPattern;

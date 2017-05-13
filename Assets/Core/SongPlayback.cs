@@ -274,6 +274,8 @@ public class SongPlayback : MonoBehaviour {
         m_LastLineTick = Time.time;
         m_IsPlaying = true;
         m_IsStopping = false;
+
+        view.SetSelection(view.selectedLine);
     }
 
     public void Stop()
@@ -283,5 +285,7 @@ public class SongPlayback : MonoBehaviour {
         psg.ResetChip();
 
         m_ChnAttenuation = new int[4];
+
+        view.SetSelection(view.selectedLine);
     }
 }
