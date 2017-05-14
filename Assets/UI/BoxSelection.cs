@@ -12,7 +12,6 @@ public struct BoxSelectionRange {
     public int endChn;
 
     public int lineDelta { get { return endLine - startLine; } }
-    public int colDelta { get { return endCol - startCol; } }
     public int chnDelta { get { return endChn - startChn; } }
 }
 
@@ -74,15 +73,15 @@ public class BoxSelection : MonoBehaviour {
                 m_HasSelection = false;
             } else {
                 m_HasSelection = true;
-
-                m_Selection = new BoxSelectionRange();
-                m_Selection.startLine = Mathf.Min(m_InitialSelection.row.row, m_LastSelection.row.row);
-                m_Selection.endLine = Mathf.Max(m_InitialSelection.row.row, m_LastSelection.row.row);
-                m_Selection.startChn = Mathf.Min(m_InitialSelection.row.channel, m_LastSelection.row.channel);
-                m_Selection.endChn = Mathf.Max(m_InitialSelection.row.channel, m_LastSelection.row.channel);
-                m_Selection.startCol = Mathf.Min(m_InitialSelection.col, m_LastSelection.col);
-                m_Selection.endCol = Mathf.Max(m_InitialSelection.col, m_LastSelection.col);
             }
+
+            m_Selection = new BoxSelectionRange();
+            m_Selection.startLine = Mathf.Min(m_InitialSelection.row.row, m_LastSelection.row.row);
+            m_Selection.endLine = Mathf.Max(m_InitialSelection.row.row, m_LastSelection.row.row);
+            m_Selection.startChn = Mathf.Min(m_InitialSelection.row.channel, m_LastSelection.row.channel);
+            m_Selection.endChn = Mathf.Max(m_InitialSelection.row.channel, m_LastSelection.row.channel);
+            m_Selection.startCol = Mathf.Min(m_InitialSelection.col, m_LastSelection.col);
+            m_Selection.endCol = Mathf.Max(m_InitialSelection.col, m_LastSelection.col);
         }
     }
 

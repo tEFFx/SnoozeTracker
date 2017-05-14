@@ -66,7 +66,7 @@ public class PatternView : MonoBehaviour {
             recording = !recording;
         }
 
-        if (recording) {
+        if (recording && !KeyboardShortcuts.ModifierDown()) {
             int maxLen = m_CurrentPosition.dataColumn == 2 ? 1 : 2;
 
             if (m_CurrentPosition.dataColumn != 0 && Input.inputString.Length > 0) {

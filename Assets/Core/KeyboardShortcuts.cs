@@ -16,8 +16,16 @@ public class KeyboardShortcuts : MonoBehaviour {
     private int[,,] m_CopyData;
     private int m_CopyCol;
 
-	// Update is called once per frame
-	void Update () {
+    public static bool ModifierDown() {
+#if UNITY_EDITOR
+        return Input.GetKey(KeyCode.LeftShift);
+#else
+        return Input.GetKey(KeyCode.LeftControl);
+#endif
+    }
+
+    // Update is called once per frame
+    void Update () {
         if (!playback.isPlaying)
         {
             if (Input.GetKeyDown(KeyCode.DownArrow))
@@ -30,11 +38,7 @@ public class KeyboardShortcuts : MonoBehaviour {
                 DoShortcut(KeyCode.RightArrow, () => { patternView.MoveHorizontal(1); });
         }
 
-#if UNITY_EDITOR
-        if (Input.GetKey(KeyCode.LeftShift))
-#else
-        if (Input.GetKey(KeyCode.LeftControl))
-#endif
+        if(ModifierDown())
         { 
             if (Input.GetKeyDown(KeyCode.C))
                 CopySelection();
@@ -69,7 +73,7 @@ public class KeyboardShortcuts : MonoBehaviour {
                 DoShortcut ( KeyCode.Insert, Insert );
         }
 
-        if (!Input.GetKey(KeyCode.LeftControl))
+        if (!ModifierDown())
         {
             for (int i = (int)KeyCode.F1; i <= (int)KeyCode.F8; i++)
             {
@@ -152,7 +156,7 @@ public class KeyboardShortcuts : MonoBehaviour {
     {
         m_LastCopy = patternView.boxSelection.selection;
         m_CopyCol = m_LastCopy.startCol;
-        m_CopyData = new int[m_LastCopy.lineDelta + 1, m_LastCopy.chnDelta + 1, m_LastCopy.colDelta + 1];
+        m_CopyData = new int[m_LastCopy.lineDelta + 1, m_LastCopy.chnDelta + 1, SongData.SONG_DATA_COUNT];
 
         if (patternView.boxSelection.hasSelection) {
             patternView.boxSelection.DoOperation((int line, int chn, int col) => {
@@ -160,7 +164,7 @@ public class KeyboardShortcuts : MonoBehaviour {
 
                 line -= m_LastCopy.startLine;
                 chn -= m_LastCopy.startChn;
-                col -= m_LastCopy.startCol;
+                //data cols are absolute value
                 try {
                     m_CopyData[line, chn, col] = data;
                 } catch (System.IndexOutOfRangeException) {
@@ -178,7 +182,7 @@ public class KeyboardShortcuts : MonoBehaviour {
 
         int lines = m_CopyData.GetLength(0);
         int chns = m_CopyData.GetLength(1);
-        int cols = m_CopyData.GetLength(2);
+        int cols = SongData.SONG_DATA_COUNT;
 
         int currLine = patternView.selectedLine;
         int currChn = patternView.position.channel;
@@ -190,8 +194,13 @@ public class KeyboardShortcuts : MonoBehaviour {
 
         for (int line = 0; line < lines; line++) {
             for (int chn = 0; chn < chns; chn++) {
-                for (int col = 0; col < cols; col++) {
-                    songData.SetData(currChn + chn, currLine + line, currCol + col, m_CopyData[line, chn, col]);
+                if (currChn + chn >= songData.channels)
+                    break;
+
+                int startCol = chn == 0 ? m_LastCopy.startCol : 0;
+                int endCol = chn == chns - 1 ? m_LastCopy.endCol + 1 : SongData.SONG_DATA_COUNT - startCol;
+                for (int col = startCol; col < endCol; col++) {
+                    songData.SetData(currChn + chn, currLine + line, col, m_CopyData[line, chn, col]);
                 }
 
                 patternView.UpdateSingleRow(currChn + chn, currLine + line);

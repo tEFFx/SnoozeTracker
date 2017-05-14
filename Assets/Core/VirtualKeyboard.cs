@@ -63,11 +63,8 @@ public class VirtualKeyboard : MonoBehaviour {
     {
         if (patternView.position.dataColumn != 0)
             return;
-#if UNITY_EDITOR
-        if(!Input.GetKey(KeyCode.LeftShift))
-#else
-        if (!Input.GetKey(KeyCode.LeftControl))
-#endif
+        
+        if(!KeyboardShortcuts.ModifierDown())
         {
             for (int i = 0; i < noteBinds.Length; i++)
             {
