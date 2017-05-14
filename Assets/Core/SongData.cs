@@ -221,7 +221,7 @@ public class SongData : MonoBehaviour {
     }
 
     public void SetData(int pattern, int channel, int row, int column, int data) {
-        if (IsPatternValid(pattern, channel))
+        if (!IsPatternValid(pattern, channel))
             return;
 
         m_SongData [ m_LookupTable [ pattern ] [ channel ] ].data [ row, column ] = data;
@@ -232,7 +232,7 @@ public class SongData : MonoBehaviour {
     }
 
     public int GetData(int pattern, int channel, int row, int column) {
-        if (IsPatternValid(pattern, channel))
+        if (!IsPatternValid(pattern, channel))
             return 0;
 
         return m_SongData[m_LookupTable[pattern][channel]].data[row, column];
