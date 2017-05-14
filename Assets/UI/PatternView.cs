@@ -18,7 +18,7 @@ public class PatternView : MonoBehaviour {
     }
     public MatrixPosition position { get { return m_CurrentPosition; } }
 
-    public Transform[] channels;
+    public CanvasGroup[] channels;
     public Transform lineNumbers;
     public GameObject lineNumberPrefab;
     public GameObject patternRowPrefab;
@@ -102,7 +102,7 @@ public class PatternView : MonoBehaviour {
                 m_LineNumbers.Add ( lineNum.GetComponentInChildren<Text> ( ) );
 
                 for ( int p = 0 ; p < channels.Length ; p++ ) {
-                    GameObject rowObj = Instantiate ( patternRowPrefab, channels [ p ] );
+                    GameObject rowObj = Instantiate ( patternRowPrefab, channels [ p ].transform );
                     PatternRow row = rowObj.GetComponent<PatternRow> ( );
                     row.view = this;
                     row.channel = p;
@@ -134,12 +134,13 @@ public class PatternView : MonoBehaviour {
         m_CurrentLength = data.patternLength;
     }
 
+    public bool IsCurrentPatternValid() {
+        return data.IsPatternValid(position.channel);
+    }
+
     public void UpdatePatternData() {
-        for ( int i = 0 ; i < data.patternLength ; i++ ) {
-            m_PatternRows [ 0 ] [ i ].UpdateData ( );
-            m_PatternRows [ 1 ] [ i ].UpdateData ( );
-            m_PatternRows [ 2 ] [ i ].UpdateData ( );
-            m_PatternRows [ 3 ] [ i ].UpdateData ( );
+        for ( int i = 0 ; i < m_PatternRows.Length ; i++ ) {
+            UpdatePatternChannel(i);
         }
     }
 
@@ -147,6 +148,8 @@ public class PatternView : MonoBehaviour {
         for (int i = 0; i < data.patternLength; i++) {
             m_PatternRows[channel][i].UpdateData();
         }
+
+        channels[channel].alpha = data.lookupTable[data.currentPattern][channel] >= 0 ? 1f : 0.5f;
     }
     
     public void UpdateSelection() {

@@ -49,6 +49,9 @@ public class History : MonoBehaviour {
 
         for (int i = 0; i < count; i++)
         {
+            if (data.lookupTable[data.currentPattern][channel + i] < 0)
+                continue;
+
             entries[i] = data.songData[data.lookupTable[data.currentPattern][channel + i]];
         }
 

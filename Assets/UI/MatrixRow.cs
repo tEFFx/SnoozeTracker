@@ -19,7 +19,7 @@ public class MatrixRow : MonoBehaviour {
 
         for ( int i = 0 ; i < m_Buttons.Length ; i++ ) {
             int buttonIndex = i;
-            m_Buttons [ i ].onClick = (int mouseButton) => { Debug.Log ( "HELLO" ); ButtonClick ( mouseButton, buttonIndex ); };
+            m_Buttons [ i ].onClick = (int mouseButton) => { ButtonClick ( mouseButton, buttonIndex ); };
         }
 	}
 
@@ -37,7 +37,6 @@ public class MatrixRow : MonoBehaviour {
     }
 
     private void ButtonClick(int button, int index) {
-        Debug.Log ( "Click on row " + row + ", col " + index );
         if( m_Selected ) {
             if ( Input.GetKey ( KeyCode.LeftControl ) ) {
                 if ( button == 0 )

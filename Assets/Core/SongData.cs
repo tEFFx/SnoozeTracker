@@ -152,7 +152,6 @@ public class SongData : MonoBehaviour {
                 int newIndex = sortedData.Count;
 
                 if (oldIndex >= 0 && !sortedIndicies.ContainsKey(oldIndex)) {
-                    Debug.Log ( "Set " + oldIndex + " to " + newIndex );
                     sortedData.Add ( m_SongData [ row [ i ] ] );
                     sortedIndicies.Add ( oldIndex, newIndex );
                 }
@@ -167,6 +166,8 @@ public class SongData : MonoBehaviour {
         }
 
         m_SongData = sortedData;
+        patternMatrix.UpdateMatrix();
+        patternView.UpdatePatternData();
     }
 
     public void ZapSong() {
@@ -207,11 +208,22 @@ public class SongData : MonoBehaviour {
         return m_SongData[m_LookupTable[pattern][col]];
     }
 
+    public bool IsPatternValid(int channel) {
+        return IsPatternValid(currentPattern, channel);
+    }
+
+    public bool IsPatternValid(int pattern, int channel) {
+        return m_LookupTable[pattern][channel] >= 0;
+    }
+
     public void SetData(int channel, int row, int column, int data) {
         SetData ( currentPattern, channel, row, column, data );
     }
 
     public void SetData(int pattern, int channel, int row, int column, int data) {
+        if (IsPatternValid(pattern, channel))
+            return;
+
         m_SongData [ m_LookupTable [ pattern ] [ channel ] ].data [ row, column ] = data;
     }
 
@@ -220,6 +232,9 @@ public class SongData : MonoBehaviour {
     }
 
     public int GetData(int pattern, int channel, int row, int column) {
+        if (IsPatternValid(pattern, channel))
+            return 0;
+
         return m_SongData[m_LookupTable[pattern][channel]].data[row, column];
     }
 

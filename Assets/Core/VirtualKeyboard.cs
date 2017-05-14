@@ -64,7 +64,7 @@ public class VirtualKeyboard : MonoBehaviour {
         if (patternView.position.dataColumn != 0)
             return;
         
-        if(!KeyboardShortcuts.ModifierDown())
+        if(!KeyboardShortcuts.ModifierDown() && patternView.IsCurrentPatternValid())
         {
             for (int i = 0; i < noteBinds.Length; i++)
             {
