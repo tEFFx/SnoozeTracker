@@ -209,6 +209,8 @@ public class KeyboardShortcuts : MonoBehaviour {
                 patternView.UpdateSingleRow(currChn + chn, currLine + line);
             }
         }
+
+        patternView.SetSelection ( currLine + m_LastCopy.endLine + 1 );
     }
 
     void DeleteSelection()
