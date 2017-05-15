@@ -12,8 +12,7 @@ public class ClickValue : MonoBehaviour {
             if ( value < min || value > max )
                 return;
 
-            m_Value = value;
-            textValue.text = prefix + value.ToString ( );
+            SetValue ( value );
 
             if ( onValueChanged != null )
                 onValueChanged ( value );
@@ -43,5 +42,10 @@ public class ClickValue : MonoBehaviour {
 
         buttons [ 1 ].onClick.AddListener ( () => { value -= smallStep; } );
         buttons [ 2 ].onClick.AddListener ( () => { value += smallStep; } );
+    }
+
+    public void SetValue(int value) {
+        m_Value = value;
+        textValue.text = prefix + value.ToString ( );
     }
 }

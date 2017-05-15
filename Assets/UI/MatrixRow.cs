@@ -59,6 +59,10 @@ public class MatrixRow : MonoBehaviour {
             data.patternView.UpdatePatternChannel(index);
         } else {
             data.currentPattern = row;
+            if ( matrix.playback.isPlaying ) {
+                matrix.playback.Stop ( );
+                matrix.playback.Play ( true );
+            }
         }
     }
 

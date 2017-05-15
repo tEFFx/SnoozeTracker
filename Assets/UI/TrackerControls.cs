@@ -32,7 +32,10 @@ public class TrackerControls : MonoBehaviour {
         };
         loops.value = playback.loops;
         patternLen.onValueChanged += (int val) => {
-            data.SetPatternLength ( val );
+            if ( !playback.isPlaying )
+                data.SetPatternLength ( val );
+            else
+                patternLen.SetValue ( data.patternLength );
         };
 
         songName.onValueChanged.AddListener ( (string val) => {
@@ -45,6 +48,7 @@ public class TrackerControls : MonoBehaviour {
         fileMan.onFileOpen += () => {
             songName.text = SongData.songName;
             artistName.text = SongData.artistName;
+            patternLen.value = data.patternLength;
         };
 	}
 }

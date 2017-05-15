@@ -60,8 +60,9 @@ public class PatternMatrix : MonoBehaviour {
             selection = select;
         }
 
-        if ( playback.isPlaying && selection != null ) {
-            scrollRect.content.localPosition = -selection.transform.localPosition - Vector3.up * 150; //offset 8 rows * 20 - half row (10)
+        if ( playback.isPlaying ) {
+            if( selection != null )
+                scrollRect.content.localPosition = -selection.transform.localPosition - Vector3.up * 150; //offset 8 rows * 20 - half row (10)
         }
 
         patternView.UpdatePatternData();

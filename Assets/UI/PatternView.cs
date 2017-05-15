@@ -28,6 +28,8 @@ public class PatternView : MonoBehaviour {
     public ScrollRect scroll;
     public Image selection;
     public float lineHeight;
+    public int highlightInterval;
+    public Color highlight;
     public Color selectionRecording;
     public Color selectionNormal;
     public BoxSelection boxSelection;

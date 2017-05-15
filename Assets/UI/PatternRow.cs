@@ -31,7 +31,10 @@ public class PatternRow : MonoBehaviour {
     void Start() {
         for ( int i = 0 ; i < dataEntries.Length ; i++ ) {
             int index = i;
-            dataEntries [ i ].onClick.AddListener ( () => { view.SetSelection ( line, channel, index ); } );
+            dataEntries [ i ].onClick.AddListener ( () => {
+                if(!view.playback.isPlaying)
+                    view.SetSelection ( line, channel, index );
+            } );
             dataEntries[i].GetComponent<BoxSelectable>().row = this;
         }
     }
@@ -44,12 +47,13 @@ public class PatternRow : MonoBehaviour {
 
     public void Deselect() {
         m_Selected = false;
-        dataEntries [ m_SelectedEntry ].image.color = normalColor;
+        UpdateHighlight ( m_SelectedEntry );
     }
 
     public void UpdateData() {
         var colEntry = view.data.GetPatternColumn ( view.data.currentPattern, channel );
         for ( int i = 0 ; i < dataEntries.Length ; i++ ) {
+            UpdateHighlight ( i );
             Text label = dataEntries [ i ].GetComponentInChildren<Text> ( );
             if (colEntry == null ) {
                 label.text = "-";
@@ -88,5 +92,9 @@ public class PatternRow : MonoBehaviour {
             label.color = color;
             label.text = text;
         }
+    }
+
+    private void UpdateHighlight(int button) {
+        dataEntries [ button ].image.color = ( line % view.highlightInterval ) == 0 ? view.highlight : Color.white;
     }
 }
