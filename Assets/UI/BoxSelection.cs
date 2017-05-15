@@ -45,6 +45,7 @@ public class BoxSelection : MonoBehaviour {
         if (!m_Selecting)
             return;
 
+        Debug.Log ( "Update selection" );
         m_LastSelection = next;
         UpdateSelectionBox();
     }
@@ -81,8 +82,18 @@ public class BoxSelection : MonoBehaviour {
         }
     }
 
+    public void CheckShiftMovementUpdate() {
+        if ( m_Selecting && Input.GetKey ( KeyCode.LeftShift ) )
+                UpdateSelection ( view.GetCurrentSelectable ( ) );
+    }
+
+    public void CheckShiftMovementBegin() {
+        if ( !m_Selecting && Input.GetKey ( KeyCode.LeftShift ) )
+                StartSelection ( view.GetCurrentSelectable ( ) );
+    }
+
     void Update() {
-        if(m_Selecting && Input.GetMouseButtonUp(0)) {
+        if(m_Selecting && (Input.GetMouseButtonUp(0) || Input.GetKeyUp(KeyCode.LeftShift))) {
             m_Selecting = false;
 
             if(m_InitialSelection == m_LastSelection) {

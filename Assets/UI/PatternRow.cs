@@ -99,6 +99,9 @@ public class PatternRow : MonoBehaviour {
     }
 
     private void UpdateHighlight(int button) {
+        if ( m_Selected )
+            return;
+
         dataEntries [ button ].image.color = ( line % view.highlightInterval ) == 0 ? view.highlight : Color.white;
     }
 }

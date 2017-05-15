@@ -10,6 +10,7 @@ public class KeyboardShortcuts : MonoBehaviour {
     public SongPlayback playback;
     public TrackerControls controls;
     public BoxSelection boxSelection;
+    public FileManagement fileManagement;
     public float debounceCooldown;
     public float debounceInterval;
 
@@ -64,6 +65,9 @@ public class KeyboardShortcuts : MonoBehaviour {
 
             if ( Input.GetKeyDown ( KeyCode.A ) )
                 SelectAll ( );
+
+            if ( Input.GetKeyDown ( KeyCode.S ) )
+                fileManagement.SaveFile ( false );
         }
 
         if ( patternView.recording ) {

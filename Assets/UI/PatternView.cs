@@ -176,6 +176,10 @@ public class PatternView : MonoBehaviour {
         return m_PatternRows [ channel ] [ line ];
     }
 
+    public BoxSelectable GetCurrentSelectable() {
+        return m_PatternRows [ position.channel ] [ position.line ].GetSelectable ( position.dataColumn );
+    }
+
     private void UpdateLineNumbers() {
         for ( int i = 0 ; i < m_LineNumbers.Count ; i++ ) {
             m_LineNumbers [ i ].text = i.ToString ( "X2" );
@@ -183,17 +187,23 @@ public class PatternView : MonoBehaviour {
     }
 
     public void MoveVertical(int increment) {
+        boxSelection.CheckShiftMovementBegin ( );
+
         int line = m_CurrentPosition.line + increment;
 
         if ( line > data.patternLength )
             line = 0;
-        else if(line < 0)
+        else if ( line < 0 )
             line = data.patternLength - 1;
 
         SetSelection ( line );
+
+        boxSelection.CheckShiftMovementUpdate ( );
     }
 
     public void MoveHorizontal(int increment) {
+        boxSelection.CheckShiftMovementBegin ( );
+
         int column = m_CurrentPosition.dataColumn + increment;
         int channel = m_CurrentPosition.channel;
 
@@ -212,6 +222,7 @@ public class PatternView : MonoBehaviour {
         }
 
         SetSelection (m_CurrentPosition.line, channel, column );
+        boxSelection.CheckShiftMovementUpdate ( );
     }
 
     public void SetSelection(MatrixPosition position) {
