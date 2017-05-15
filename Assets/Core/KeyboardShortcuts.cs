@@ -9,6 +9,7 @@ public class KeyboardShortcuts : MonoBehaviour {
     public VirtualKeyboard keyboard;
     public SongPlayback playback;
     public TrackerControls controls;
+    public BoxSelection boxSelection;
     public float debounceCooldown;
     public float debounceInterval;
 
@@ -60,6 +61,9 @@ public class KeyboardShortcuts : MonoBehaviour {
                 Transpose(-12);
             if (Input.GetKeyDown(KeyCode.F4))
                 Transpose(12);
+
+            if ( Input.GetKeyDown ( KeyCode.A ) )
+                SelectAll ( );
         }
 
         if ( patternView.recording ) {
@@ -82,6 +86,27 @@ public class KeyboardShortcuts : MonoBehaviour {
                     controls.octave.value = i - (int)KeyCode.F1 + 1;
                 }
             }
+        }
+    }
+
+    void SelectAll() {
+        int col = patternView.position.dataColumn;
+        int chn = patternView.position.channel;
+        bool hasSelection = boxSelection.hasSelection;
+        bool oneChannel = boxSelection.selection.startCol == boxSelection.selection.endCol;
+
+        if ( !hasSelection || oneChannel ) {
+            PatternRow top = patternView.GetRowAt ( chn, 0 );
+            PatternRow bottom = patternView.GetRowAt ( chn, songData.patternLength - 1 );
+
+            if ( hasSelection )
+                boxSelection.SetSelection ( top.GetSelectable ( 0 ), bottom.GetSelectable ( SongData.SONG_DATA_COUNT - 1 ) );
+            else
+                boxSelection.SetSelection ( top.GetSelectable(col), bottom.GetSelectable ( col ) );
+        } else {
+            PatternRow top = patternView.GetRowAt ( 0, 0 );
+            PatternRow bottom = patternView.GetRowAt ( patternView.channels.Length - 1, songData.patternLength - 1 );
+            boxSelection.SetSelection ( top.GetSelectable ( 0 ), bottom.GetSelectable ( SongData.SONG_DATA_COUNT - 1 ) );
         }
     }
 

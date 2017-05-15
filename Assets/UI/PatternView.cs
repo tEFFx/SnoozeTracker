@@ -172,6 +172,10 @@ public class PatternView : MonoBehaviour {
         return data.GetData(m_CurrentPosition.channel, m_CurrentPosition.line, m_CurrentPosition.dataColumn + colOffset);
     }
 
+    public PatternRow GetRowAt(int channel, int line) {
+        return m_PatternRows [ channel ] [ line ];
+    }
+
     private void UpdateLineNumbers() {
         for ( int i = 0 ; i < m_LineNumbers.Count ; i++ ) {
             m_LineNumbers [ i ].text = i.ToString ( "X2" );

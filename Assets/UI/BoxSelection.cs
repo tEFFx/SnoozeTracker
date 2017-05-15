@@ -49,6 +49,23 @@ public class BoxSelection : MonoBehaviour {
         UpdateSelectionBox();
     }
 
+    public void SetSelection(BoxSelectable first, BoxSelectable last) {
+        if(first == last) {
+            selectionBox.gameObject.SetActive ( false );
+            m_HasSelection = false;
+            return;
+        }
+
+        if(!selectionBox.gameObject.activeSelf)
+            selectionBox.gameObject.SetActive ( true );
+
+        m_InitialSelection = first;
+        m_LastSelection = last;
+        UpdateSelectionBox ( );
+        m_HasSelection = true;
+        UpdateSelectionData ( );
+    }
+
     public void DoOperation(SelectionDataUpdateDelegate op, bool update = true) {
         for (int line = m_Selection.startLine; line <= m_Selection.endLine; line++) {
             for (int chn = m_Selection.startChn; chn <= m_Selection.endChn; chn++) {
@@ -75,14 +92,18 @@ public class BoxSelection : MonoBehaviour {
                 m_HasSelection = true;
             }
 
-            m_Selection = new BoxSelectionRange();
-            m_Selection.startLine = Mathf.Min(m_InitialSelection.row.line, m_LastSelection.row.line);
-            m_Selection.endLine = Mathf.Max(m_InitialSelection.row.line, m_LastSelection.row.line);
-            m_Selection.startChn = Mathf.Min(m_InitialSelection.row.channel, m_LastSelection.row.channel);
-            m_Selection.endChn = Mathf.Max(m_InitialSelection.row.channel, m_LastSelection.row.channel);
-            m_Selection.startCol = Mathf.Min(m_InitialSelection.col, m_LastSelection.col);
-            m_Selection.endCol = Mathf.Max(m_InitialSelection.col, m_LastSelection.col);
+            UpdateSelectionData ( );
         }
+    }
+
+    void UpdateSelectionData() {
+        m_Selection = new BoxSelectionRange ( );
+        m_Selection.startLine = Mathf.Min ( m_InitialSelection.row.line, m_LastSelection.row.line );
+        m_Selection.endLine = Mathf.Max ( m_InitialSelection.row.line, m_LastSelection.row.line );
+        m_Selection.startChn = Mathf.Min ( m_InitialSelection.row.channel, m_LastSelection.row.channel );
+        m_Selection.endChn = Mathf.Max ( m_InitialSelection.row.channel, m_LastSelection.row.channel );
+        m_Selection.startCol = Mathf.Min ( m_InitialSelection.col, m_LastSelection.col );
+        m_Selection.endCol = Mathf.Max ( m_InitialSelection.col, m_LastSelection.col );
     }
 
     void UpdateSelectionBox() {

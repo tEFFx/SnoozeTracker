@@ -39,6 +39,10 @@ public class PatternRow : MonoBehaviour {
         }
     }
 
+    public BoxSelectable GetSelectable(int index) {
+        return dataEntries [ index ].GetComponent<BoxSelectable> ( );
+    }
+
     public void Select(int button) {
         m_Selected = true;
         m_SelectedEntry = button;
