@@ -193,6 +193,9 @@ public class KeyboardShortcuts : MonoBehaviour {
         currCol -= colDelta;
 
         for (int line = 0; line < lines; line++) {
+            if ( currLine + line >= patternView.data.patternLength )
+                break;
+
             for (int chn = 0; chn < chns; chn++) {
                 if (currChn + chn >= songData.channels)
                     break;

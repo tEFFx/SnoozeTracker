@@ -44,23 +44,13 @@ public class PatternView : MonoBehaviour {
     private List<Text> m_LineNumbers = new List<Text>();
     private List<PatternRow>[] m_PatternRows;
 
-    void Awake() {
-        m_PatternRows = new List<PatternRow> [ channels.Length ];
-        for ( int i = 0 ; i < channels.Length ; i++ ) {
-            m_PatternRows [ i ] = new List<PatternRow> ( );
-        }
-    }
-
 	// Use this for initialization
 	void Start () {
-        UpdatePatternView ( );
         SetSelection ( 0, 0 );
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        UpdatePatternView ( );
-
         if ( Input.GetKeyDown ( KeyCode.Space ) ) {
             selection.color = recording ? selectionRecording : selectionNormal;
             recording = !recording;
@@ -92,9 +82,16 @@ public class PatternView : MonoBehaviour {
         }
     }
 
-    private void UpdatePatternView() {
+    public void UpdatePatternLength() {
         if ( m_CurrentLength == data.patternLength )
             return;
+        
+        if(m_PatternRows == null ) {
+            m_PatternRows = new List<PatternRow> [ channels.Length ];
+            for ( int i = 0 ; i < channels.Length ; i++ ) {
+                m_PatternRows [ i ] = new List<PatternRow> ( );
+            }
+        }
 
         if ( m_CurrentLength < data.patternLength ) {
             for ( int i = 0 ; i < data.patternLength - m_CurrentLength; i++ ) {
@@ -112,26 +109,27 @@ public class PatternView : MonoBehaviour {
             }
         } else {
             int removeCount = m_CurrentLength - data.patternLength;
+            Debug.Log ( "Remove " + removeCount + " entries" );
+
             for ( int i = 0 ; i < removeCount ; i++ ) {
-                Destroy ( m_LineNumbers [ i ] );
+                Destroy ( m_LineNumbers [ data.patternLength + i ].transform.parent.gameObject );
             }
 
-            m_LineNumbers.RemoveRange ( 0, removeCount );
+            m_LineNumbers.RemoveRange ( data.patternLength, removeCount );
 
-            removeCount *= channels.Length;
             for ( int i = 0 ; i < channels.Length ; i++ ) {
                 for ( int p = 0 ; p < removeCount ; p++ ) {
-                    Destroy ( m_PatternRows [ i ] [ p ] );
+                    Destroy ( m_PatternRows [ i ] [ data.patternLength + p ].gameObject );
                 }
 
-                m_PatternRows[i].RemoveRange ( 0, removeCount );
-            }
+                m_PatternRows[i].RemoveRange ( data.patternLength, removeCount );
 
-            UpdatePatternData ( );
+                UpdatePatternChannel ( i );
+            }
         }
 
-        UpdateLineNumbers ( );
         m_CurrentLength = data.patternLength;
+        UpdateLineNumbers ( );
     }
 
     public bool IsCurrentPatternValid() {
@@ -145,6 +143,9 @@ public class PatternView : MonoBehaviour {
     }
 
     public void UpdatePatternChannel(int channel) {
+        if ( m_CurrentLength != data.patternLength )
+            return;
+
         for (int i = 0; i < data.patternLength; i++) {
             m_PatternRows[channel][i].UpdateData();
         }

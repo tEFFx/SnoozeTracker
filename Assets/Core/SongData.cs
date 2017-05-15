@@ -198,6 +198,7 @@ public class SongData : MonoBehaviour {
         }
 
         m_PatternLength = len;
+        patternView.UpdatePatternLength ( );
     }
 
     public ColumnEntry GetPatternColumn(int pattern, int col)

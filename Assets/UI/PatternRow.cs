@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class PatternRow : MonoBehaviour {
     public static int numDataEntries;
 
-    public int row { get { return transform.GetSiblingIndex ( ); } }
+    public int line { get { return transform.GetSiblingIndex ( ); } }
     public int channel;
     public PatternView view;
     public Color selectColor;
@@ -31,7 +31,7 @@ public class PatternRow : MonoBehaviour {
     void Start() {
         for ( int i = 0 ; i < dataEntries.Length ; i++ ) {
             int index = i;
-            dataEntries [ i ].onClick.AddListener ( () => { view.SetSelection ( row, channel, index ); } );
+            dataEntries [ i ].onClick.AddListener ( () => { view.SetSelection ( line, channel, index ); } );
             dataEntries[i].GetComponent<BoxSelectable>().row = this;
         }
     }
@@ -56,7 +56,7 @@ public class PatternRow : MonoBehaviour {
                 label.color = Color.white;
                 continue;
             }
-            int val = colEntry.data [ row, i ];
+            int val = colEntry.data [ line, i ];
             if ( val < 0 ) {
                 label.text = "-";
                 label.color = Color.white;

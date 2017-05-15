@@ -76,8 +76,8 @@ public class BoxSelection : MonoBehaviour {
             }
 
             m_Selection = new BoxSelectionRange();
-            m_Selection.startLine = Mathf.Min(m_InitialSelection.row.row, m_LastSelection.row.row);
-            m_Selection.endLine = Mathf.Max(m_InitialSelection.row.row, m_LastSelection.row.row);
+            m_Selection.startLine = Mathf.Min(m_InitialSelection.row.line, m_LastSelection.row.line);
+            m_Selection.endLine = Mathf.Max(m_InitialSelection.row.line, m_LastSelection.row.line);
             m_Selection.startChn = Mathf.Min(m_InitialSelection.row.channel, m_LastSelection.row.channel);
             m_Selection.endChn = Mathf.Max(m_InitialSelection.row.channel, m_LastSelection.row.channel);
             m_Selection.startCol = Mathf.Min(m_InitialSelection.col, m_LastSelection.col);
