@@ -19,7 +19,7 @@ public class FileManagement : MonoBehaviour {
     public string filterDescription;
     public SongData data;
     public Instruments instruments;
-    public InstrumentEditor insEditor;
+    public InstrumentEditorLegacy insEditor;
     public SongPlayback playback;
     public VirtualKeyboard keyboard;
     public PatternView patternView;

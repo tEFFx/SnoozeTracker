@@ -23,6 +23,7 @@ public class Instruments : MonoBehaviour {
             customWaveform = Wave.Pulse;
             waveTable = new int [ 0 ];
             loopSample = false;
+            name = string.Empty;
 
             sampleRelNote = 48; //C4
 
@@ -41,6 +42,7 @@ public class Instruments : MonoBehaviour {
                     case "pmi": pulseWidthMin = ( int ) e.Value; break;
                     case "pma": pulseWidthMax = ( int ) e.Value; break;
                     case "ps": pulseWidthPanSpeed = ( int ) e.Value; break;
+                    case "insname": name = ( string ) e.Value; break;
                 }
             }
         }
@@ -59,6 +61,7 @@ public class Instruments : MonoBehaviour {
             info.AddValue ( "pmi", pulseWidthMin );
             info.AddValue ( "pma", pulseWidthMax );
             info.AddValue ( "ps", pulseWidthPanSpeed );
+            info.AddValue ( "insname", name );
         }
 
         public enum Wave { Pulse, Saw, Triangle, Sample, Sine }
@@ -88,6 +91,7 @@ public class Instruments : MonoBehaviour {
         public int octave;
 
         //serialized
+        public string name;         //added in 0.2
         public int[] volumeTable;
         public int[] waveTable;
         public int[] arpeggio;
@@ -305,7 +309,15 @@ public class Instruments : MonoBehaviour {
         created.pulseWidthMin = 25;
         created.pulseWidthMax = 75;
         created.sampleRelNote = 48;
+        created.name = "Instrument " + presets.Count;
         presets.Add ( created );
     }
     
+    public void CopyInstrument(int copyIndex) {
+        presets.Add ( presets [ copyIndex ] );
+    }
+
+    public void RemoveInstrument(int removeIndex) {
+        presets.RemoveAt ( removeIndex );
+    }
 }

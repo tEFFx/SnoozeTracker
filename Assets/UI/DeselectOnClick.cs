@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class DeselectOnClick : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler {
-
+    public static bool enabled;
     private bool m_Hover;
 
 	public void OnPointerClick(PointerEventData evtData) {
@@ -12,11 +12,14 @@ public class DeselectOnClick : MonoBehaviour, IPointerClickHandler, IPointerEnte
     }
 
     public void OnPointerEnter(PointerEventData evtData) {
+        if ( !enabled )
+            return;
+
         m_Hover = true;
     }
 
     public void OnPointerExit(PointerEventData evtData) {
-        if (!m_Hover)
+        if (!m_Hover || !enabled)
             return;
 
         EventSystem.current.SetSelectedGameObject(null);
