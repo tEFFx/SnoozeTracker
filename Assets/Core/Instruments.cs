@@ -10,6 +10,7 @@ public class Instruments : MonoBehaviour {
     public struct InstrumentInstance : ISerializable {
 
         public InstrumentInstance(SerializationInfo info, StreamingContext context) {
+            Debug.Log ( "Deserializing instrument" );
             relativeVolume = 0xF;
             note = VirtualKeyboard.Note.None;
             m_SampleFreq = m_SampleTimer = 0;
@@ -296,28 +297,28 @@ public class Instruments : MonoBehaviour {
         }
     }
 
-    public List<InstrumentInstance> presets = new List<InstrumentInstance>();
+    public InstrumentInstance[] presets = new InstrumentInstance[0];
 
     void Awake() {
         CreateInstrument ( );
     }
 
     public void CreateInstrument() {
-        InstrumentInstance created = new InstrumentInstance ( );
-        created.volumeTable = new int [ ] { 0xF, 0xE, 0xD, 0xC };
-        created.arpeggio = new int [ ] { 0x0 };
-        created.pulseWidthMin = 25;
-        created.pulseWidthMax = 75;
-        created.sampleRelNote = 48;
-        created.name = "Instrument " + presets.Count;
-        presets.Add ( created );
+        int index = presets.Length;
+        Array.Resize ( ref presets, index + 1 );
+        presets[index].volumeTable = new int [ ] { 0xF, 0xE, 0xD, 0xC };
+        presets [ index ].arpeggio = new int [ ] { 0x0 };
+        presets [ index ].pulseWidthMin = 25;
+        presets [ index ].pulseWidthMax = 75;
+        presets [ index ].sampleRelNote = 48;
+        presets [ index ].name = "Instrument " + index;
     }
     
-    public void CopyInstrument(int copyIndex) {
-        presets.Add ( presets [ copyIndex ] );
-    }
+    //public void CopyInstrument(int copyIndex) {
+    //    presets.Add ( presets [ copyIndex ] );
+    //}
 
-    public void RemoveInstrument(int removeIndex) {
-        presets.RemoveAt ( removeIndex );
-    }
+    //public void RemoveInstrument(int removeIndex) {
+    //    presets.RemoveAt ( removeIndex );
+    //}
 }

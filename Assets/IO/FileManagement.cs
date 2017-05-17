@@ -6,6 +6,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Linq;
 using System;
 using Ionic.Zlib;
 
@@ -38,14 +39,74 @@ public class FileManagement : MonoBehaviour {
     private TinyFileDialogs.SaveFileDialog m_VgmSave;
 
     [System.Serializable]
-    internal class SongFile {
+    internal class SongFile : ISerializable {
+        public SongFile() {
+
+        }
+
+        public SongFile(SerializationInfo info, StreamingContext context) {
+            fileVersion = -1;
+            success = true;
+            foreach ( SerializationEntry e in info ) {
+                switch ( e.Name ) {
+                    case "version":
+                        fileVersion = ( int ) e.Value;
+
+                        if(fileVersion > CURRENT_VERSION ) {
+                            TinyFileDialogs.MessageBox ( "Incompatible file version!",
+                                "Trying to open file saved by a newer version!\n" +
+                                "(File version: " + fileVersion + ")",
+                                TinyFileDialogs.DialogType.OK, TinyFileDialogs.IconType.ERROR, true );
+                            success = false;
+                            return;
+                        }
+                        break;
+                    case "songName": songName = ( string ) e.Value; break;
+                    case "artistName": artistName = (string) e.Value; break;
+                    case "patternLength": patternLength = ( int ) e.Value; break;
+                    case "lookupTable": lookupTable = ( List<int [ ]> ) e.Value; break;
+                    case "transposeTable": transposeTable = ( List<int [ ]> ) e.Value; break;
+                    case "songData": songData = ( List<SongData.ColumnEntry> ) e.Value; break;
+                    case "instruments":
+                        if(fileVersion < CURRENT_VERSION) {
+                            instrumentsLegacy = ( List<Instruments.InstrumentInstance> ) info.GetValue("instruments", typeof(List<Instruments.InstrumentInstance>));
+                        } else {
+                            instruments = ( Instruments.InstrumentInstance [ ] ) e.Value;
+                        }
+                        break;
+                }
+            }
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context) {
+            info.AddValue ( "version", fileVersion );
+            info.AddValue ( "songName", songName );
+            info.AddValue ( "patternLength", patternLength );
+            info.AddValue ( "lookupTable", lookupTable);
+            info.AddValue ( "transposeTable", transposeTable );
+            info.AddValue ( "songData", songData );
+            info.AddValue ( "instruments", instruments );
+        }
+
+        [OnDeserialized]
+        private void OnDeserialized(StreamingContext context) {
+            if( fileVersion < CURRENT_VERSION && instrumentsLegacy != null ) {
+                Debug.Log ( "Importing instruments from older file version" );
+                instruments = instrumentsLegacy.ToArray ( );
+            }
+        }
+
+        public static readonly int CURRENT_VERSION = 10;
+        public int fileVersion = CURRENT_VERSION;
         public string songName = "";
         public string artistName = "";
         public int patternLength;
         public List<int[]> lookupTable;
         public List<int[]> transposeTable;
         public List<SongData.ColumnEntry> songData;
-        public List<Instruments.InstrumentInstance> instruments;
+        public List<Instruments.InstrumentInstance> instrumentsLegacy;      //legacy in file version 10
+        public Instruments.InstrumentInstance[] instruments;                //added in file version 10
+        public bool success;
     }
 
     void Awake() {
@@ -103,7 +164,10 @@ public class FileManagement : MonoBehaviour {
             song.lookupTable = data.lookupTable;
             song.transposeTable = data.transposeTable;
             song.songData = data.songData;
-            song.instruments = instruments.presets;
+
+            int presetCount = instruments.presets.Length;
+            song.instruments = new Instruments.InstrumentInstance [ presetCount ];
+            Array.Copy ( instruments.presets, song.instruments, presetCount );
 
             song.songName = SongData.songName;
             song.artistName = SongData.artistName;
@@ -132,6 +196,11 @@ public class FileManagement : MonoBehaviour {
             Stream fs = m_TuneOpen.OpenFile ( );
 
             SongFile open = (SongFile)formatter.Deserialize ( fs );
+            fs.Close ( );
+
+            if ( !open.success )
+                return;
+
             data.SetPatternLength ( open.patternLength );
             data.lookupTable = open.lookupTable;
             if ( open.transposeTable != null && open.transposeTable.Count == open.lookupTable.Count ) {
@@ -157,9 +226,10 @@ public class FileManagement : MonoBehaviour {
             SongData.artistName = open.artistName ?? "";
 
             keyboard.currentInstrument = 0;
-            instruments.presets = open.instruments;
-            fs.Close ( );
 
+            int presetCount = open.instruments.Length;
+            Array.Resize ( ref instruments.presets, presetCount );
+            Array.Copy ( open.instruments, instruments.presets, presetCount );
             
             insEditor.UpdateAttributes ( );
 

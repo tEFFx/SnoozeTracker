@@ -79,7 +79,7 @@ public class PatternRow : MonoBehaviour {
                     text = VirtualKeyboard.FormatNote ( val );
                     break;
                 case 1:
-                    color = val < view.instruments.presets.Count ? validInstrument : invalidInstrument;
+                    color = val < view.instruments.presets.Length ? validInstrument : invalidInstrument;
                     text = val.ToString ( "X2" );
                     break;
                 case 2:

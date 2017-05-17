@@ -131,12 +131,12 @@ public class SongPlayback : MonoBehaviour {
                         m_Instruments [ i ].note = VirtualKeyboard.Note.NoteOff;
                         psg.SetAttenuation ( i, 0 );
                     } else {
-                        m_PrevInstruments[i] = m_Instruments[i];
+                        m_PrevInstruments [ i ] = m_Instruments [ i ];
                         m_Instruments [ i ] = instruments.presets [ col.data [ m_CurrentLine, 1 ] ];
                         m_Instruments [ i ].relativeVolume = volume >= 0 ? volume : 0xF;
-                        m_Instruments[i].note = note;
-                        m_Instruments [ i ].noteOffset = data.transposeTable [ m_CurrentPattern ][i];
-                        m_Instruments[i].octave = VirtualKeyboard.GetOctave(col.data[m_CurrentLine, 0]);
+                        m_Instruments [ i ].note = note;
+                        m_Instruments [ i ].noteOffset = data.transposeTable [ m_CurrentPattern ] [ i ];
+                        m_Instruments [ i ].octave = VirtualKeyboard.GetOctave ( col.data [ m_CurrentLine, 0 ] );
                     } 
                 }
 

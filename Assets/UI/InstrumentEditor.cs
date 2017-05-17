@@ -18,7 +18,7 @@ public class InstrumentEditor : MonoBehaviour {
 
     public void UpdateInstruments() {
         int currCount = m_Instruments.Count;
-        int presets = instruments.presets.Count;
+        int presets = instruments.presets.Length;
 
         if ( currCount == presets )
             return;
@@ -72,11 +72,11 @@ public class InstrumentEditor : MonoBehaviour {
         instruments.CreateInstrument ( );
     }
 
-    public void RemoveInstrument() {
-        instruments.RemoveInstrument ( m_SelectedInstrument.transform.GetSiblingIndex ( ) );
-    }
+    //public void RemoveInstrument() {
+    //    instruments.RemoveInstrument ( m_SelectedInstrument.transform.GetSiblingIndex ( ) );
+    //}
 
-    public void CopyInstrument() {
-        instruments.CopyInstrument ( m_SelectedInstrument.transform.GetSiblingIndex ( ) );
-    }
+    //public void CopyInstrument() {
+    //    instruments.CopyInstrument ( m_SelectedInstrument.transform.GetSiblingIndex ( ) );
+    //}
 }

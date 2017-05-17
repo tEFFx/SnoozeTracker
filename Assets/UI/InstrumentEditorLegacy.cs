@@ -283,7 +283,7 @@ public class InstrumentEditorLegacy : MonoBehaviour {
         keyboard.currentInstrument += dir;
         if ( keyboard.currentInstrument < 0 )
             keyboard.currentInstrument = 0;
-        if ( keyboard.currentInstrument >= instruments.presets.Count )
+        if ( keyboard.currentInstrument >= instruments.presets.Length )
             instruments.CreateInstrument ( );
 
         UpdateAttributes ( );
