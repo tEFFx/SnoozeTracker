@@ -26,7 +26,7 @@ public class InstrumentButton : MonoBehaviour {
 
                 string newName = input.text;
                 buttonText.text = newName;
-                //store name!!!
+                editor.instruments.presets [ m_InstrumentId ].name = newName;
             }
         }
     }
