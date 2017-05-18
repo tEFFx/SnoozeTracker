@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class EnvelopeValue : MonoBehaviour {
@@ -11,11 +12,16 @@ public class EnvelopeValue : MonoBehaviour {
     void Awake() {
         m_Text = GetComponentInChildren<Text> ( );
         m_Slider = GetComponent<Slider> ( );
-        m_Slider.onValueChanged.AddListener ( OnValueChange );
     }
 
 	void OnValueChange(float value) {
         int val = ( int ) value;
         m_Text.text = val.ToString ( "X2" );
+    }
+
+    public void AddListener(UnityAction<float> action) {
+        m_Slider.onValueChanged.AddListener ( OnValueChange );
+        m_Slider.onValueChanged.AddListener(action);
+        OnValueChange(m_Slider.value);
     }
 }

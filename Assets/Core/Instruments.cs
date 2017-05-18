@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 using System.Runtime.Serialization;
 
 public class Instruments : MonoBehaviour {
@@ -25,6 +26,7 @@ public class Instruments : MonoBehaviour {
             waveTable = new int [ 0 ];
             loopSample = false;
             name = string.Empty;
+            volumeLoopPoint = 0;
 
             sampleRelNote = 48; //C4
 
@@ -43,6 +45,7 @@ public class Instruments : MonoBehaviour {
                     case "pmi": pulseWidthMin = ( int ) e.Value; break;
                     case "pma": pulseWidthMax = ( int ) e.Value; break;
                     case "ps": pulseWidthPanSpeed = ( int ) e.Value; break;
+                    case "volloop": volumeLoopPoint = (int) e.Value; break;
                     case "insname": name = ( string ) e.Value; break;
                 }
             }
@@ -62,6 +65,7 @@ public class Instruments : MonoBehaviour {
             info.AddValue ( "pmi", pulseWidthMin );
             info.AddValue ( "pma", pulseWidthMax );
             info.AddValue ( "ps", pulseWidthPanSpeed );
+            info.AddValue("volloop", volumeLoopPoint);
             info.AddValue ( "insname", name );
         }
 
@@ -94,6 +98,7 @@ public class Instruments : MonoBehaviour {
         //serialized
         public string name;         //added in 0.2
         public int[] volumeTable;
+        public int volumeLoopPoint;
         public int[] waveTable;
         public int[] arpeggio;
         public int vibratoDepth;
@@ -113,6 +118,15 @@ public class Instruments : MonoBehaviour {
         private int m_IrqTimer, m_PortamentoTimer, m_VolumeOffset, m_PWMTimer, m_PWM, m_LastSample;
         private float m_SampleTimer, m_SampleFreq;
         private bool m_AutoPortamento, m_UpdatedFrequency, m_PWMDir, m_PWMFlipFlop;
+
+        public void ResizeVolumeTable(int increment) {
+            if (volumeTable.Length + increment < 1)
+                return;
+            
+            Array.Resize(ref volumeTable, volumeTable.Length + increment);
+            if (increment > 0 && volumeTable.Length > 1)
+                volumeTable[volumeTable.Length - 1] = volumeTable[volumeTable.Length - 2];
+        }
 
         public void SetAutoPortamento(InstrumentInstance prev, int speed) {
             if (speed == 0 || prev.note == VirtualKeyboard.Note.None || prev.note == VirtualKeyboard.Note.NoteOff)
@@ -274,6 +288,8 @@ public class Instruments : MonoBehaviour {
         {
             if (volumeTable == null || m_VolumeOffset < volumeTable.Length - 1)
                 m_VolumeOffset++;
+            else if (volumeLoopPoint > 0)
+                m_VolumeOffset = volumeTable.Length - volumeLoopPoint;
 
             if (!m_AutoPortamento && portamentoSpeed != 0)
                 m_PortamentoTimer++;

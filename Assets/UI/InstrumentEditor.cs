@@ -7,10 +7,22 @@ public class InstrumentEditor : MonoBehaviour {
 
     public Instruments instruments;
     public VirtualKeyboard keyboard;
+    public EnvelopeEditor volumeEnvelope;
 
     private List<InstrumentButton> m_Instruments = new List<InstrumentButton>();
     private InstrumentButton m_SelectedInstrument;
 
+    void Start() {
+        volumeEnvelope.increaseArray.onClick.AddListener(() => {
+            instruments.presets[keyboard.currentInstrument].ResizeVolumeTable(1);
+            UpdateVolumeEnvelope();
+        });
+        volumeEnvelope.decreaseArray.onClick.AddListener(() => {
+            instruments.presets[keyboard.currentInstrument].ResizeVolumeTable(-1);
+            UpdateVolumeEnvelope();
+        });
+    }
+    
 	// Update is called once per frame
 	void Update () {
         UpdateInstruments ( );
@@ -66,10 +78,16 @@ public class InstrumentEditor : MonoBehaviour {
         m_SelectedInstrument.SetSelected ( true );
 
         keyboard.currentInstrument = index;
+        UpdateVolumeEnvelope();
+        volumeEnvelope.SetLoopPoint(instruments.presets[index].volumeLoopPoint, x => instruments.presets[index].volumeLoopPoint = (int)x );
     }
 
     public void NewInstrument() {
         instruments.CreateInstrument ( );
+    }
+
+    private void UpdateVolumeEnvelope() {
+        volumeEnvelope.SetArray(instruments.presets[keyboard.currentInstrument].volumeTable);
     }
 
     //public void RemoveInstrument() {
