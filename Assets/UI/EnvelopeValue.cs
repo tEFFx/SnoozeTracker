@@ -5,23 +5,17 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class EnvelopeValue : MonoBehaviour {
-    public Slider slider { get { return m_Slider; } }
-    private Slider m_Slider;
-    private Text m_Text;
-
-    void Awake() {
-        m_Text = GetComponentInChildren<Text> ( );
-        m_Slider = GetComponent<Slider> ( );
-    }
-
+    public Slider slider { get { return GetComponent<Slider>(); } }
+    public Text text {get { return GetComponentInChildren<Text>(); }}
+    
 	void OnValueChange(float value) {
         int val = ( int ) value;
-        m_Text.text = val.ToString ( );
+	    text.text = val.ToString ( );
     }
 
     public void AddListener(UnityAction<float> action) {
-        m_Slider.onValueChanged.AddListener ( OnValueChange );
-        m_Slider.onValueChanged.AddListener(action);
-        OnValueChange(m_Slider.value);
+        slider.onValueChanged.AddListener ( OnValueChange );
+        slider.onValueChanged.AddListener(action);
+        OnValueChange(slider.value);
     }
 }

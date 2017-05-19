@@ -34,7 +34,6 @@ public class EnvelopeEditor : MonoBehaviour {
 
         if(envCount < arrayCount) {
             int addCount = arrayCount - envCount;
-            Debug.Log("Adding " + addCount + " envelope points");
             for ( int i = 0 ; i < addCount; i++ ) {
                 GameObject createdRow = ( GameObject ) Instantiate ( envelopeValuePrefab, transform );
                 createdRow.transform.SetAsFirstSibling();

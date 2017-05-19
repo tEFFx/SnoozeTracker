@@ -347,6 +347,21 @@ public class Instruments : MonoBehaviour {
         presets [ index ].sampleRelNote = 48;
         presets [ index ].name = "Instrument " + index;
     }
+
+    public void RemoveInstrument(int removeIndex) {
+        if (presets.Length <= 1)
+            return;
+        for (int i = removeIndex; i < presets.Length - 1; i++) {
+            presets[i] = presets[i + 1];
+        }
+        Array.Resize(ref presets, presets.Length - 1);
+    }
+
+    public void CopyInstrument(int copyIndex) {
+        int index = presets.Length;
+        Array.Resize ( ref presets, index + 1 );
+        presets[index] = presets[copyIndex];
+    }
     
     //public void CopyInstrument(int copyIndex) {
     //    presets.Add ( presets [ copyIndex ] );

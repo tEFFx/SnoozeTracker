@@ -27,7 +27,7 @@ public class ClickValue : MonoBehaviour {
     public string prefix;
     public Action<int> onValueChanged;
 
-    private int m_Value;
+    protected int m_Value;
 
 	// Use this for initialization
 	void Awake () {
@@ -44,7 +44,7 @@ public class ClickValue : MonoBehaviour {
         buttons [ 2 ].onClick.AddListener ( () => { value += smallStep; } );
     }
 
-    public void SetValue(int value) {
+    public virtual void SetValue(int value) {
         m_Value = value;
         textValue.text = prefix + value.ToString ( );
     }

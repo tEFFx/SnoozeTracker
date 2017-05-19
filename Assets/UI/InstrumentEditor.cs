@@ -11,6 +11,7 @@ public class InstrumentEditor : MonoBehaviour {
     public GameObject volumeParent;
     public EnvelopeEditor arpeggioEnvelope;
     public GameObject arpeggioParent;
+    public WaveOptions waveOptions;
 
     private List<InstrumentButton> m_Instruments = new List<InstrumentButton>();
     private InstrumentButton m_SelectedInstrument;
@@ -34,6 +35,7 @@ public class InstrumentEditor : MonoBehaviour {
             instruments.presets[keyboard.currentInstrument].ResizeArpTable(1);
             UpdateEnvelopes();
         });
+       
     }
     
 	// Update is called once per frame
@@ -93,21 +95,41 @@ public class InstrumentEditor : MonoBehaviour {
         UpdateEnvelopes();
         volumeEnvelope.SetLoopPoint(instruments.presets[index].volumeLoopPoint, x => instruments.presets[index].volumeLoopPoint = (int)x );
         arpeggioEnvelope.SetLoopPoint(instruments.presets[index].arpLoopPoint, x => instruments.presets[index].arpLoopPoint = (int)x);
+        waveOptions.SetData(index);
     }
 
     public void SetEditorState(int state) {
         volumeParent.gameObject.SetActive(state == 0);
         arpeggioParent.gameObject.SetActive(state == 1);
+        waveOptions.gameObject.SetActive(state == 2);
         m_EditorState = state;
     }
 
     public void NewInstrument() {
         instruments.CreateInstrument ( );
+        UpdateEnvelopes();
+    }
+
+    public void RemoveInstrument() {
+        if (instruments.presets.Length <= 1)
+            return;
+        
+        if(keyboard.currentInstrument >= instruments.presets.Length - 1)
+            SetSelectedInstrument(keyboard.currentInstrument - 1);
+        
+        instruments.RemoveInstrument(keyboard.currentInstrument);
+        UpdateEnvelopes();
+    }
+
+    public void CopyInstrument() {
+        instruments.CopyInstrument(keyboard.currentInstrument);
+        UpdateEnvelopes();
     }
 
     private void UpdateEnvelopes() {
         volumeEnvelope.SetArray(instruments.presets[keyboard.currentInstrument].volumeTable);
         arpeggioEnvelope.SetArray(instruments.presets[keyboard.currentInstrument].arpeggio);
+        waveOptions.SetData(keyboard.currentInstrument);
     }
 
     //public void RemoveInstrument() {
