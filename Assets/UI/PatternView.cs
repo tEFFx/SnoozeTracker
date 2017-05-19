@@ -88,6 +88,9 @@ public class PatternView : MonoBehaviour {
         if ( m_CurrentLength == data.patternLength )
             return;
         
+        if(m_CurrentLength > 0)
+            SetSelection(0, 0);
+        
         if(m_PatternRows == null ) {
             m_PatternRows = new List<PatternRow> [ channels.Length ];
             for ( int i = 0 ; i < channels.Length ; i++ ) {

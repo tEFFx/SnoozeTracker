@@ -6,7 +6,8 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class EnvelopeEditor : MonoBehaviour {
-    public int scale;
+    public int minValue;
+    public int maxValue;
     public GameObject envelopeValuePrefab;
     public Slider loopSlider;
     public Text length;
@@ -38,7 +39,8 @@ public class EnvelopeEditor : MonoBehaviour {
                 GameObject createdRow = ( GameObject ) Instantiate ( envelopeValuePrefab, transform );
                 createdRow.transform.SetAsFirstSibling();
                 EnvelopeValue value = createdRow.GetComponent<EnvelopeValue> ( );
-                value.GetComponent<Slider>().maxValue = scale;
+                value.GetComponent<Slider>().minValue = minValue;
+                value.GetComponent<Slider>().maxValue = maxValue;
                 m_EnvelopeValues.Add ( value );
             }
         } else {

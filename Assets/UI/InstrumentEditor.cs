@@ -8,18 +8,31 @@ public class InstrumentEditor : MonoBehaviour {
     public Instruments instruments;
     public VirtualKeyboard keyboard;
     public EnvelopeEditor volumeEnvelope;
+    public GameObject volumeParent;
+    public EnvelopeEditor arpeggioEnvelope;
+    public GameObject arpeggioParent;
 
     private List<InstrumentButton> m_Instruments = new List<InstrumentButton>();
     private InstrumentButton m_SelectedInstrument;
+    private int m_EditorState;
 
     void Start() {
         volumeEnvelope.increaseArray.onClick.AddListener(() => {
             instruments.presets[keyboard.currentInstrument].ResizeVolumeTable(1);
-            UpdateVolumeEnvelope();
+            UpdateEnvelopes();
         });
         volumeEnvelope.decreaseArray.onClick.AddListener(() => {
             instruments.presets[keyboard.currentInstrument].ResizeVolumeTable(-1);
-            UpdateVolumeEnvelope();
+            UpdateEnvelopes();
+        });
+        
+        arpeggioEnvelope.decreaseArray.onClick.AddListener(() => {
+            instruments.presets[keyboard.currentInstrument].ResizeArpTable(-1);
+            UpdateEnvelopes();
+        });
+        arpeggioEnvelope.increaseArray.onClick.AddListener(() => {
+            instruments.presets[keyboard.currentInstrument].ResizeArpTable(1);
+            UpdateEnvelopes();
         });
     }
     
@@ -59,6 +72,8 @@ public class InstrumentEditor : MonoBehaviour {
 
         if ( m_SelectedInstrument == null )
             SetSelectedInstrument ( 0 );
+        
+        SetEditorState(m_EditorState);
     }
 
     public void UpdateInstrumentInfo() {
@@ -68,9 +83,6 @@ public class InstrumentEditor : MonoBehaviour {
     }
 
     public void SetSelectedInstrument(int index) {
-        if ( index == keyboard.currentInstrument && m_SelectedInstrument != null )
-            return;
-
         if ( m_SelectedInstrument != null )
             m_SelectedInstrument.SetSelected ( false );
 
@@ -78,16 +90,24 @@ public class InstrumentEditor : MonoBehaviour {
         m_SelectedInstrument.SetSelected ( true );
 
         keyboard.currentInstrument = index;
-        UpdateVolumeEnvelope();
+        UpdateEnvelopes();
         volumeEnvelope.SetLoopPoint(instruments.presets[index].volumeLoopPoint, x => instruments.presets[index].volumeLoopPoint = (int)x );
+        arpeggioEnvelope.SetLoopPoint(instruments.presets[index].arpLoopPoint, x => instruments.presets[index].arpLoopPoint = (int)x);
+    }
+
+    public void SetEditorState(int state) {
+        volumeParent.gameObject.SetActive(state == 0);
+        arpeggioParent.gameObject.SetActive(state == 1);
+        m_EditorState = state;
     }
 
     public void NewInstrument() {
         instruments.CreateInstrument ( );
     }
 
-    private void UpdateVolumeEnvelope() {
+    private void UpdateEnvelopes() {
         volumeEnvelope.SetArray(instruments.presets[keyboard.currentInstrument].volumeTable);
+        arpeggioEnvelope.SetArray(instruments.presets[keyboard.currentInstrument].arpeggio);
     }
 
     //public void RemoveInstrument() {

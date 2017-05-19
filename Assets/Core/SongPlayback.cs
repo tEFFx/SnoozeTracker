@@ -153,6 +153,7 @@ public class SongPlayback : MonoBehaviour {
                                 int hiArp, loArp;
                                 SplitByte ( fxVal, out hiArp, out loArp );
                                 m_Instruments [ i ].arpeggio = new int [ 3 ] { 0, loArp, hiArp };
+                                m_Instruments[i].arpLoopPoint = 3;
                             }
                             break;
 

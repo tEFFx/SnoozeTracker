@@ -27,6 +27,8 @@ public class Instruments : MonoBehaviour {
             loopSample = false;
             name = string.Empty;
             volumeLoopPoint = 0;
+            arpLoopPoint = 0;
+            m_ArpCounter = 0;
 
             sampleRelNote = 48; //C4
 
@@ -46,6 +48,7 @@ public class Instruments : MonoBehaviour {
                     case "pma": pulseWidthMax = ( int ) e.Value; break;
                     case "ps": pulseWidthPanSpeed = ( int ) e.Value; break;
                     case "volloop": volumeLoopPoint = (int) e.Value; break;
+                    case "arploop": arpLoopPoint = (int) e.Value; break;
                     case "insname": name = ( string ) e.Value; break;
                 }
             }
@@ -66,6 +69,7 @@ public class Instruments : MonoBehaviour {
             info.AddValue ( "pma", pulseWidthMax );
             info.AddValue ( "ps", pulseWidthPanSpeed );
             info.AddValue("volloop", volumeLoopPoint);
+            info.AddValue("arploop", arpLoopPoint);
             info.AddValue ( "insname", name );
         }
 
@@ -101,6 +105,7 @@ public class Instruments : MonoBehaviour {
         public int volumeLoopPoint;
         public int[] waveTable;
         public int[] arpeggio;
+        public int arpLoopPoint;
         public int vibratoDepth;
         public int vibratoSpeed;
         public bool samplePlayback;
@@ -115,17 +120,25 @@ public class Instruments : MonoBehaviour {
         public int sampleRelNote;
 
         //not serialized
-        private int m_IrqTimer, m_PortamentoTimer, m_VolumeOffset, m_PWMTimer, m_PWM, m_LastSample;
+        private int m_IrqTimer, m_PortamentoTimer, m_VolumeOffset, m_PWMTimer, m_PWM, m_LastSample, m_ArpCounter;
         private float m_SampleTimer, m_SampleFreq;
         private bool m_AutoPortamento, m_UpdatedFrequency, m_PWMDir, m_PWMFlipFlop;
 
         public void ResizeVolumeTable(int increment) {
-            if (volumeTable.Length + increment < 1)
+            ResizeArray(ref volumeTable, increment);
+        }
+
+        public void ResizeArpTable(int increment) {
+            ResizeArray(ref arpeggio, increment);
+        }
+
+        private void ResizeArray(ref int[] array, int increment) {
+            if (array.Length + increment < 1)
                 return;
             
-            Array.Resize(ref volumeTable, volumeTable.Length + increment);
-            if (increment > 0 && volumeTable.Length > 1)
-                volumeTable[volumeTable.Length - 1] = volumeTable[volumeTable.Length - 2];
+            Array.Resize(ref array, array.Length + increment);
+            if (increment > 0 && array.Length > 1)
+                array[array.Length - 1] = array[array.Length - 2];
         }
 
         public void SetAutoPortamento(InstrumentInstance prev, int speed) {
@@ -261,7 +274,7 @@ public class Instruments : MonoBehaviour {
             if (arpeggio.Length == 0)
                 return 0;
 
-            return arpeggio[m_IrqTimer % arpeggio.Length] + noteOffset;
+            return arpeggio[m_ArpCounter] + noteOffset;
         }
 
         private int GetFreqOffset()
@@ -290,6 +303,11 @@ public class Instruments : MonoBehaviour {
                 m_VolumeOffset++;
             else if (volumeLoopPoint > 0)
                 m_VolumeOffset = volumeTable.Length - volumeLoopPoint;
+
+            if (m_ArpCounter < arpeggio.Length - 1)
+                m_ArpCounter++;
+            else if(arpLoopPoint > 0)
+                m_ArpCounter = arpeggio.Length - arpLoopPoint;
 
             if (!m_AutoPortamento && portamentoSpeed != 0)
                 m_PortamentoTimer++;

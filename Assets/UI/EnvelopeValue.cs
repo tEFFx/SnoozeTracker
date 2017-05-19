@@ -16,7 +16,7 @@ public class EnvelopeValue : MonoBehaviour {
 
 	void OnValueChange(float value) {
         int val = ( int ) value;
-        m_Text.text = val.ToString ( "X2" );
+        m_Text.text = val.ToString ( );
     }
 
     public void AddListener(UnityAction<float> action) {

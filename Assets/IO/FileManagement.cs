@@ -20,7 +20,7 @@ public class FileManagement : MonoBehaviour {
     public string filterDescription;
     public SongData data;
     public Instruments instruments;
-    public InstrumentEditorLegacy insEditor;
+    public InstrumentEditor insEditor;
     public SongPlayback playback;
     public VirtualKeyboard keyboard;
     public PatternView patternView;
@@ -231,8 +231,6 @@ public class FileManagement : MonoBehaviour {
             Array.Resize ( ref instruments.presets, presetCount );
             Array.Copy ( open.instruments, instruments.presets, presetCount );
             
-            insEditor.UpdateAttributes ( );
-
             m_OpenFile = m_TuneOpen.filePath;
             fileModified = false;
 
@@ -240,6 +238,9 @@ public class FileManagement : MonoBehaviour {
                 onFileOpen ( );
 
             patternView.UpdatePatternData();
+            insEditor.UpdateInstruments();
+            insEditor.UpdateInstrumentInfo();
+            insEditor.SetSelectedInstrument(0);
         }
     }
 
