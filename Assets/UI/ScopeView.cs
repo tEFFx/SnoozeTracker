@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 public class ScopeView : MonoBehaviour {
     public Material lineMat;
     public PSGWrapper psg;
-    public Color lineColor;
-    public Rect box;
     public int targetFPS;
+    public Color clearColor;
 
     private int m_SampleCount = 0;
     private int m_SamplesPerFrame = 0;
@@ -17,6 +18,8 @@ public class ScopeView : MonoBehaviour {
 
     private float[] m_SampleData;
     private Vector3 m_ScreenPos;
+    private RenderTexture m_Target;
+    private Vector2 m_Size;
 
     void Awake()
     {
@@ -26,21 +29,31 @@ public class ScopeView : MonoBehaviour {
 
     }
 
-    void OnPostRender()
+    void Start() {
+        Image img = GetComponent<Image>();
+        int w = (int) img.rectTransform.rect.size.x;
+        int h = (int) img.rectTransform.rect.size.y;
+        m_Target = new RenderTexture(w, h, 0);
+        m_Size = img.rectTransform.rect.size;
+        img.material.mainTexture = m_Target;
+    }
+
+    void Update()
     {
         if ( m_SampleData == null )
             return;
 
-        GL.PushMatrix();
-
         lineMat.SetPass(0);
-        GL.LoadPixelMatrix();
+        RenderTexture.active = m_Target;
+        
+        GL.PushMatrix();
+        GL.LoadPixelMatrix(0, m_Target.width, m_Target.height, 0);
+        GL.Clear(false, true, clearColor);
         GL.Begin(GL.LINES);
-        GL.Color(lineColor);
 
         int end = Mathf.Min(m_SampleData.Length, m_SampleCount + m_SamplesPerFrame - m_Channels);
-        m_LineSpacing = box.width / m_SamplesPerFrame;
-        m_LineHeight = box.height * 0.5f;
+        m_LineSpacing = m_Size.x / m_SamplesPerFrame;
+        m_LineHeight = m_Size.y * 0.5f;
 
         for (int i = m_SampleCount; i < end; i += m_Channels)
         {
@@ -50,12 +63,11 @@ public class ScopeView : MonoBehaviour {
             s /= ( float ) m_Channels;
             s = Mathf.Min ( s, 0.9f );
 
-            Vector3 boxPos = new Vector3(box.xMin, Screen.height - (box.yMin + m_LineHeight));
             Vector3 pos = Vector3.zero;
             pos.x += (i % m_SamplesPerFrame) * m_LineSpacing;
-            pos.y += s * m_LineHeight;
+            pos.y += s * m_LineHeight + m_LineHeight;
 
-            GL.Vertex(pos + boxPos);
+            GL.Vertex(pos);
 
             s = m_SampleData [ i + m_Channels ];
             if ( m_Channels > 1 )
@@ -64,19 +76,15 @@ public class ScopeView : MonoBehaviour {
 
             pos = Vector3.zero;
             pos.x += ((i + m_Channels) % m_SamplesPerFrame) * m_LineSpacing;
-            pos.y += s * m_LineHeight;
+            pos.y += s * m_LineHeight + m_LineHeight;
 
-            GL.Vertex(pos + boxPos);
+            GL.Vertex(pos);
         }
 
         
         GL.End();
         GL.PopMatrix();
-    }
-
-    void OnGUI()
-    {
-        GUI.Box(box, "");
+        RenderTexture.active = null;
     }
 
     void DrawLine(int index)
