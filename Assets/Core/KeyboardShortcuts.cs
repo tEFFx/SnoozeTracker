@@ -147,7 +147,7 @@ public class KeyboardShortcuts : MonoBehaviour {
                 int newNote = TransposeNote(direction, songData.GetData(chn, line, col));
                 songData.SetData(chn, line, col, newNote);
             });
-        } else if(patternView.position.channel == 0) {
+        } else if(patternView.position.dataColumn == 0) {
             int newNote = TransposeNote(direction, patternView.GetDataAtSelection());
             patternView.SetDataAtSelection(newNote);
         }
