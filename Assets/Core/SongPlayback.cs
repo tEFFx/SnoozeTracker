@@ -67,6 +67,8 @@ public class SongPlayback : MonoBehaviour {
                     data.currentPattern++;
                     if ( data.currentPattern >= data.numPatterns )
                         data.currentPattern = m_PatternLoop;
+
+                    view.UpdatePatternData ( );
                 }
 
                 m_LastLineTick = Time.time;

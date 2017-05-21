@@ -113,12 +113,9 @@ public class InstrumentEditor : MonoBehaviour {
     public void RemoveInstrument() {
         if (instruments.presets.Length <= 1)
             return;
-        
-        if(keyboard.currentInstrument >= instruments.presets.Length - 1)
-            SetSelectedInstrument(keyboard.currentInstrument - 1);
-        
-        instruments.RemoveInstrument(keyboard.currentInstrument);
-        UpdateEnvelopes();
+
+        instruments.RemoveInstrument ( keyboard.currentInstrument );
+        UpdateEnvelopes ();
     }
 
     public void CopyInstrument() {

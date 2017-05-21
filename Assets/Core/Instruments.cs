@@ -124,6 +124,22 @@ public class Instruments : MonoBehaviour {
         private float m_SampleTimer, m_SampleFreq;
         private bool m_AutoPortamento, m_UpdatedFrequency, m_PWMDir, m_PWMFlipFlop;
 
+        public InstrumentInstance GetDeepCopy() {
+            InstrumentInstance ins = this;
+
+            ins.volumeTable = new int [ volumeTable.Length ];
+            ins.arpeggio = new int [ arpeggio.Length ];
+            Array.Copy ( volumeTable, ins.volumeTable, volumeTable.Length );
+            Array.Copy ( arpeggio, ins.arpeggio, arpeggio.Length );
+
+            if ( waveTable != null ) {
+                ins.waveTable = new int [ waveTable.Length ];
+                Array.Copy ( waveTable, ins.waveTable, waveTable.Length );
+            }
+
+            return ins;
+        }
+
         public void ResizeVolumeTable(int increment) {
             ResizeArray(ref volumeTable, increment);
         }
@@ -360,7 +376,7 @@ public class Instruments : MonoBehaviour {
     public void CopyInstrument(int copyIndex) {
         int index = presets.Length;
         Array.Resize ( ref presets, index + 1 );
-        presets[index] = presets[copyIndex];
+        presets[index] = presets[copyIndex].GetDeepCopy();
     }
     
     //public void CopyInstrument(int copyIndex) {

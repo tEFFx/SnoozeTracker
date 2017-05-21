@@ -22,12 +22,13 @@ public class SliderValue : MonoBehaviour {
 		if (m_UpdateValue && setValueCallback != null)
 			setValueCallback(val);
 
-		textValue.text = val.ToString("X2");
+		textValue.text = val.ToString();
 	}
 
 	public void UpdateValue(int value) {
 		m_UpdateValue = false;
 		slider.value = value;
+        textValue.text = value.ToString ( );
 		m_UpdateValue = true;
 	}
 }
