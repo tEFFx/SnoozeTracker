@@ -11,14 +11,14 @@ public class Instruments : MonoBehaviour {
     public struct InstrumentInstance : ISerializable {
 
         public InstrumentInstance(SerializationInfo info, StreamingContext context) {
-            Debug.Log ( "Deserializing instrument" );
             relativeVolume = 0xF;
             note = VirtualKeyboard.Note.None;
             m_SampleFreq = m_SampleTimer = 0;
-            noteOffset = noteDelay = waveTableSampleRate = vibratoDepth = vibratoSpeed = octave = portamentoSpeed = m_LastSample = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
-            samplePlayback = m_AutoPortamento = m_UpdatedFrequency = m_PWMDir = m_PWMFlipFlop = false;
+            m_NoiseCounter = noiseModeLoopPoint = noteOffset = noteDelay = waveTableSampleRate = vibratoDepth = vibratoSpeed = m_Octave = portamentoSpeed = m_LastSample = m_IrqTimer = m_PortamentoTimer = m_VolumeOffset = m_PWMTimer = m_PWM = 0;
+            arpAbsolute = samplePlayback = m_AutoPortamento = m_UpdatedFrequency = m_PWMDir = m_PWMFlipFlop = false;
             volumeTable = new int [ ] { 0xF, 0xE, 0xD, 0xC };
             arpeggio = new int [ ] { 0x0 };
+            noiseMode = new int [ ] { 0x01 };
             pulseWidthMin = 25;
             pulseWidthMax = 75;
             pulseWidthPanSpeed = 1;
@@ -49,6 +49,9 @@ public class Instruments : MonoBehaviour {
                     case "ps": pulseWidthPanSpeed = ( int ) e.Value; break;
                     case "volloop": volumeLoopPoint = (int) e.Value; break;
                     case "arploop": arpLoopPoint = (int) e.Value; break;
+                    case "arpabs": arpAbsolute = ( bool ) e.Value; break;
+                    case "noisemode": noiseMode = ( int [ ] ) e.Value; break;
+                    case "noiseloop": noiseModeLoopPoint = ( int ) e.Value; break;
                     case "insname": name = ( string ) e.Value; break;
                 }
             }
@@ -68,8 +71,11 @@ public class Instruments : MonoBehaviour {
             info.AddValue ( "pmi", pulseWidthMin );
             info.AddValue ( "pma", pulseWidthMax );
             info.AddValue ( "ps", pulseWidthPanSpeed );
-            info.AddValue("volloop", volumeLoopPoint);
-            info.AddValue("arploop", arpLoopPoint);
+            info.AddValue ( "volloop", volumeLoopPoint );
+            info.AddValue ( "arploop", arpLoopPoint );
+            info.AddValue ( "arpabs", arpAbsolute );
+            info.AddValue ( "noisemode", noiseMode );
+            info.AddValue ( "noiseloop", noiseModeLoopPoint );
             info.AddValue ( "insname", name );
         }
 
@@ -78,8 +84,6 @@ public class Instruments : MonoBehaviour {
         public static readonly int SAMPLE_RATE = 44100;
         public static readonly int PWM_STEPS = 100;
         public static readonly int PWMSPEED_MAX = 10;
-        public static bool NOISE_FB = true;
-        public static bool NOISE_CHN3 = false;
         public static readonly int LINEAR_STEPS = 0xF;
         public static readonly int[] LINEAR_VOLUME_TABLE = { 0xF, 0xF, 0xE, 0xE, 0xE, 0xD, 0xD, 0xC, 0xC, 0xB, 0xA, 0x9, 0x8, 0x6, 0x3, 0x0};
 
@@ -87,9 +91,11 @@ public class Instruments : MonoBehaviour {
             get {
                 if ( arpeggio == null )
                     return false;
-                return arpeggio.Length > 1 || portamentoSpeed != 0 || m_AutoPortamento || (vibratoDepth > 0 && vibratoSpeed > 0);
+                return arpeggio.Length > 1 || portamentoSpeed != 0 || m_AutoPortamento || (vibratoDepth > 0 && vibratoSpeed > 0) || noiseMode.Length > 1;
             }
         }
+
+        public bool useAbsNote { get { return arpAbsolute && ( m_ArpCounter < arpeggio.Length - 1 || arpLoopPoint > 0 ); } }
 
         public int pulseWidth { get { return m_PWM; } set { m_PWM = value; } }
         
@@ -97,7 +103,7 @@ public class Instruments : MonoBehaviour {
         public int portamentoSpeed;
         public int relativeVolume;
         public VirtualKeyboard.Note note;
-        public int octave;
+        public int octave { get { return useAbsNote ? 2 : m_Octave; } set { m_Octave = value; } }
 
         //serialized
         public string name;         //added in 0.2
@@ -106,6 +112,7 @@ public class Instruments : MonoBehaviour {
         public int[] waveTable;
         public int[] arpeggio;
         public int arpLoopPoint;
+        public bool arpAbsolute;
         public int vibratoDepth;
         public int vibratoSpeed;
         public bool samplePlayback;
@@ -118,9 +125,11 @@ public class Instruments : MonoBehaviour {
         public int noteDelay;
         public int noteOffset;
         public int sampleRelNote;
+        public int[] noiseMode;
+        public int noiseModeLoopPoint;
 
         //not serialized
-        private int m_IrqTimer, m_PortamentoTimer, m_VolumeOffset, m_PWMTimer, m_PWM, m_LastSample, m_ArpCounter;
+        private int m_IrqTimer, m_PortamentoTimer, m_VolumeOffset, m_PWMTimer, m_PWM, m_LastSample, m_ArpCounter, m_Octave, m_NoiseCounter;
         private float m_SampleTimer, m_SampleFreq;
         private bool m_AutoPortamento, m_UpdatedFrequency, m_PWMDir, m_PWMFlipFlop;
 
@@ -146,6 +155,10 @@ public class Instruments : MonoBehaviour {
 
         public void ResizeArpTable(int increment) {
             ResizeArray(ref arpeggio, increment);
+        }
+
+        public void ResizeNoiseTable(int increment) {
+            ResizeArray ( ref noiseMode, increment );
         }
 
         private void ResizeArray(ref int[] array, int increment) {
@@ -186,25 +199,29 @@ public class Instruments : MonoBehaviour {
                 if (chn < 3)
                 {
                     if (!samplePlayback)
-                        psg.SetNote(chn, (int)note + GetNoteOffset(), octave, GetFreqOffset());
+                        psg.SetNote(chn, GetNoteOffset( ( int ) note ), octave, GetFreqOffset());
                     else
                         psg.SetFrequency(chn, 1);
                 }
                 else
                 {
+                    int chn3, fb;
+                    chn3 = ( noiseMode [ m_NoiseCounter ] & 0x2 );
+                    fb = ( noiseMode [ m_NoiseCounter ] & 0x1 );
+
                     if ( samplePlayback ) {
                         psg.PSGDirectWrite ( 0xE2 );
                     }
-                    else if (!NOISE_CHN3)
+                    else if (chn3 == 0)
                     {
-                        int cmd = 0xE0 | ((NOISE_FB ? 4 : 0) ) | (((int)note - 1) % 3);
+                        int cmd = 0xE0 | ((fb > 0 ? 4 : 0) ) | (( GetNoteOffset ( ( int ) note ) - 1) % 3);
                         //Debug.Log ( System.Convert.ToString ( cmd, 2 ) );
                         psg.PSGDirectWrite ( cmd );
                     }
                     else
                     {
-                        psg.PSGDirectWrite(NOISE_FB ? 0xE7 : 0xE3);
-                        psg.SetNote(2, (int)note + GetNoteOffset(), octave, GetFreqOffset());
+                        psg.PSGDirectWrite(fb > 0 ? 0xE7 : 0xE3);
+                        psg.SetNote(2, GetNoteOffset( ( int ) note ), octave, GetFreqOffset());
                     }
                 }
             }
@@ -228,7 +245,7 @@ public class Instruments : MonoBehaviour {
             }
 
             if ( m_SampleTimer <= 0 ) {
-                m_SampleFreq = ( PSGWrapper.CalculateNoteFreq ( ( int ) note + GetNoteOffset ( ), octave ) + GetFreqOffset ( ) );
+                m_SampleFreq = ( PSGWrapper.CalculateNoteFreq ( GetNoteOffset ( ( int ) note ), octave ) + GetFreqOffset ( ) );
                 m_SampleTimer = SAMPLE_RATE / m_SampleFreq;
             }
 
@@ -256,7 +273,7 @@ public class Instruments : MonoBehaviour {
 
                 case Wave.Sample:
                     if ( waveTable != null ) {
-                        float noteOffset = ( PSGWrapper.CalculateNoteFreq ( ( int ) note + GetNoteOffset ( ), octave ) + GetFreqOffset ( ) ) / PSGWrapper.CalculateNoteFreq ( sampleRelNote + 1, 0 );
+                        float noteOffset = ( PSGWrapper.CalculateNoteFreq ( GetNoteOffset ((int)note), octave ) + GetFreqOffset ( ) ) / PSGWrapper.CalculateNoteFreq ( sampleRelNote + 1, 0 );
                         divider = SAMPLE_RATE / (waveTableSampleRate * noteOffset);
                         float pos = divider - m_SampleTimer;
                         int sampleIndex = ( int ) ( (m_SampleTimer / divider) % waveTable.Length );
@@ -285,12 +302,17 @@ public class Instruments : MonoBehaviour {
             m_LastSample = LINEAR_VOLUME_TABLE [ smp ];
         }
 
-        private int GetNoteOffset()
+        private int GetNoteOffset(int noteVal)
         {
             if (arpeggio.Length == 0)
                 return 0;
 
-            return arpeggio[m_ArpCounter] + noteOffset;
+            if ( useAbsNote )
+                return arpeggio [ m_ArpCounter ];
+            else if ( arpLoopPoint == 0 )
+                return noteVal + noteOffset;
+
+            return noteVal + arpeggio[m_ArpCounter] + noteOffset;
         }
 
         private int GetFreqOffset()
@@ -325,6 +347,11 @@ public class Instruments : MonoBehaviour {
             else if(arpLoopPoint > 0)
                 m_ArpCounter = arpeggio.Length - arpLoopPoint;
 
+            if ( m_NoiseCounter < noiseMode.Length - 1 )
+                m_NoiseCounter++;
+            else if ( noiseModeLoopPoint > 0 )
+                m_NoiseCounter = noiseMode.Length - noiseModeLoopPoint;
+
             if (!m_AutoPortamento && portamentoSpeed != 0)
                 m_PortamentoTimer++;
             else if (m_PortamentoTimer > 0)
@@ -358,6 +385,7 @@ public class Instruments : MonoBehaviour {
         Array.Resize ( ref presets, index + 1 );
         presets[index].volumeTable = new int [ ] { 0xF, 0xE, 0xD, 0xC };
         presets [ index ].arpeggio = new int [ ] { 0x0 };
+        presets [ index ].noiseMode = new int [ ] { 0x01 };
         presets [ index ].pulseWidthMin = 25;
         presets [ index ].pulseWidthMax = 75;
         presets [ index ].sampleRelNote = 48;

@@ -174,6 +174,7 @@ public class SongData : MonoBehaviour {
         if ( !TinyFileDialogs.MessageBox ( "Nuking song!", "This will erase the entire song. All unsaved progress will be lost!", TinyFileDialogs.DialogType.OKCANCEL, TinyFileDialogs.IconType.WARNING, false ) )
             return;
 
+        patternView.playback.playbackSpeed = 6;
         UnityEngine.SceneManagement.SceneManager.LoadScene ( 0 );
     }
 

@@ -72,7 +72,7 @@ public class SN76489 {
         mCount = new int[4];
         mAttn = new int[4];
         mFlipFlop = new bool[4];
-        mNoiseSR = 0x8000;
+        mNoiseSR = 1 << NOISE_SR_WIDTH;
         mStereoByte = 0xFF;
     }
 
@@ -87,7 +87,7 @@ public class SN76489 {
             mAttn[mCurrentReg] = _data & 0x0f;
         } else if ( first && mCurrentReg == 3 ) {
             mFreq[3] = _data & 7;
-            mNoiseSR = 0x8000;
+            mNoiseSR = 1 << NOISE_SR_WIDTH;
         } else if ( first ) {
             mFreq[mCurrentReg] = ( mFreq [ mCurrentReg ] & 0x3f0 ) | ( _data & 0x0f );
         } else {
@@ -138,7 +138,7 @@ public class SN76489 {
                     } else {
                         int nf = mFreq [ 3 ] & 3;
                         int fb = ( mFreq [ 3 ] >> 2 ) & 1;
-                        mCount [ 3 ] = nf == 3 ? mFreq[2] : (0x10 << nf);
+                        mCount [ 3 ] = nf == 3 ? mFreq[2] * 2 : (0x10 << nf);
 
                         mNoiseSR = ( mNoiseSR >> 1 ) | ( ( fb == 1 ? Parity ( mNoiseSR & NOISE_TAPPED ) : mNoiseSR & 1 ) << NOISE_SR_WIDTH );
                         mFlipFlop [ 3 ] = (mNoiseSR & 1) != 0;

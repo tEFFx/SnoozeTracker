@@ -202,8 +202,8 @@ public class SongPlayback : MonoBehaviour {
                             int mode, fb;
                             SplitByte ( fxVal, out mode, out fb );
 
-                            Instruments.InstrumentInstance.NOISE_FB = fb > 0;
-                            Instruments.InstrumentInstance.NOISE_CHN3 = mode > 0;
+                            int val = ( mode << 1 ) | fb;
+                            m_Instruments[i].noiseMode = new int[]{ val };
                             break;
 
                         case 0x40:

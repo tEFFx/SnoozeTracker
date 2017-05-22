@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class InstrumentEditor : MonoBehaviour {
     public GameObject instrumentPrefab;
@@ -11,7 +12,12 @@ public class InstrumentEditor : MonoBehaviour {
     public GameObject volumeParent;
     public EnvelopeEditor arpeggioEnvelope;
     public GameObject arpeggioParent;
+    public EnvelopeEditor noiseEnvelope;
+    public GameObject noiseParent;
     public WaveOptions waveOptions;
+    public Toggle absoluteNotes;
+    [Tooltip("xy=relative minmax, zw=absolute minmax")]
+    public Vector4 noteRange;
 
     private List<InstrumentButton> m_Instruments = new List<InstrumentButton>();
     private InstrumentButton m_SelectedInstrument;
@@ -35,7 +41,15 @@ public class InstrumentEditor : MonoBehaviour {
             instruments.presets[keyboard.currentInstrument].ResizeArpTable(1);
             UpdateEnvelopes();
         });
-       
+
+        noiseEnvelope.decreaseArray.onClick.AddListener ( () => {
+            instruments.presets [ keyboard.currentInstrument ].ResizeNoiseTable ( -1 );
+            UpdateEnvelopes ( );
+        } );
+        noiseEnvelope.increaseArray.onClick.AddListener ( () => {
+            instruments.presets [ keyboard.currentInstrument ].ResizeNoiseTable ( 1 );
+            UpdateEnvelopes ( );
+        } );
     }
     
 	// Update is called once per frame
@@ -52,7 +66,6 @@ public class InstrumentEditor : MonoBehaviour {
 
         if(currCount < presets) {
             int add = presets - currCount;
-            Debug.Log ( "Adding " + add );
             for ( int i = 0 ; i < add ; i++ ) {
                 GameObject obj = Instantiate ( instrumentPrefab, transform );
                 InstrumentButton btnInstance = obj.GetComponent<InstrumentButton> ( );
@@ -61,13 +74,11 @@ public class InstrumentEditor : MonoBehaviour {
             }
         } else {
             int remove = currCount - presets;
-            Debug.Log ( "Removing " + remove + ", curr count " + m_Instruments.Count );
             for ( int i = 0 ; i < remove ; i++ ) {
                 DestroyImmediate ( m_Instruments [ i ].gameObject );
             }
 
             m_Instruments.RemoveRange ( 0, remove );
-            Debug.Log ( "Count after " + m_Instruments.Count );
         }
 
         UpdateInstrumentInfo ( );
@@ -92,16 +103,25 @@ public class InstrumentEditor : MonoBehaviour {
         m_SelectedInstrument.SetSelected ( true );
 
         keyboard.currentInstrument = index;
-        UpdateEnvelopes();
+
+        absoluteNotes.onValueChanged.RemoveAllListeners ( );
+        absoluteNotes.isOn = instruments.presets [ index ].arpAbsolute;
+        UpdateAbsNotes ( false );
+        absoluteNotes.onValueChanged.AddListener ( (bool val) => { instruments.presets [ index ].arpAbsolute = val; UpdateAbsNotes ( ); } );
+
+        UpdateEnvelopes ( );
+
         volumeEnvelope.SetLoopPoint(instruments.presets[index].volumeLoopPoint, x => instruments.presets[index].volumeLoopPoint = (int)x );
         arpeggioEnvelope.SetLoopPoint(instruments.presets[index].arpLoopPoint, x => instruments.presets[index].arpLoopPoint = (int)x);
+        noiseEnvelope.SetLoopPoint ( instruments.presets [ index ].noiseModeLoopPoint, x => instruments.presets [ index ].noiseModeLoopPoint = ( int ) x );
         waveOptions.SetData(index);
     }
 
     public void SetEditorState(int state) {
         volumeParent.gameObject.SetActive(state == 0);
         arpeggioParent.gameObject.SetActive(state == 1);
-        waveOptions.gameObject.SetActive(state == 2);
+        noiseParent.gameObject.SetActive ( state == 2 );
+        waveOptions.gameObject.SetActive(state == 3);
         m_EditorState = state;
     }
 
@@ -126,7 +146,16 @@ public class InstrumentEditor : MonoBehaviour {
     private void UpdateEnvelopes() {
         volumeEnvelope.SetArray(instruments.presets[keyboard.currentInstrument].volumeTable);
         arpeggioEnvelope.SetArray(instruments.presets[keyboard.currentInstrument].arpeggio);
+        noiseEnvelope.SetArray ( instruments.presets [ keyboard.currentInstrument ].noiseMode );
         waveOptions.SetData(keyboard.currentInstrument);
+    }
+
+    private void UpdateAbsNotes(bool updateValues = false) {
+        arpeggioEnvelope.minValue = absoluteNotes.isOn ? ( int ) noteRange.z : ( int ) noteRange.x;
+        arpeggioEnvelope.maxValue = absoluteNotes.isOn ? ( int ) noteRange.w : ( int ) noteRange.y;
+
+        if(updateValues)
+            arpeggioEnvelope.UpdateValues ( );
     }
 
     //public void RemoveInstrument() {

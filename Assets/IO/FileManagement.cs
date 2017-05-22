@@ -81,6 +81,7 @@ public class FileManagement : MonoBehaviour {
         public void GetObjectData(SerializationInfo info, StreamingContext context) {
             info.AddValue ( "version", fileVersion );
             info.AddValue ( "songName", songName );
+            info.AddValue ( "artistName", artistName );
             info.AddValue ( "patternLength", patternLength );
             info.AddValue ( "lookupTable", lookupTable);
             info.AddValue ( "transposeTable", transposeTable );
@@ -241,6 +242,7 @@ public class FileManagement : MonoBehaviour {
             insEditor.UpdateInstruments();
             insEditor.UpdateInstrumentInfo();
             insEditor.SetSelectedInstrument(0);
+            playback.playbackSpeed = 6;
         }
     }
 
@@ -371,7 +373,7 @@ public class FileManagement : MonoBehaviour {
         bw.Seek ( 0x24, SeekOrigin.Begin );
         bw.Write ( ( uint ) playback.playbackRate ); //0x24
         bw.Write ( ( ushort ) SN76489.NOISE_TAPPED ); //0x28
-        bw.Write ( ( byte ) SN76489.NOISE_SR_WIDTH ); //0x2A
+        bw.Write ( ( byte ) (SN76489.NOISE_SR_WIDTH + 1) ); //0x2A
         bw.Write ( ( byte ) 0x00 );
 
         bw.Seek ( 0x34, SeekOrigin.Begin );

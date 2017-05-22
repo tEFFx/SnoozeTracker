@@ -95,7 +95,7 @@ public class VirtualKeyboard : MonoBehaviour {
         }
 
         for ( int i = 0 ; i < m_Instruments.Length ; i++ ) {
-            if ( m_Instruments [ i ].note == note && m_Instruments [ i ].octave == octave ) {
+            if ( m_Instruments [ i ].note == note ) {
                 m_Instruments [ i ].note = Note.NoteOff;
             }
         }

@@ -16,19 +16,29 @@ public class EnvelopeEditor : MonoBehaviour {
 
     private int[] m_Values;
     private List<EnvelopeValue> m_EnvelopeValues = new List<EnvelopeValue>();
+    private Action<int> m_LoopChanged;
+    private bool m_UpdateLoopSlider;
+
+    void Awake() {
+        loopSlider.onValueChanged.AddListener ( OnLoopChanged );
+    }
     
     public void SetArray(int[] array) {
         m_Values = array;
         UpdateValues();
     }
 
-    public void SetLoopPoint(int initialValue, UnityAction<float> valueChanged) {
-        loopSlider.onValueChanged.RemoveAllListeners();
+    public void SetLoopPoint(int initialValue, Action<int> valueChanged) {
+        m_UpdateLoopSlider = false;
         loopSlider.value = initialValue;
-        loopSlider.onValueChanged.AddListener(valueChanged);
+        m_LoopChanged = valueChanged;
+        m_UpdateLoopSlider = true;
     }
 
     public void UpdateValues() {
+        if ( m_Values == null )
+            return;
+
         int arrayCount = m_Values.Length;
         int envCount = m_EnvelopeValues.Count;
 
@@ -38,8 +48,6 @@ public class EnvelopeEditor : MonoBehaviour {
                 GameObject createdRow = ( GameObject ) Instantiate ( envelopeValuePrefab, transform );
                 createdRow.transform.SetAsFirstSibling();
                 EnvelopeValue value = createdRow.GetComponent<EnvelopeValue> ( );
-                value.GetComponent<Slider>().minValue = minValue;
-                value.GetComponent<Slider>().maxValue = maxValue;
                 m_EnvelopeValues.Add ( value );
             }
         } else {
@@ -52,7 +60,9 @@ public class EnvelopeEditor : MonoBehaviour {
         }
         
         UpdateSliders();
+        m_UpdateLoopSlider = false;
         loopSlider.maxValue = m_Values.Length;
+        m_UpdateLoopSlider = true;
         length.text = "Length: " + m_Values.Length;
     }
 
@@ -61,7 +71,9 @@ public class EnvelopeEditor : MonoBehaviour {
             int index = m_EnvelopeValues.Count - i - 1;
             m_EnvelopeValues[i].slider.onValueChanged.RemoveAllListeners();
             m_EnvelopeValues[i].slider.value = m_Values[index];
-            m_EnvelopeValues[i].AddListener((float value) => {
+            m_EnvelopeValues [ i ].GetComponent<Slider> ( ).minValue = minValue;
+            m_EnvelopeValues [ i ].GetComponent<Slider> ( ).maxValue = maxValue;
+            m_EnvelopeValues [i].AddListener((float value) => {
                 OnSliderValueChanged(index, (int)value);
             });
         }
@@ -69,5 +81,10 @@ public class EnvelopeEditor : MonoBehaviour {
 
     private void OnSliderValueChanged(int index, int value) {
         m_Values[index] = value;
+    }
+
+    private void OnLoopChanged(float value) {
+        if ( m_UpdateLoopSlider )
+            m_LoopChanged ( ( int ) value );
     }
 }
