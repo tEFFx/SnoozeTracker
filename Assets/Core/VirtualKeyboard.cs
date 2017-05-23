@@ -61,7 +61,7 @@ public class VirtualKeyboard : MonoBehaviour {
 
     void Update()
     {
-        if (patternView.position.dataColumn != 0)
+        if (ExclusiveFocus.hasFocus)
             return;
         
         if(!KeyboardShortcuts.ModifierDown() && patternView.IsCurrentPatternValid())

@@ -53,6 +53,9 @@ public class PatternView : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+	    if (ExclusiveFocus.hasFocus)
+	        return;
+	    
         if ( Input.GetKeyDown ( KeyCode.Space ) ) {
             selection.color = recording ? selectionRecording : selectionNormal;
             recording = !recording;

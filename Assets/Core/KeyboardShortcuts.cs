@@ -28,6 +28,9 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
+        if (ExclusiveFocus.hasFocus)
+            return;
+        
         if (!playback.isPlaying)
         {
             if (Input.GetKeyDown(KeyCode.DownArrow))
@@ -239,7 +242,7 @@ public class KeyboardShortcuts : MonoBehaviour {
             }
         }
 
-        patternView.SetSelection ( currLine + m_LastCopy.endLine + 1 );
+        patternView.SetSelection ( currLine + (m_LastCopy.endLine - m_LastCopy.startLine) + 1 );
     }
 
     void DeleteSelection()

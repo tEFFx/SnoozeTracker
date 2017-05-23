@@ -51,7 +51,7 @@ public class SongPlayback : MonoBehaviour {
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Return))
+        if (!ExclusiveFocus.currentFocus && Input.GetKeyDown(KeyCode.Return))
         {
             if (m_IsPlaying)
                 Stop();

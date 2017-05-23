@@ -45,7 +45,6 @@ public class BoxSelection : MonoBehaviour {
         if (!m_Selecting)
             return;
 
-        Debug.Log ( "Update selection" );
         m_LastSelection = next;
         UpdateSelectionBox();
     }
