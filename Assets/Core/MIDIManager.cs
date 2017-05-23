@@ -1,9 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_STANDALONE_WIN
 using Midi;
+#endif
 
 public class MIDIManager : MonoBehaviour {
+#if UNITY_STANDALONE_WIN
     public VirtualKeyboard keyboard;
     public bool useVelocity;
     private InputDevice m_Device;
@@ -52,4 +55,5 @@ public class MIDIManager : MonoBehaviour {
     VirtualKeyboard.Note PitchToNote(Pitch pitch) {
         return ( VirtualKeyboard.Note ) ( pitch.PositionInOctave ( ) + 1 );
     }
+#endif
 }

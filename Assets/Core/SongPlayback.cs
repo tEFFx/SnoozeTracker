@@ -132,7 +132,7 @@ public class SongPlayback : MonoBehaviour {
                     if ( note == VirtualKeyboard.Note.NoteOff ) {
                         m_Instruments [ i ].note = VirtualKeyboard.Note.NoteOff;
                         psg.SetAttenuation ( i, 0 );
-                    } else {
+                    } else if (col.data[m_CurrentLine, 1] < instruments.presets.Length) {
                         m_PrevInstruments [ i ] = m_Instruments [ i ];
                         m_Instruments [ i ] = instruments.presets [ col.data [ m_CurrentLine, 1 ] ];
                         m_Instruments [ i ].relativeVolume = volume >= 0 ? volume : 0xF;

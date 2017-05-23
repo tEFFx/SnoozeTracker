@@ -6,8 +6,10 @@ using UnityEngine.UI;
 public class InstrumentEditor : MonoBehaviour {
     public GameObject instrumentPrefab;
 
+    public PatternView view;
     public Instruments instruments;
     public VirtualKeyboard keyboard;
+    public Button initialTab;
     public EnvelopeEditor volumeEnvelope;
     public GameObject volumeParent;
     public EnvelopeEditor arpeggioEnvelope;
@@ -22,6 +24,7 @@ public class InstrumentEditor : MonoBehaviour {
     private List<InstrumentButton> m_Instruments = new List<InstrumentButton>();
     private InstrumentButton m_SelectedInstrument;
     private int m_EditorState;
+    private Button m_SelectedEnv;
 
     void Start() {
         volumeEnvelope.increaseArray.onClick.AddListener(() => {
@@ -50,6 +53,8 @@ public class InstrumentEditor : MonoBehaviour {
             instruments.presets [ keyboard.currentInstrument ].ResizeNoiseTable ( 1 );
             UpdateEnvelopes ( );
         } );
+        
+        HighlightTab(initialTab);
     }
     
 	// Update is called once per frame
@@ -96,6 +101,9 @@ public class InstrumentEditor : MonoBehaviour {
     }
 
     public void SetSelectedInstrument(int index) {
+        if (index >= instruments.presets.Length)
+            return;
+        
         if ( m_SelectedInstrument != null )
             m_SelectedInstrument.SetSelected ( false );
 
@@ -128,19 +136,54 @@ public class InstrumentEditor : MonoBehaviour {
     public void NewInstrument() {
         instruments.CreateInstrument ( );
         UpdateEnvelopes();
+        view.UpdatePatternData();
+        UpdateInstruments();
+        SetSelectedInstrument(instruments.presets.Length - 1);
     }
 
     public void RemoveInstrument() {
         if (instruments.presets.Length <= 1)
             return;
 
-        instruments.RemoveInstrument ( keyboard.currentInstrument );
-        UpdateEnvelopes ();
+        int ins = keyboard.currentInstrument;
+        
+        instruments.RemoveInstrument ( ins );
+
+        List<SongData.ColumnEntry> data = view.data.songData;
+        for (int e = 0; e < data.Count; e++) {
+            int[,] val = data[e].data;
+            for (int r = 0; r < val.GetLength(0); r++) {
+                if (val[r, 1] == ins)
+                    val[r, 1] = instruments.presets.Length;
+                else if(val[r, 1] > ins && val[r, 1] <= instruments.presets.Length)
+                    val[r, 1]--;
+            }
+        }
+
+        UpdateInstruments();
+
+        if (ins < instruments.presets.Length)
+            SetSelectedInstrument(ins); 
+        else if (ins >= instruments.presets.Length)
+            SetSelectedInstrument(ins - 1);
+        
+        view.UpdatePatternData();
     }
 
     public void CopyInstrument() {
         instruments.CopyInstrument(keyboard.currentInstrument);
         UpdateEnvelopes();
+        view.UpdatePatternData();
+        UpdateInstruments();
+        SetSelectedInstrument(instruments.presets.Length - 1);
+    }
+
+    public void HighlightTab(Button selection) {
+        if (m_SelectedEnv != null)
+            m_SelectedEnv.image.color = Color.white;
+
+        selection.image.color = Color.red;
+        m_SelectedEnv = selection;
     }
 
     private void UpdateEnvelopes() {
@@ -157,12 +200,4 @@ public class InstrumentEditor : MonoBehaviour {
         if(updateValue)
             arpeggioEnvelope.UpdateSliders ( );
     }
-
-    //public void RemoveInstrument() {
-    //    instruments.RemoveInstrument ( m_SelectedInstrument.transform.GetSiblingIndex ( ) );
-    //}
-
-    //public void CopyInstrument() {
-    //    instruments.CopyInstrument ( m_SelectedInstrument.transform.GetSiblingIndex ( ) );
-    //}
 }
