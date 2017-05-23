@@ -150,12 +150,12 @@ public class InstrumentEditor : MonoBehaviour {
         waveOptions.SetData(keyboard.currentInstrument);
     }
 
-    private void UpdateAbsNotes(bool updateValues = false) {
-        arpeggioEnvelope.minValue = absoluteNotes.isOn ? ( int ) noteRange.z : ( int ) noteRange.x;
-        arpeggioEnvelope.maxValue = absoluteNotes.isOn ? ( int ) noteRange.w : ( int ) noteRange.y;
+    private void UpdateAbsNotes(bool updateValue = true) {
+        arpeggioEnvelope.minValue = instruments.presets [ keyboard.currentInstrument ].arpAbsolute ? ( int ) noteRange.z : ( int ) noteRange.x;
+        arpeggioEnvelope.maxValue = instruments.presets [ keyboard.currentInstrument ].arpAbsolute ? ( int ) noteRange.w : ( int ) noteRange.y;
 
-        if(updateValues)
-            arpeggioEnvelope.UpdateValues ( );
+        if(updateValue)
+            arpeggioEnvelope.UpdateSliders ( );
     }
 
     //public void RemoveInstrument() {

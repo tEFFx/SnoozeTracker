@@ -66,13 +66,15 @@ public class EnvelopeEditor : MonoBehaviour {
         length.text = "Length: " + m_Values.Length;
     }
 
-    private void UpdateSliders() {
+    public void UpdateSliders() {
         for (int i = 0; i < m_EnvelopeValues.Count; i++) {
             int index = m_EnvelopeValues.Count - i - 1;
-            m_EnvelopeValues[i].slider.onValueChanged.RemoveAllListeners();
+            m_EnvelopeValues [ i ].slider.minValue = minValue;
+            m_EnvelopeValues [ i ].slider.maxValue = maxValue;
+
+            m_EnvelopeValues [i].slider.onValueChanged.RemoveAllListeners();
             m_EnvelopeValues[i].slider.value = m_Values[index];
-            m_EnvelopeValues [ i ].GetComponent<Slider> ( ).minValue = minValue;
-            m_EnvelopeValues [ i ].GetComponent<Slider> ( ).maxValue = maxValue;
+
             m_EnvelopeValues [i].AddListener((float value) => {
                 OnSliderValueChanged(index, (int)value);
             });
@@ -80,7 +82,8 @@ public class EnvelopeEditor : MonoBehaviour {
     }
 
     private void OnSliderValueChanged(int index, int value) {
-        m_Values[index] = value;
+        if(value >= minValue && value <= maxValue)
+            m_Values[index] = value;
     }
 
     private void OnLoopChanged(float value) {

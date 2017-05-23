@@ -91,7 +91,7 @@ public class Instruments : MonoBehaviour {
             get {
                 if ( arpeggio == null )
                     return false;
-                return arpeggio.Length > 1 || portamentoSpeed != 0 || m_AutoPortamento || (vibratoDepth > 0 && vibratoSpeed > 0) || noiseMode.Length > 1;
+                return m_ArpCounter < arpeggio.Length || portamentoSpeed != 0 || m_AutoPortamento || (vibratoDepth > 0 && vibratoSpeed > 0) || m_NoiseCounter < noiseMode.Length;
             }
         }
 
@@ -309,7 +309,7 @@ public class Instruments : MonoBehaviour {
 
             if ( useAbsNote )
                 return arpeggio [ m_ArpCounter ];
-            else if ( arpLoopPoint == 0 )
+            else if ( m_ArpCounter > arpeggio.Length - 1 && arpLoopPoint == 0 )
                 return noteVal + noteOffset;
 
             return noteVal + arpeggio[m_ArpCounter] + noteOffset;
