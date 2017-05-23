@@ -39,6 +39,7 @@ public class SongPlayback : MonoBehaviour {
     private int m_PlayLoops = -1;
     private int m_Loops = -1;
     private int[] m_ChnAttenuation = new int[4];
+    private int m_PatternBreakTarget = -1;
 
     void Start()
     {
@@ -62,6 +63,16 @@ public class SongPlayback : MonoBehaviour {
         if(follow && m_IsPlaying && Time.time - m_LastLineTick > 1f / 50f) {
             while ( m_MoveLine > 0 ) {
                 m_MoveLine--;
+                
+                if (m_PatternBreakTarget >= 0) {
+                    data.currentPattern++;
+                    view.selectedLine = m_PatternBreakTarget;
+                    m_PatternBreakTarget = -1;
+                    
+                    view.UpdatePatternData();
+                    continue;
+                }
+                
                 view.selectedLine++;
                 if ( view.selectedLine == 0 ) {
                     data.currentPattern++;
@@ -96,6 +107,7 @@ public class SongPlayback : MonoBehaviour {
             return;
 
         m_Counter++;
+
         if(m_Counter >= playbackSpeed)
         {
             if ( m_IsStopping ) {
@@ -105,6 +117,8 @@ public class SongPlayback : MonoBehaviour {
             }
 
             m_Counter = 0;
+            int patternBreakTarget = -1;
+            
             for (int i = 0; i < data.channels; i++)
             {
                 if ( mute [ i ] ) {
@@ -189,6 +203,18 @@ public class SongPlayback : MonoBehaviour {
                         case 0x0B:
                             //loop point
                             break;
+                            
+                        case 0x0D:
+                            if (m_CurrentPattern >= data.numPatterns - 1)
+                                break;
+
+                            if (fxVal < data.patternLength)
+                                m_PatternBreakTarget = fxVal;
+                            else
+                                m_PatternBreakTarget = 0;
+
+                            patternBreakTarget = m_PatternBreakTarget;
+                            break;
 
                         case 0x0F:
                             playbackSpeed = fxVal;
@@ -217,20 +243,23 @@ public class SongPlayback : MonoBehaviour {
                 }
             }
 
-
-            m_CurrentLine++;
             m_MoveLine++;
-            if(m_CurrentLine >= data.patternLength)
-            {
-                m_CurrentLine = 0;
+            if (patternBreakTarget >= 0) {
+                m_CurrentLine = patternBreakTarget;
                 m_CurrentPattern++;
+            }
+            else {
+                m_CurrentLine++;
+                if (m_CurrentLine >= data.patternLength) {
+                    m_CurrentLine = 0;
+                    m_CurrentPattern++;
 
-                if (m_CurrentPattern >= data.numPatterns)
-                {
-                    m_CurrentPattern = m_PatternLoop;
-                    if ( m_Loops >= 0 ) {
-                        m_IsStopping = m_Loops == 0;
-                        m_Loops--;
+                    if (m_CurrentPattern >= data.numPatterns) {
+                        m_CurrentPattern = m_PatternLoop;
+                        if (m_Loops >= 0) {
+                            m_IsStopping = m_Loops == 0;
+                            m_Loops--;
+                        }
                     }
                 }
             }
@@ -277,6 +306,7 @@ public class SongPlayback : MonoBehaviour {
         m_LastLineTick = Time.time;
         m_IsPlaying = true;
         m_IsStopping = false;
+        m_PatternBreakTarget = -1;
 
         view.SetSelection(view.selectedLine);
     }
