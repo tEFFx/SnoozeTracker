@@ -141,6 +141,9 @@ public class KeyboardShortcuts : MonoBehaviour {
     void Transpose(int direction)
     {
         history.AddHistroyAtSelection ( );
+        
+        if(patternView.boxSelection.isSelecting)
+            patternView.boxSelection.FinalizeSelection();
 
         if (patternView.boxSelection.hasSelection) {
             patternView.boxSelection.DoOperation((int line, int chn, int col) => {
@@ -186,6 +189,9 @@ public class KeyboardShortcuts : MonoBehaviour {
 
     void CopySelection()
     {
+        if(patternView.boxSelection.isSelecting)
+            patternView.boxSelection.FinalizeSelection();
+
         m_LastCopy = patternView.boxSelection.selection;
         m_CopyCol = m_LastCopy.startCol;
         m_CopyData = new int[m_LastCopy.lineDelta + 1, m_LastCopy.chnDelta + 1, SongData.SONG_DATA_COUNT];
@@ -231,6 +237,8 @@ public class KeyboardShortcuts : MonoBehaviour {
             for (int chn = 0; chn < chns; chn++) {
                 if (currChn + chn >= songData.channels)
                     break;
+                if(!songData.IsPatternValid(chn))
+                    continue;
 
                 int startCol = chn == 0 ? m_LastCopy.startCol : 0;
                 int endCol = chn == chns - 1 ? m_LastCopy.endCol + 1 : SongData.SONG_DATA_COUNT - startCol;
@@ -248,6 +256,9 @@ public class KeyboardShortcuts : MonoBehaviour {
     void DeleteSelection()
     {
         history.AddHistroyAtSelection();
+        
+        if(patternView.boxSelection.isSelecting)
+            patternView.boxSelection.FinalizeSelection();
 
         if (patternView.boxSelection.hasSelection) {
             patternView.boxSelection.DoOperation((int line, int chn, int col) => {

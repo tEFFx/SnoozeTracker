@@ -69,10 +69,11 @@ public class EnvelopeEditor : MonoBehaviour {
     public void UpdateSliders() {
         for (int i = 0; i < m_EnvelopeValues.Count; i++) {
             int index = m_EnvelopeValues.Count - i - 1;
+            m_EnvelopeValues [i].slider.onValueChanged.RemoveAllListeners();
+
             m_EnvelopeValues [ i ].slider.minValue = minValue;
             m_EnvelopeValues [ i ].slider.maxValue = maxValue;
 
-            m_EnvelopeValues [i].slider.onValueChanged.RemoveAllListeners();
             m_EnvelopeValues[i].slider.value = m_Values[index];
 
             m_EnvelopeValues [i].AddListener((float value) => {

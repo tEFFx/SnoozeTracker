@@ -13,6 +13,9 @@ public class History : MonoBehaviour {
             this.columns = new SongData.ColumnEntry [ columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
+                if(columns[i] == null)
+                    continue;
+                
                 this.columns[ i ] = new SongData.ColumnEntry ( columns [ i ] );
             }
         }
@@ -25,6 +28,9 @@ public class History : MonoBehaviour {
         {
             for (int i = 0; i < columns.Length; i++)
             {
+                if(columns[i] == null)
+                    continue;
+                
                 data[columns[i].id] = new SongData.ColumnEntry(columns[i]);
             }
         }

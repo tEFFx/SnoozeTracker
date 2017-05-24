@@ -18,6 +18,7 @@ public struct BoxSelectionRange {
 public class BoxSelection : MonoBehaviour {
     public delegate void SelectionDataUpdateDelegate(int line, int chn, int col);
     public bool hasSelection { get { return m_HasSelection; } }
+    public bool isSelecting {get { return m_Selecting; }}
     public BoxSelectionRange selection { get { return m_Selection; } }
 
     public PatternView view;
@@ -91,18 +92,25 @@ public class BoxSelection : MonoBehaviour {
                 StartSelection ( view.GetCurrentSelectable ( ) );
     }
 
+    public void FinalizeSelection() {
+        if (!m_Selecting)
+            return;
+        
+        m_Selecting = false;
+
+        if(m_InitialSelection == m_LastSelection) {
+            selectionBox.gameObject.SetActive(false);
+            m_HasSelection = false;
+        } else {
+            m_HasSelection = true;
+        }
+
+        UpdateSelectionData ( );
+    }
+
     void Update() {
         if(m_Selecting && (Input.GetMouseButtonUp(0) || Input.GetKeyUp(KeyCode.LeftShift))) {
-            m_Selecting = false;
-
-            if(m_InitialSelection == m_LastSelection) {
-                selectionBox.gameObject.SetActive(false);
-                m_HasSelection = false;
-            } else {
-                m_HasSelection = true;
-            }
-
-            UpdateSelectionData ( );
+            FinalizeSelection();
         }
     }
 

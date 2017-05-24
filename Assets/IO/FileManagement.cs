@@ -24,6 +24,7 @@ public class FileManagement : MonoBehaviour {
     public SongPlayback playback;
     public VirtualKeyboard keyboard;
     public PatternView patternView;
+    public PatternMatrix patternMatrix;
 
     public Action onFileOpen;
 
@@ -238,6 +239,7 @@ public class FileManagement : MonoBehaviour {
             if ( onFileOpen != null )
                 onFileOpen ( );
 
+            patternMatrix.UpdateMatrix();
             patternView.UpdatePatternData();
             insEditor.UpdateInstruments();
             insEditor.UpdateInstrumentInfo();
