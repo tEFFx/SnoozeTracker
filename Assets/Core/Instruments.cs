@@ -203,16 +203,13 @@ public class Instruments : MonoBehaviour {
                     else
                         psg.SetFrequency(chn, 1);
                 }
-                else
+                else if(!samplePlayback)
                 {
-                    int chn3, fb;
-                    chn3 = ( noiseMode [ m_NoiseCounter ] & 0x2 );
+                    int chn2, fb;
+                    chn2 = ( noiseMode [ m_NoiseCounter ] & 0x2 );
                     fb = ( noiseMode [ m_NoiseCounter ] & 0x1 );
 
-                    if ( samplePlayback ) {
-                        psg.PSGDirectWrite ( 0xE2 );
-                    }
-                    else if (chn3 == 0)
+                    if (chn2 == 0)
                     {
                         int cmd = 0xE0 | ((fb > 0 ? 4 : 0) ) | (( GetNoteOffset ( ( int ) note ) - 1) % 3);
                         //Debug.Log ( System.Convert.ToString ( cmd, 2 ) );
@@ -230,6 +227,7 @@ public class Instruments : MonoBehaviour {
             m_UpdatedFrequency = true;
         }
 
+        static bool noiseFlip;
         public void UpdatePSGSample(PSGWrapper psg, int chn)
         {
             if ( !samplePlayback )
@@ -237,6 +235,11 @@ public class Instruments : MonoBehaviour {
 
             if (GetCurrentVol() == 0)
                 return;
+
+            if ( chn == 3 ) {
+                psg.PSGDirectWrite ( noiseFlip ? 0xE2 : 0xE1 );
+                noiseFlip = !noiseFlip;
+            }
 
             if (note == VirtualKeyboard.Note.None || note == VirtualKeyboard.Note.NoteOff)
             {
