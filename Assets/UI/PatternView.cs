@@ -48,7 +48,7 @@ public class PatternView : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        SetSelection ( 0, 0 );
+        SetSelection ( 0, 0, 0, false );
 	}
 	
 	// Update is called once per frame
@@ -92,7 +92,7 @@ public class PatternView : MonoBehaviour {
             return;
         
         if(m_CurrentLength > 0)
-            SetSelection(0, 0);
+            SetSelection(0, 0, 0, false);
         
         if(m_PatternRows == null ) {
             m_PatternRows = new List<PatternRow> [ channels.Length ];
@@ -227,19 +227,20 @@ public class PatternView : MonoBehaviour {
             channel = channels.Length - 1;
         }
 
-        SetSelection (m_CurrentPosition.line, channel, column );
+        SetSelection (m_CurrentPosition.line, channel, column, false );
         boxSelection.CheckShiftMovementUpdate ( );
     }
 
     public void SetSelection(MatrixPosition position) {
-        SetSelection(position.line, position.channel, position.dataColumn);
+        SetSelection(position.line, position.channel, position.dataColumn, false);
     }
 
-    public void SetSelection(int line, int channel = -1, int column = -1) {
+    public void SetSelection(int line, int channel = -1, int column = -1, bool fitSelection = true) {
         if ( line >= data.patternLength )
             line = 0;
 
         m_PatternRows[m_CurrentPosition.channel][m_CurrentPosition.line].Deselect();
+        int lineDelta = line - m_CurrentPosition.line;
         m_CurrentPosition.line = line;
 
         if (channel >= 0) {
@@ -263,16 +264,32 @@ public class PatternView : MonoBehaviour {
             scrollPos.y = -m_PatternRows[m_CurrentPosition.channel][m_CurrentPosition.line].transform.localPosition.y + offset;
             scroll.verticalScrollbar.value = 1 - ((float)m_CurrentPosition.line / data.patternLength);
             selPos.y = offset + 10;
+            
+            selection.rectTransform.anchoredPosition = selPos;
         } else {
             selPos.y = -lineHeight * line;
             if (!scroll.enabled) {
                 scroll.enabled = true;
                 selection.transform.SetParent(transform);
             }
+            
+            selection.rectTransform.anchoredPosition = selPos;
+            if (fitSelection) {
+                Rect localRect = selection.rectTransform.rect;
+                localRect.size *= 0.5f;
+                localRect.center = scroll.viewport.InverseTransformPoint(selection.transform.position);
+                if (!scroll.viewport.rect.Overlaps(localRect)) {
+                    Debug.Log(lineDelta);
+                    if (lineDelta < 0)
+                        scrollPos.y = line * selection.rectTransform.rect.height;
+                    else
+                        scrollPos.y = line * selection.rectTransform.rect.height - parentRect.rect.height +
+                                      selection.rectTransform.rect.height;
+                }
+            }
         }
 
         scroll.content.localPosition = scrollPos;
-        selection.rectTransform.anchoredPosition = selPos;
         m_PatternRows[m_CurrentPosition.channel ] [m_CurrentPosition.line ].Select (m_CurrentPosition.dataColumn);
     }
 }

@@ -31,6 +31,12 @@ public class KeyboardShortcuts : MonoBehaviour {
         if (ExclusiveFocus.hasFocus)
             return;
         
+        if(Input.GetKeyDown(KeyCode.Home))
+            patternView.SetSelection(0);
+        
+        if(Input.GetKeyDown(KeyCode.End))
+            patternView.SetSelection(songData.patternLength - 1);
+        
         if (!playback.isPlaying)
         {
             if (Input.GetKeyDown(KeyCode.DownArrow))

@@ -33,7 +33,7 @@ public class PatternRow : MonoBehaviour {
             int index = i;
             dataEntries [ i ].onClick.AddListener ( () => {
                 if(!view.playback.isPlaying)
-                    view.SetSelection ( line, channel, index );
+                    view.SetSelection ( line, channel, index, false );
             } );
             dataEntries[i].GetComponent<BoxSelectable>().row = this;
         }
