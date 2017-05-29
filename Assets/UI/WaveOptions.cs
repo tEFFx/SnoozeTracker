@@ -28,6 +28,7 @@ public class WaveOptions : MonoBehaviour {
 		m_CurrentInstrument = insIndex;
 		
 		waveSelection.value = !instruments.presets[insIndex].samplePlayback ? 0 : (int) instruments.presets[insIndex].customWaveform + 1;
+		OnWaveChange(waveSelection.value);
 		waveRelativeNote.value = instruments.presets[insIndex].sampleRelNote;
 		
 		pwmMin.UpdateValue(instruments.presets[insIndex].pulseWidthMin);

@@ -275,11 +275,8 @@ public class PatternView : MonoBehaviour {
             
             selection.rectTransform.anchoredPosition = selPos;
             if (fitSelection) {
-                Rect localRect = selection.rectTransform.rect;
-                localRect.size *= 0.5f;
-                localRect.center = scroll.viewport.InverseTransformPoint(selection.transform.position);
-                if (!scroll.viewport.rect.Overlaps(localRect)) {
-                    Debug.Log(lineDelta);
+                Vector3 selScroll = scroll.viewport.InverseTransformPoint(selection.transform.position - Vector3.up * 20);
+                if (!scroll.viewport.rect.Contains(selScroll)) {
                     if (lineDelta < 0)
                         scrollPos.y = line * selection.rectTransform.rect.height;
                     else

@@ -317,7 +317,8 @@ public class FileManagement : MonoBehaviour {
     IEnumerator SaveMultiWAVRoutine() {
         m_OperationInProgress = true;
         string selectedPath = TinyFileDialogs.SelectFolderDialog ( "Save multiple WAVES", UnityEngine.Application.dataPath );
-        if ( selectedPath != null && !Directory.Exists ( selectedPath ) ) {
+
+        if ( selectedPath != string.Empty || !Directory.Exists ( selectedPath ) ) {
             m_OperationInProgress = false;
             yield break;
         }
