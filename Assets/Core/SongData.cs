@@ -251,8 +251,7 @@ public class SongData : MonoBehaviour {
         m_LookupTable[row][col] = val;
     }
 
-    public int GetTransposeOffset(int i) {
-        int chn = ( i / SONG_DATA_COUNT ) % channels;
+    public int GetTransposeOffset(int chn) {
         return m_TransposeTable [ currentPattern ] [ chn ];
     }
 

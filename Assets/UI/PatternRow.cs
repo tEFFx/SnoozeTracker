@@ -75,7 +75,10 @@ public class PatternRow : MonoBehaviour {
             Color color = Color.white;
             switch ( i ) {
                 case 0:
-                    //implement transpose gradient here
+                    int off = view.data.GetTransposeOffset ( channel );
+                    off = Mathf.Clamp ( ( off + 12 ) / 2, 0, 12 );
+                    color = transposeGradient.Evaluate(off / 12f);
+                    
                     text = VirtualKeyboard.FormatNote ( val );
                     break;
                 case 1:

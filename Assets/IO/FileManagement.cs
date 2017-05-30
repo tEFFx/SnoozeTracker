@@ -326,7 +326,7 @@ public class FileManagement : MonoBehaviour {
         for ( int i = 0 ; i < data.channels ; i++ ) {
             for ( int c = 0 ; c < data.channels ; c++ ) {
                 playback.mute [ c ] = c != i;
-            }
+            }    
 
             FileStream file = File.Create ( selectedPath + "\\PSG_" + i + ".wav" );
             yield return StartCoroutine(SaveWAVRoutine ( file, false ));
@@ -476,8 +476,8 @@ public class FileManagement : MonoBehaviour {
         bw.Write ( Encoding.Unicode.GetBytes ( SongData.artistName + "\0" ) ); //artist name
         bw.Write ( Encoding.Unicode.GetBytes ( "\0" ) );
         bw.Write ( Encoding.Unicode.GetBytes ( System.DateTime.Today.ToString ( @"yyyy\/MM\/dd" ) + "\0" ) ); //release date
-        bw.Write ( Encoding.Unicode.GetBytes ( "Unity Chiptune Tracker by tEFFx\0" ) ); //converter
-        bw.Write ( Encoding.Unicode.GetBytes ( "\0" ) ); //notes
+        bw.Write ( Encoding.Unicode.GetBytes ( "SnoozeTracker\0" ) ); //converter
+        bw.Write ( Encoding.Unicode.GetBytes ( "https://github.com/tEFFx/SnoozeTracker\0" ) ); //notes
 
         int eofOffset = ( int ) bw.BaseStream.Position - 0x04;
 
