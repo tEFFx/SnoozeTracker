@@ -31,23 +31,23 @@ public class KeyboardShortcuts : MonoBehaviour {
         if (ExclusiveFocus.hasFocus)
             return;
         
-        if(Input.GetKeyDown(KeyCode.Home))
-            patternView.SetSelection(0);
-        
-        if(Input.GetKeyDown(KeyCode.End))
-            patternView.SetSelection(songData.patternLength - 1);
-        
         if (!playback.isPlaying)
         {
+            if(Input.GetKeyDown(KeyCode.Home))
+                patternView.SetSelection(0);
+            if(Input.GetKeyDown(KeyCode.End))
+                patternView.SetSelection(songData.patternLength - 1);
+            
             if (Input.GetKeyDown(KeyCode.DownArrow))
                 DoShortcut(KeyCode.DownArrow, () => { patternView.MoveVertical(1); });
             if (Input.GetKeyDown(KeyCode.UpArrow))
                 DoShortcut(KeyCode.UpArrow, () => { patternView.MoveVertical(-1); });
-            if (Input.GetKeyDown(KeyCode.LeftArrow))
-                DoShortcut(KeyCode.LeftArrow, () => { patternView.MoveHorizontal(-1); });
-            if (Input.GetKeyDown(KeyCode.RightArrow))
-                DoShortcut(KeyCode.RightArrow, () => { patternView.MoveHorizontal(1); });
         }
+        
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+            DoShortcut(KeyCode.LeftArrow, () => { patternView.MoveHorizontal(-1); });
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+            DoShortcut(KeyCode.RightArrow, () => { patternView.MoveHorizontal(1); });
 
         if(ModifierDown())
         { 
