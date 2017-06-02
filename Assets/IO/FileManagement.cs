@@ -318,7 +318,7 @@ public class FileManagement : MonoBehaviour {
         m_OperationInProgress = true;
         string selectedPath = TinyFileDialogs.SelectFolderDialog ( "Save multiple WAVES", UnityEngine.Application.dataPath );
 
-        if ( selectedPath != string.Empty || !Directory.Exists ( selectedPath ) ) {
+        if ( selectedPath == string.Empty || !Directory.Exists ( selectedPath ) ) {
             m_OperationInProgress = false;
             yield break;
         }
@@ -328,7 +328,7 @@ public class FileManagement : MonoBehaviour {
                 playback.mute [ c ] = c != i;
             }    
 
-            FileStream file = File.Create ( selectedPath + "\\PSG_" + i + ".wav" );
+            FileStream file = File.Create ( selectedPath + "/PSG_" + i + ".wav" );
             yield return StartCoroutine(SaveWAVRoutine ( file, false ));
             m_OperationInProgress = true;
         }
@@ -337,7 +337,7 @@ public class FileManagement : MonoBehaviour {
             playback.mute [ c ] = false;
         }
 
-        FileStream masterFile = File.Create ( selectedPath + "\\PSG_ALL.wav" );
+        FileStream masterFile = File.Create ( selectedPath + "/PSG_ALL.wav" );
         yield return StartCoroutine(SaveWAVRoutine ( masterFile, true ));
         m_OperationInProgress = false;
     }
