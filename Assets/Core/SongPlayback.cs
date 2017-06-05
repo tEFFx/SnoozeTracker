@@ -121,10 +121,6 @@ public class SongPlayback : MonoBehaviour {
             
             for (int i = 0; i < data.channels; i++)
             {
-                if ( mute [ i ] ) {
-                    m_Instruments [ i ].note = VirtualKeyboard.Note.NoteOff;
-                    continue;
-                }
 
                 m_PlayingPattern = m_CurrentPattern;
                 SongData.ColumnEntry col = data.GetPatternColumn(m_CurrentPattern, i);
@@ -134,26 +130,29 @@ public class SongPlayback : MonoBehaviour {
                     //psg.SetAttenuation ( i, 0 );
                     continue;
                 }
+                if (mute[i]) {
+                    m_Instruments[i].note = VirtualKeyboard.Note.NoteOff;
+                } else {
+                    int volume = col.data[m_CurrentLine, 2];
+                    if (volume >= 0) {
+                        m_Instruments[i].relativeVolume = volume;
+                    }
 
-                int volume = col.data [ m_CurrentLine, 2 ];
-                if ( volume >= 0 ) {
-                    m_Instruments [ i ].relativeVolume = volume;
-                }
-
-                if (col.data[m_CurrentLine, 0] > 0)
-                {
-                    VirtualKeyboard.Note note = VirtualKeyboard.GetNote ( col.data [ m_CurrentLine, 0 ] );
-                    if ( note == VirtualKeyboard.Note.NoteOff ) {
-                        m_Instruments [ i ].note = VirtualKeyboard.Note.NoteOff;
-                        psg.SetAttenuation ( i, 0 );
-                    } else if (col.data[m_CurrentLine, 1] < instruments.presets.Length) {
-                        m_PrevInstruments [ i ] = m_Instruments [ i ];
-                        m_Instruments [ i ] = instruments.presets [ col.data [ m_CurrentLine, 1 ] ];
-                        m_Instruments [ i ].relativeVolume = volume >= 0 ? volume : 0xF;
-                        m_Instruments [ i ].note = note;
-                        m_Instruments [ i ].noteOffset = data.transposeTable [ m_CurrentPattern ] [ i ];
-                        m_Instruments [ i ].octave = VirtualKeyboard.GetOctave ( col.data [ m_CurrentLine, 0 ] );
-                    } 
+                    if (col.data[m_CurrentLine, 0] > 0) {
+                        VirtualKeyboard.Note note = VirtualKeyboard.GetNote(col.data[m_CurrentLine, 0]);
+                        if (note == VirtualKeyboard.Note.NoteOff) {
+                            m_Instruments[i].note = VirtualKeyboard.Note.NoteOff;
+                            psg.SetAttenuation(i, 0);
+                        }
+                        else if (col.data[m_CurrentLine, 1] < instruments.presets.Length) {
+                            m_PrevInstruments[i] = m_Instruments[i];
+                            m_Instruments[i] = instruments.presets[col.data[m_CurrentLine, 1]];
+                            m_Instruments[i].relativeVolume = volume >= 0 ? volume : 0xF;
+                            m_Instruments[i].note = note;
+                            m_Instruments[i].noteOffset = data.transposeTable[m_CurrentPattern][i];
+                            m_Instruments[i].octave = VirtualKeyboard.GetOctave(col.data[m_CurrentLine, 0]);
+                        }
+                    }
                 }
 
 
