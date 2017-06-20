@@ -214,7 +214,10 @@ public class SongData : MonoBehaviour {
         return IsPatternValid(currentPattern, channel);
     }
 
-    public bool IsPatternValid(int pattern, int channel) {
+    public bool IsPatternValid(int pattern, int channel)
+    {
+        if (pattern >= m_LookupTable.Count)
+            return false;
         return m_LookupTable[pattern][channel] >= 0;
     }
 

@@ -25,6 +25,7 @@ public class FileManagement : MonoBehaviour {
     public VirtualKeyboard keyboard;
     public PatternView patternView;
     public PatternMatrix patternMatrix;
+    public VGMImport vgmImport;
 
     public Action onFileOpen;
 
@@ -35,6 +36,8 @@ public class FileManagement : MonoBehaviour {
 
     private TinyFileDialogs.OpenFileDialog m_TuneOpen;
     private TinyFileDialogs.OpenFileDialog m_SampleOpen;
+    private TinyFileDialogs.OpenFileDialog m_VgmImport;
+
     private TinyFileDialogs.SaveFileDialog m_TuneSave;
     private TinyFileDialogs.SaveFileDialog m_WavSave;
     private TinyFileDialogs.SaveFileDialog m_VgmSave;
@@ -141,6 +144,12 @@ public class FileManagement : MonoBehaviour {
         m_VgmSave.filterPatterns = new string [ ] { "*.vgz", "*.vgm" };
         m_VgmSave.description = "VGM-file(s)";
         m_VgmSave.defaultPath = UnityEngine.Application.dataPath;
+        
+        m_VgmImport = new TinyFileDialogs.OpenFileDialog();
+        m_VgmImport.title = "Import VGM";
+        m_VgmImport.filterPatterns = new string [ ] { "*.vgm" };
+        m_VgmImport.description = "Uncompressed VGM-file(s)";
+        m_VgmImport.defaultPath = UnityEngine.Application.dataPath;
     }
 
     void Start() {
@@ -183,6 +192,20 @@ public class FileManagement : MonoBehaviour {
                 m_OpenFile = m_TuneSave.filePath;
 
             fileModified = false;
+        }
+    }
+
+    public void ImportVGM()
+    {
+        if (fileModified && !TinyFileDialogs.MessageBox("Importing VGM",
+                "Are you sure? You will lose all unsaved progress.", TinyFileDialogs.DialogType.YESNO,
+                TinyFileDialogs.IconType.WARNING, false))
+            return;
+
+        if (m_VgmImport.ShowDialog())
+        {
+            BinaryReader br = new BinaryReader ( m_VgmImport.OpenFile ( ) );
+            vgmImport.ImportVGMFile(br);
         }
     }
 

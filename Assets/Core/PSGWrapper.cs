@@ -56,6 +56,7 @@ public class PSGWrapper : MonoBehaviour {
     public SN76489 chip { get { return m_PSGChip; } }
     public AudioSource audioSource;
     public SongPlayback playback;
+	public Arduino arduino;
     [HideInInspector]
     public bool recordRegisters;
 
@@ -152,13 +153,14 @@ public class PSGWrapper : MonoBehaviour {
         byte reg = (byte)((channel * 2) << 4);
         byte data = (byte)(0x80 | reg | (frequency & 0xF));
         m_PSGChip.Write(data);
+		arduino.WriteByte((byte)data);
 
         RegisterWritten( FileManagement.VGMCommands.PSGWrite, data );
 
         byte data1 = data;
         data = (byte)((frequency >> 4) & 0x3F);
         m_PSGChip.Write(data);
-
+		arduino.WriteByte((byte)data);
         RegisterWritten( FileManagement.VGMCommands.PSGWrite, data );
     }
 
@@ -171,7 +173,7 @@ public class PSGWrapper : MonoBehaviour {
         byte reg = (byte)((channel * 2 + 1) << 4);
         byte data = (byte)(0x80 | reg | (attenuation & 0x0F));
         m_PSGChip.Write(data);
-
+		arduino.WriteByte((byte)data);
         RegisterWritten( FileManagement.VGMCommands.PSGWrite, data );
     }
 
@@ -188,6 +190,7 @@ public class PSGWrapper : MonoBehaviour {
 
         m_PSGChip.Write(data);
         RegisterWritten( FileManagement.VGMCommands.PSGWrite, data );
+		arduino.WriteByte((byte)data);
     }
 
     public List<RegisterWrite> RecordRegisters(bool record = true)
