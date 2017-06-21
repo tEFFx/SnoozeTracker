@@ -8,10 +8,20 @@ public class VGMImport : MonoBehaviour
 	public SongData data;
 	public PatternView view;
 	public PatternMatrix matrix;
+	public Instruments instruments;
 
 	private int m_CurrRow;
 	public void ImportVGMFile(BinaryReader reader)
 	{
+		/* 	TODO:
+			Make sure that instrument editor is updated
+			Make sure tracker controls are updated (specifically pattern length)
+		 */
+		
+		instruments.CreateInstrument();
+		instruments.presets[0].volumeTable = new int[] {0xF};
+		instruments.presets[1].volumeTable = new int[] {0xF};
+
 		data.SetPatternLength(128);
 		data.SetData(0, 0, 3, 0xf);
 		data.SetData(0, 0, 4, 0x1);
@@ -30,7 +40,7 @@ public class VGMImport : MonoBehaviour
 					ParsePSGData(val);
 					break;
 				case 0x61:
-					int inc = Mathf.RoundToInt(reader.ReadUInt16() / 735.0f);
+					int inc = Mathf.FloorToInt(reader.ReadUInt16() / 735.0f);
 					m_CurrRow += inc;
 					if (m_CurrRow >= data.patternLength)
 					{
@@ -92,7 +102,7 @@ public class VGMImport : MonoBehaviour
 				this.data.SetData(3, m_CurrRow, 3, 0x20);
 				this.data.SetData(3, m_CurrRow, 4, m_NoiseMode);
 				this.data.SetData(3, m_CurrRow, 0, (int)VirtualKeyboard.EncodeNoteInfo(1 + nf, 3));
-				this.data.SetData(3, m_CurrRow, 1, 0);
+				this.data.SetData(3, m_CurrRow, 1, 1);
 				this.data.SetData(m_CurrReg, m_CurrRow, 2, m_LastVol[3]);
 			}
 		}
@@ -115,7 +125,7 @@ public class VGMImport : MonoBehaviour
 				this.data.SetData(3, m_CurrRow, 3, 0x20);
 				this.data.SetData(3, m_CurrRow, 4, m_NoiseMode);
 				this.data.SetData(3, m_CurrRow, 0, noteData);
-				this.data.SetData(3, m_CurrRow, 1, 0);
+				this.data.SetData(3, m_CurrRow, 1, 1);
 				this.data.SetData(3, m_CurrRow, 2, m_LastVol[3]);
 			}
 		}
@@ -123,6 +133,8 @@ public class VGMImport : MonoBehaviour
 
 	private byte GetEncodedNoteData(int div)
 	{
+		if(div == 0)
+			return VirtualKeyboard.EncodeNoteInfo(1, 12);
 		int invRelativenote;
 		int freq = (int)SN76489.Clock.PAL / (2 * div * 16);
 		int relNote = Mathf.RoundToInt(Mathf.Log(freq * 440) / Mathf.Log(Mathf.Pow(2, 1f / 12f))) + 12 * 3 + 2;

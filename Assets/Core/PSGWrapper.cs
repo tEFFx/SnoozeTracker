@@ -60,6 +60,9 @@ public class PSGWrapper : MonoBehaviour {
     [HideInInspector]
     public bool recordRegisters;
 
+    public SN76489.Clock clockFrequency = SN76489.Clock.PAL;
+    public int refreshRate = 50;
+
     private long m_CurrentSample;
     private SN76489 m_PSGChip;
     private List<IrqCallback> m_Callbacks = new List<IrqCallback>();
@@ -71,7 +74,7 @@ public class PSGWrapper : MonoBehaviour {
     void Awake()
     {
         m_SampleRate = AudioSettings.outputSampleRate;
-        m_PSGChip = new SN76489(m_SampleRate, (int)SN76489.Clock.PAL);
+        m_PSGChip = new SN76489(m_SampleRate, (int)clockFrequency);
         Debug.Log ( AudioSettings.outputSampleRate );   
         ResetChip();
     }
@@ -139,7 +142,7 @@ public class PSGWrapper : MonoBehaviour {
     {
         if (channel < 3)
         {
-            int freq = CalculatePSGFreq(note, octave, fineTune);
+            int freq = CalculatePSGFreq((int)clockFrequency, note, octave, fineTune);
             freq = Mathf.Clamp ( freq, 0x00, 0x3FF );
             SetFrequency(channel, freq);
         }
@@ -218,13 +221,13 @@ public class PSGWrapper : MonoBehaviour {
         m_WriteWait = 0;
     }
 
-    public static int CalculatePSGFreq(int note, int octave, int fineTune = 0)
+    public static int CalculatePSGFreq(int clock, int note, int octave, int fineTune = 0)
     {
         int freq = ( int ) ( CalculateNoteFreq ( note, octave ) + fineTune );
         if ( freq == 0 )
             return 0;
 
-        int div = (int)SN76489.Clock.PAL / 32 / freq;
+        int div = clock / 32 / freq;
         //Debug.Log(div.ToString("X2"));
         return div;
     }

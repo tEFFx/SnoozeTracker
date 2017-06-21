@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class SongPlayback : MonoBehaviour {
     public bool isPlaying { get { return m_IsPlaying; } }
-    public int playbackRate { get { return m_PlaybackRate; } }
+    public int playbackRate { get { return psg.refreshRate; } }
     public int patternLoop { get { return m_PatternLoop; } }
     public int currentPattern { get { return m_PlayingPattern; } }
     public int internalPattern { get { return m_CurrentPattern; } }
@@ -34,7 +34,6 @@ public class SongPlayback : MonoBehaviour {
     private Instruments.InstrumentInstance[] m_PrevInstruments;
     private bool m_NoiseFB;
     private bool m_NoiseChn3;
-    private int m_PlaybackRate = 50;
     private int m_PatternLoop = 0;
     private int m_PlayLoops = -1;
     private int m_Loops = -1;
@@ -43,7 +42,7 @@ public class SongPlayback : MonoBehaviour {
 
     void Start()
     {
-        psg.AddIrqCallback(m_PlaybackRate, OnIrqCallback);
+        psg.AddIrqCallback(psg.refreshRate, OnIrqCallback);
         psg.AddIrqCallback(Instruments.InstrumentInstance.SAMPLE_RATE, OnSampleCallback);
         mute = new bool [ data.channels ];
         m_Instruments = new Instruments.InstrumentInstance [ data.channels ];
@@ -60,7 +59,7 @@ public class SongPlayback : MonoBehaviour {
                 Play( true );
         }
 
-        if(follow && m_IsPlaying && Time.time - m_LastLineTick > 1f / 50f) {
+        if(follow && m_IsPlaying && Time.time - m_LastLineTick > 1f / psg.refreshRate) {
             while ( m_MoveLine > 0 ) {
                 m_MoveLine--;
                 
